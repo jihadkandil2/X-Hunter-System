@@ -1,0 +1,38 @@
+[
+    {
+        "Lab scenario": "Web shell upload via race condition",
+        "Lab Description": "This lab contains a vulnerable image upload function. Although it performs robust validation on any files that are uploaded, it is possible to bypass this validation entirely by exploiting a race condition in the way it processes them.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "File upload vulnerabilities"
+    },
+    {
+        "Lab scenario": "Remote code execution via web shell upload",
+        "Lab Description": "This lab contains a vulnerable image upload function. It doesn't perform any validation on the files users upload before storing them on the server's filesystem.\nTo solve the lab, upload a basic PHP web shell and use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "File upload vulnerabilities"
+    },
+    {
+        "Lab scenario": "Web shell upload via Content-Type restriction bypass",
+        "Lab Description": "This lab contains a vulnerable image upload function. It attempts to prevent users from uploading unexpected file types, but relies on checking user-controllable input to verify this.\nTo solve the lab, upload a basic PHP web shell and use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "File upload vulnerabilities"
+    },
+    {
+        "Lab scenario": "Web shell upload via path traversal",
+        "Lab Description": "This lab contains a vulnerable image upload function. The server is configured to prevent execution of user-supplied files, but this restriction can be bypassed by exploiting a secondary vulnerability.\nTo solve the lab, upload a basic PHP web shell and use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "File upload vulnerabilities"
+    },
+    {
+        "Lab scenario": "Web shell upload via extension blacklist bypass",
+        "Lab Description": "This lab contains a vulnerable image upload function. Certain file extensions are blacklisted, but this defense can be bypassed due to a fundamental flaw in the configuration of this blacklist.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "File upload vulnerabilities"
+    },
+    {
+        "Lab scenario": "Web shell upload via obfuscated file extension",
+        "Lab Description": "This lab contains a vulnerable image upload function. Certain file extensions are blacklisted, but this defense can be bypassed using a classic obfuscation technique.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "File upload vulnerabilities"
+    },
+    {
+        "Lab scenario": "Remote code execution via polyglot web shell upload",
+        "Lab Description": "This lab contains a vulnerable image upload function. Although it checks the contents of the file to verify that it is a genuine image, it is still possible to upload and execute server-side code.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "File upload vulnerabilities"
+    }
+      
+]

@@ -1,0 +1,37 @@
+[
+    {
+        "Lab scenario": "Basic SSRF against the local server",
+        "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://localhost/admin and delete the user carlos.",
+        "Vulnerability name": "Server-side request forgery (SSRF)"
+      },
+      {
+        "Lab scenario": "Basic SSRF against another back-end system",
+        "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, use the stock check functionality to scan the internal 192.168.0.X range for an admin interface on port 8080, then use it to delete the user carlos.",
+        "Vulnerability name": "Server-side request forgery (SSRF)"
+      },
+      {
+        "Lab scenario": "Blind SSRF with out-of-band detection",
+        "Lab Description": "This site uses analytics software which fetches the URL specified in the Referer header when a product page is loaded.\nTo solve the lab, use this functionality to cause an HTTP request to the public Burp Collaborator server.",
+        "Vulnerability name": "Server-side request forgery (SSRF)"
+      },
+      {
+        "Lab scenario": "SSRF with blacklist-based input filter",
+        "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://localhost/admin and delete the user carlos.\nThe developer has deployed two weak anti-SSRF defenses that you will need to bypass.",
+        "Vulnerability name": "Server-side request forgery (SSRF)"
+      },
+      {
+        "Lab scenario": "SSRF with filter bypass via open redirection vulnerability",
+        "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://192.168.0.12:8080/admin and delete the user carlos.\nThe stock checker has been restricted to only access the local application, so you will need to find an open redirect affecting the application first.",
+        "Vulnerability name": "Server-side request forgery (SSRF)"
+      },
+      {
+        "Lab scenario": "Blind SSRF with Shellshock exploitation",
+        "Lab Description": "This site uses analytics software which fetches the URL specified in the Referer header when a product page is loaded.\nTo solve the lab, use this functionality to perform a blind SSRF attack against an internal server in the 192.168.0.X range on port 8080. In the blind attack, use a Shellshock payload against the internal server to exfiltrate the name of the OS user.",
+        "Vulnerability name": "Server-side request forgery (SSRF)"
+      },
+      {
+        "Lab scenario": "SSRF with whitelist-based input filter",
+        "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://localhost/admin and delete the user carlos.\nThe developer has deployed an anti-SSRF defense you will need to bypass.",
+        "Vulnerability name": "Server-side request forgery (SSRF)"
+      }
+]

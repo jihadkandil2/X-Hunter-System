@@ -1,0 +1,37 @@
+[
+    {
+        "Lab scenario": "Accessing private GraphQL posts",
+        "Lab Description": "The blog page for this lab contains a hidden blog post that has a secret password. To solve the lab, find the hidden blog post and enter the password. Learn more about Working with GraphQL in Burp Suite.",
+        "Vulnerability name": "GraphQL API vulnerabilities",
+        "Lab Level": "Easy",
+        "src code": "const express = require('express'); const { graphqlHTTP } = require('express-graphql'); const { buildSchema } = require('graphql'); const app = express(); const posts = [{ id: 1, title: 'Public Post', content: 'This is a public post.', isPrivate: false }, { id: 2, title: 'Private Post', content: 'This is a private post with a secret password: secret123', isPrivate: true }]; const schema = buildSchema(`type Post { id: ID! title: String! content: String! isPrivate: Boolean! } type Query { getPost(id: ID!): Post listPosts: [Post] }`); const root = { getPost: ({ id }) => posts.find(post => post.id == id), listPosts: () => posts }; app.use('/graphql', graphqlHTTP({ schema: schema, rootValue: root, graphiql: true })); app.listen(4000, () => { console.log('Server is running on http://localhost:4000/graphql'); });"
+      },
+      {
+        "Lab scenario": "Accidental exposure of private GraphQL fields",
+        "Lab Description": "The user management functions for this lab are powered by a GraphQL endpoint. The lab contains an access control vulnerability whereby you can induce the API to reveal user credential fields. To solve the lab, sign in as the administrator and delete the username carlos. Learn more about Working with GraphQL in Burp Suite.",
+        "Vulnerability name": "GraphQL API vulnerabilities",
+        "lab level": "Medium",
+        "src code": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.post('/graphql', (req, res) => { const query = req.body?.query; if (query && query.includes('users')) { res.json({ data: { administrator: 'admin123', carlos: 'password1' } }); } else { res.json({ data: [] }); } }); const PORT = 4000; app.listen(PORT, () => console.log(`GraphQL Lab running on http://localhost:${PORT}`));"
+      },
+      {
+        "Lab scenario": "Finding a hidden GraphQL endpoint",
+        "Lab Description": "The user management functions for this lab are powered by a hidden GraphQL endpoint. You won't be able to find this endpoint by simply clicking pages in the site. The endpoint also has some defenses against introspection. To solve the lab, find the hidden endpoint and delete carlos. Learn more about Working with GraphQL in Burp Suite.",
+        "Vulnerability name": "GraphQL API vulnerabilities",
+        "lab level": "Hard",
+        "src code": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const hiddenEndpoint = '/secret-graphql'; app.post(hiddenEndpoint, (req, res) => { const query = req.body?.query; if (query && query.includes('delete carlos')) { res.json({ message: 'User carlos has been deleted' }); } else { res.status(403).json({ error: 'Unauthorized or invalid query' }); } }); const PORT = 4000; app.listen(PORT, () => console.log(`GraphQL Lab running with hidden endpoint on http://localhost:${PORT}${hiddenEndpoint}`));"
+      },
+      {
+        "Lab scenario": "Bypassing GraphQL brute force protections",
+        "Lab Description": "The user login mechanism for this lab is powered by a GraphQL API. The API endpoint has a rate limiter that returns an error if it receives too many requests from the same origin in a short space of time. To solve the lab, brute force the login mechanism to sign in as carlos. Use the list of authentication lab passwords as your password source. Learn more about Working with GraphQL in Burp Suite.",
+        "Vulnerability name": "GraphQL API vulnerabilities",
+        "lab level": "Hard",
+        "src code": "const express = require('express'); const bodyParser = require('body-parser'); const rateLimit = require('express-rate-limit'); const app = express(); app.use(bodyParser.json()); const users = [{ username: 'carlos', password: 'password123' }]; const bruteForceLimiter = rateLimit({ windowMs: 60 * 1000, max: 3, message: 'Too many attempts. Please try again later.' }); app.post('/graphql', bruteForceLimiter, (req, res) => { const { query, username, password } = req.body; if (query === 'login' && username && password) { const user = users.find(u => u.username === username && u.password === password); if (user) { res.json({ message: `Welcome, ${username}!` }); } else { res.status(401).json({ error: 'Invalid credentials' }); } } else { res.status(400).json({ error: 'Invalid request' }); } }); const PORT = 4000; app.listen(PORT, () => console.log(`GraphQL Lab with brute force protection running on http://localhost:${PORT}`));"
+      },
+      {
+        "Lab scenario": "Performing CSRF exploits over GraphQL",
+        "Lab Description": "The user management functions for this lab are powered by a GraphQL endpoint. The endpoint accepts requests with a content-type of x-www-form-urlencoded and is therefore vulnerable to cross-site request forgery (CSRF) attacks. To solve the lab, craft some HTML that uses a CSRF attack to change the viewer's email address, then upload it to your exploit server. You can log in to your own account using the following credentials: wiener:peter. Learn more about Working with GraphQL in Burp Suite.",
+        "Vulnerability name": "GraphQL API vulnerabilities",
+        "lab level": "Hard",
+        "src code": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.urlencoded({ extended: true })); const users = [{ username: 'wiener', password: 'peter', email: 'wiener@example.com' }]; app.post('/graphql', (req, res) => { const query = req.body?.query; const email = req.body?.email; if (query === 'updateEmail' && email) { users[0].email = email; res.json({ message: `Email successfully updated to: ${email}` }); } else { res.status(400).json({ error: 'Invalid request or missing email' }); } }); const PORT = 4000; app.listen(PORT, () => console.log(`GraphQL Lab vulnerable to CSRF running on http://localhost:${PORT}`));"
+      }
+]

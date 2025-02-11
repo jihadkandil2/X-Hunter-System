@@ -1,0 +1,38 @@
+[
+    
+  {
+    "Lab scenario": "Basic clickjacking with CSRF token protection",
+    "Lab Description": "This lab contains login functionality and a delete account button that is protected by a CSRF token. A user will click on elements that display the word \"click\" on a decoy website.\nTo solve the lab, craft some HTML that frames the account page and fools the user into deleting their account. The lab is solved when the account is deleted.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking",
+    "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n    res.send(`\n        <h1>Clickjacking Lab</h1>\n        <form action=\"/delete-account\" method=\"POST\">\n            <input type=\"hidden\" name=\"csrf\" value=\"random-csrf-token\">\n            <button type=\"submit\">Delete Account</button>\n        </form>\n    `);\n});\n\napp.post('/delete-account', (req, res) => {\n    const { csrf } = req.body;\n    if (csrf === 'random-csrf-token') {\n        res.send('Account deleted');\n    } else {\n        res.status(403).send('Invalid CSRF token');\n    }\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
+    "lab level": "Medium"
+  },
+  {
+    "Lab scenario": "Clickjacking with form input data prefilled from a URL parameter",
+    "Lab Description": "This lab extends the basic clickjacking example in Lab: Basic clickjacking with CSRF token protection. The goal of the lab is to change the email address of the user by prepopulating a form using a URL parameter and enticing the user to inadvertently click on an \"Update email\" button.\nTo solve the lab, craft some HTML that frames the account page and fools the user into updating their email address by clicking on a \"Click me\" decoy. The lab is solved when the email address is changed.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking",
+    "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n    const email = req.query.email || 'user@example.com';\n    res.send(`\n        <h1>Clickjacking Lab</h1>\n        <form action=\"/update-email\" method=\"POST\">\n            <label for=\"email\">Email:</label>\n            <input type=\"email\" id=\"email\" name=\"email\" value=\"${email}\" required>\n            <input type=\"hidden\" name=\"csrf\" value=\"random-csrf-token\">\n            <button type=\"submit\">Update Email</button>\n        </form>\n    `);\n});\n\napp.post('/update-email', (req, res) => {\n    const { email, csrf } = req.body;\n    if (csrf === 'random-csrf-token') {\n        res.send(`Email updated to ${email}`);\n    } else {\n        res.status(403).send('Invalid CSRF token');\n    }\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
+    "lab level": "Medium"
+  },
+  {
+    "Lab scenario": "Clickjacking with a frame buster script",
+    "Lab Description": "This lab is protected by a frame buster which prevents the website from being framed. Can you get around the frame buster and conduct a clickjacking attack that changes the users email address?\nTo solve the lab, craft some HTML that frames the account page and fools the user into changing their email address by clicking on \"Click me\". The lab is solved when the email address is changed.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking",
+    "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n    res.send(`\n        <h1>Clickjacking Lab</h1>\n        <form action=\"/update-email\" method=\"POST\">\n            <label for=\"email\">Email:</label>\n            <input type=\"email\" id=\"email\" name=\"email\" required>\n            <input type=\"hidden\" name=\"csrf\" value=\"random-csrf-token\">\n            <button type=\"submit\">Update Email</button>\n        </form>\n        <script>\n            if (top !== self) {\n                top.location = self.location;\n            }\n        </script>\n    `);\n});\n\napp.post('/update-email', (req, res) => {\n    const { email, csrf } = req.body;\n    if (csrf === 'random-csrf-token') {\n        res.send(`Email updated to ${email}`);\n    } else {\n        res.status(403).send('Invalid CSRF token');\n    }\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
+    "lab level": "Hard"
+  },
+  {
+    "Lab scenario": "Exploiting clickjacking vulnerability to trigger DOM-based XSS",
+    "Lab Description": "This lab contains an XSS vulnerability that is triggered by a click. Construct a clickjacking attack that fools the user into clicking the \"Click me\" button to call the print() function.",
+    "Vulnerability name": "Clickjacking",
+    "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n    res.send(`\n        <h1>Clickjacking Lab</h1>\n        <button onclick=\"print()\">Click me</button>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
+    "lab level": "Hard"
+  },
+  {
+    "Lab scenario": "Multistep clickjacking",
+    "Lab Description": "This lab has some account functionality that is protected by a CSRF token and also has a confirmation dialog to protect against Clickjacking. To solve this lab construct an attack that fools the user into clicking the delete account button and the confirmation dialog by clicking on \"Click me first\" and \"Click me next\" decoy actions. You will need to use two elements for this lab.\nYou can log in to the account yourself using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking",
+    "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n    res.send(`\n        <h1>Multistep Clickjacking Lab</h1>\n        <form action=\"/delete-account\" method=\"POST\">\n            <input type=\"hidden\" name=\"csrf\" value=\"random-csrf-token\">\n            <button type=\"submit\" onclick=\"return confirm('Are you sure you want to delete your account?')\">Delete Account</button>\n        </form>\n    `);\n});\n\napp.post('/delete-account', (req, res) => {\n    const { csrf } = req.body;\n    if (csrf === 'random-csrf-token') {\n        res.send('Account deleted');\n    } else {\n        res.status(403).send('Invalid CSRF token');\n    }\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
+    "lab level": "Hard"
+  }
+]

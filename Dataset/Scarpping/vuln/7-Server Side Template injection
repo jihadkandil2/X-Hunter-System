@@ -1,0 +1,51 @@
+[
+      {
+        "Lab scenario": "Basic server-side template injection",
+        "Lab Description": "This lab is vulnerable to server-side template injection due to the unsafe construction of an ERB template.\nTo solve the lab, review the ERB documentation to find out how to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.",
+        "Vulnerability name": "Server-side template injection",
+        "lab level": "medium",
+        "src code": "const express = require('express'), bodyParser = require('body-parser'), { execSync } = require('child_process'), app = express(); app.use(bodyParser.urlencoded({ extended: true })); app.get('/render', (req, res) => { const command = req.query.command || ''; try { res.send(execSync(command).toString()); } catch { res.status(500).send('Error executing command'); } }); app.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+      },
+      {
+        "Lab scenario": "Basic server-side template injection (code context)",
+        "Lab Description": "This lab is vulnerable to server-side template injection due to the way it unsafely uses a Tornado template. To solve the lab, review the Tornado documentation to discover how to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "Server-side template injection",
+        "lab level": "easy",
+        "src code": "const express=require('express'),app=express();app.use(express.json());app.get('/',(req,res)=>{res.send(`<h1>Server-Side Template Injection Lab</h1><p>This lab demonstrates a server-side template injection vulnerability using Tornado templates.</p><ul><li>Log in as <code>wiener:peter</code>.</li><li>Exploit the template engine to delete <code>morale.txt</code>.</li></ul>`);});app.post('/login',(req,res)=>{const{username,password}=req.body;if(username==='wiener'&&password==='peter'){res.send('Logged in successfully!');}else{res.status(401).send('Invalid credentials.');}});app.post('/delete-file',(req,res)=>{const{payload}=req.body;if(payload&&payload.includes('{{7*7}}')){res.send('File deleted: morale.txt');}else{res.status(400).send('Invalid payload.');}});const PORT=3000;app.listen(PORT,()=>{console.log(`Lab running on http://localhost:${PORT}`);});"
+      },
+      {
+        "Lab scenario": "Server-side template injection using documentation",
+        "Lab Description": "This lab is vulnerable to server-side template injection. To solve the lab, identify the template engine and use the documentation to work out how to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials:\ncontent-manager:C0nt3ntM4n4g3r",
+        "Vulnerability name": "Server-side template injection",
+        "lab level": "medium",
+        "src code": "const express=require('express'),app=express();app.use(express.json());app.get('/',(req,res)=>{res.send(`<h1>Server-Side Template Injection Lab</h1><p>This lab demonstrates a server-side template injection vulnerability.</p><ul><li>Log in as <code>content-manager:C0nt3ntM4n4g3r</code>.</li><li>Exploit the template engine to delete <code>morale.txt</code>.</li></ul>`);});app.post('/login',(req,res)=>{const{username,password}=req.body;console.log('Received username:',username);console.log('Received password:',password);if(username==='content-manager'&&password==='C0nt3ntM4n4g3r'){res.send('Logged in successfully!');}else{res.status(401).send('Invalid credentials.');}});app.post('/delete-file',(req,res)=>{const{payload}=req.body;console.log('Received payload:',payload);if(payload&&payload.includes('{{7*7}}')){res.send('File deleted: morale.txt');}else{res.status(400).send('Invalid payload.');}});const PORT=3000;app.listen(PORT,()=>{console.log(`Lab running on http://localhost:${PORT}`);});"
+      },
+      {
+        "Lab scenario": "Server-side template injection in an unknown language with a documented exploit",
+        "Lab Description": "This lab is vulnerable to server-side template injection. To solve the lab, identify the template engine and find a documented exploit online that you can use to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.",
+        "Vulnerability name": "Server-side template injection",
+        "lab level": "hard",
+        "src code": "require('express')().use(require('body-parser').json()).post('/delete-file', (req, res) => { const template = req.body.template, filePath = require('path').join(__dirname, 'morale.txt'); try { if (template.includes('DELETE')) require('fs').existsSync(filePath) ? (require('fs').unlinkSync(filePath), res.send('File deleted successfully')) : res.status(404).send('File not found'); else res.send('Invalid template'); } catch (error) { res.status(500).send(`Error: ${error.message}`); } }).listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+      },
+      {
+        "Lab scenario": "Server-side template injection with information disclosure via user-supplied objects",
+        "Lab Description": "This lab is vulnerable to server-side template injection due to the way an object is being passed into the template. This vulnerability can be exploited to access sensitive data.\nTo solve the lab, steal and submit the framework's secret key.\nYou can log in to your own account using the following credentials:\ncontent-manager:C0nt3ntM4n4g3r",
+        "Vulnerability name": "Server-side template injection",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  const userInput = req.query.template;\n  res.send(eval('`' + userInput + '`')); // Vulnerable to SSTI\n});\n\napp.listen(3000, () => {\n  console.log('Lab running on http://localhost:3000');\n});"
+      },
+      {
+        "Lab scenario": "Server-side template injection in a sandboxed environment",
+        "Lab Description": "This lab uses the Freemarker template engine. It is vulnerable to server-side template injection due to its poorly implemented sandbox. To solve the lab, break out of the sandbox to read the file my_password.txt from Carlos's home directory. Then submit the contents of the file.\nYou can log in to your own account using the following credentials:\ncontent-manager:C0nt3ntM4n4g3r",
+        "Vulnerability name": "Server-side template injection",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\nconst { readFileSync } = require('fs');\n\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  const userInput = req.query.template;\n  try {\n    res.send(eval('`' + userInput + '`')); // Vulnerable to SSTI\n  } catch (err) {\n    res.send('Error in template processing');\n  }\n});\n\napp.listen(3000, () => {\n  console.log('Lab running on http://localhost:3000');\n});"
+      },
+      {
+        "Lab scenario": "Server-side template injection with a custom exploit",
+        "Lab Description": "This lab is vulnerable to server-side template injection. To solve the lab, create a custom exploit to delete the file /.ssh/id_rsa from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "Server-side template injection",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst { unlinkSync } = require('fs');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  const userInput = req.query.template;\n  try {\n    res.send(eval('`' + userInput + '`')); // Vulnerable to SSTI\n  } catch (err) {\n    res.send('Error in template processing');\n  }\n});\n\napp.listen(3000, () => {\n  console.log('Lab running on http://localhost:3000');\n});"
+      }     
+]

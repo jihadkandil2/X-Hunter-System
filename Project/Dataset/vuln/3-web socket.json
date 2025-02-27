@@ -1,0 +1,21 @@
+[
+    {
+        "Lab scenario": "Manipulating the WebSocket handshake to exploit vulnerabilities",
+        "Lab Description": "This online shop has a live chat feature implemented using WebSockets.\nIt has an aggressive but flawed XSS filter.\nTo solve the lab, use a WebSocket message to trigger an alert() popup in the support agent's browser.",
+        "Vulnerability name": "WebSockets",
+        "lab level": "Medium",
+      "src code": "const express = require('express');\nconst http = require('http');\nconst WebSocket = require('ws');\n\nconst app = express();\nconst server = http.createServer(app);\nconst wss = new WebSocket.Server({ server });\n\nwss.on('connection', (ws) => {\n  ws.on('message', (message) => {\n    console.log('Received:', message);\n    // Flawed filter: remove <script> tags\n    const filtered = message.toString().replace(/<script>/gi, '').replace(/<\\/script>/gi, '');\n    // Broadcast the filtered payload to all connected clients\n    wss.clients.forEach((client) => {\n      if (client.readyState === WebSocket.OPEN) {\n        client.send(filtered);\n      }\n    });\n  });\n});\n\napp.get('/', (req, res) => {\n  res.send(`<!DOCTYPE html>\n<html>\n  <head>\n    <title>WebSocket XSS Lab</title>\n  </head>\n  <body>\n    <h1>WebSocket XSS Lab</h1>\n    <p>If vulnerable, an alert popup should appear on the support agent's browser.</p>\n    <script>\n      // Make the WebSocket instance global for console access\n      window.ws = new WebSocket('ws://' + location.host);\n      ws.onopen = () => {\n        console.log('WebSocket connected');\n        // Immediately send the payload on connection\n        ws.send(\"<script>alert('XSS via WebSocket!')</script>\");\n      };\n      ws.onmessage = (event) => {\n        console.log('Message from server:', event.data);\n        if (event.data.includes(\"alert(\")) { eval(event.data); }\n      };\n    </script>\n  </body>\n</html>`);\n});\n\nserver.listen(3000, () => console.log('Lab running on http://localhost:3000'));\n"
+      },
+      {
+        "Lab scenario": "Cross-site WebSocket hijacking",
+        "Lab Description": "This online shop has a live chat feature implemented using WebSockets.\nTo solve the lab, use the exploit server to host an HTML/JavaScript payload that uses a cross-site WebSocket hijacking attack to exfiltrate the victim's chat history, then use this gain access to their account.",
+        "Vulnerability name": "WebSockets"
+      },
+      {
+        "Lab scenario": "Manipulating WebSocket messages to exploit vulnerabilities",
+        "Lab Description": "This online shop has a live chat feature implemented using WebSockets.\nChat messages that you submit are viewed by a support agent in real time.\nTo solve the lab, use a WebSocket message to trigger an alert() popup in the support agent's browser.",
+        "Vulnerability name": "WebSockets",
+        "lab level": "easy",
+        "src code":"const express = require('express');const WebSocket = require('ws');const app = express();const server = require('http').createServer(app);const wss = new WebSocket.Server({ server });wss.on('connection', (ws) => {  ws.on('message', (message) => {    console.log('Received:', message);    ws.send('Support: How can I assist you?');    if (message.includes('<script>alert(1)</script>')) {      ws.send('Support: Alert triggered!');    }  });});app.get('/', (req, res) => {  res.send('<h1>WebSocket Lab</h1><p>Use WebSocket messages to exploit vulnerabilities.</p>');});server.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+      }
+]

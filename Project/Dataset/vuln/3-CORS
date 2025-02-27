@@ -1,0 +1,18 @@
+[
+    {
+        "Lab scenario": "CORS vulnerability with basic origin reflection",
+        "Lab Description": "This website has an insecure CORS configuration in that it trusts all origins.\nTo solve the lab, craft some JavaScript that uses CORS to retrieve the administrator's API key and upload the code to your exploit server. The lab is solved when you successfully submit the administrator's API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "Cross-origin resource sharing (CORS)"
+    
+      },
+      {
+        "Lab scenario": "CORS vulnerability with trusted null origin",
+        "Lab Description": "This website has an insecure CORS configuration in that it trusts the \"null\" origin.\nTo solve the lab, craft some JavaScript that uses CORS to retrieve the administrator's API key and upload the code to your exploit server. The lab is solved when you successfully submit the administrator's API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "Cross-origin resource sharing (CORS)"
+      },
+      {
+        "Lab scenario": "CORS vulnerability with trusted insecure protocols",
+        "Lab Description": "This website has an insecure CORS configuration in that it trusts all subdomains regardless of the protocol.\nTo solve the lab, craft some JavaScript that uses CORS to retrieve the administrator's API key and upload the code to your exploit server. The lab is solved when you successfully submit the administrator's API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "Cross-origin resource sharing (CORS)"
+      }
+]

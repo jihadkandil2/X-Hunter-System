@@ -1,0 +1,108 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const session = require('express-session');
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+// Setup session middleware
+app.use(session({
+  secret: 'insecure_deserialization_secret',
+  resave: false,
+  saveUninitialized: true
+}));
+
+// Setup a simulated "Carlos home" directory with a morale.txt file
+const carlosHome = path.join(__dirname, 'carlos_home');
+if (!fs.existsSync(carlosHome)) {
+  fs.mkdirSync(carlosHome);
+}
+const moraleFile = path.join(carlosHome, 'morale.txt');
+if (!fs.existsSync(moraleFile)) {
+  fs.writeFileSync(moraleFile, 'Morale text content');
+}
+
+// Root route with lab instructions
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Arbitrary Object Injection Lab</h1>
+    <p>This lab uses a serialization-based session mechanism and is vulnerable to arbitrary object injection (insecure deserialization).</p>
+    <p>To solve the lab, create and inject a malicious serialized object that deletes the <code>morale.txt</code> file from Carlos's home directory.</p>
+    <p>Log in using the credentials: <strong>wiener</strong> / <strong>peter</strong>.</p>
+    <p><a href="/login">Login Here</a></p>
+  `);
+});
+
+// Login page route
+app.get('/login', (req, res) => {
+  res.send(`
+    <h1>Login</h1>
+    <form method="POST" action="/login">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username"><br><br>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password"><br><br>
+      <button type="submit">Login</button>
+    </form>
+  `);
+});
+
+// Login endpoint
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'wiener' && password === 'peter') {
+    req.session.user = username;
+    res.send(`Welcome, ${username}! <a href="/deserialize">Go to Deserialize Endpoint</a>`);
+  } else {
+    res.send("Invalid credentials.");
+  }
+});
+
+// GET route for /deserialize: display payload submission form
+app.get('/deserialize', (req, res) => {
+  if (!req.session.user) {
+    return res.send("Please log in first.");
+  }
+  res.send(`
+    <h1>Submit Deserialization Payload</h1>
+    <form method="POST" action="/deserialize">
+      <label for="payload">Payload (raw serialized object):</label><br><br>
+      <textarea id="payload" name="payload" rows="6" cols="50" placeholder='{ "command": "echo Exploit executed" }'></textarea><br><br>
+      <button type="submit">Submit Payload</button>
+    </form>
+  `);
+});
+
+// Vulnerable endpoint: insecure deserialization using eval (simulation only!)
+app.post('/deserialize', (req, res) => {
+  if (!req.session.user) {
+    return res.send("Please log in first.");
+  }
+  const payload = req.body.payload;
+  try {
+    // WARNING: Using eval to deserialize user input is dangerous and is used here for lab simulation only!
+    const deserialized = eval('(' + payload + ')');
+    if (deserialized && deserialized.command) {
+      exec(deserialized.command, (error, stdout, stderr) => {
+        if (error) {
+          console.error("Error executing command:", error.message);
+          return res.status(500).send("Command execution error: " + error.message);
+        }
+        res.send(`Command executed successfully: ${stdout}`);
+      });
+    } else {
+      res.send("No command found in payload.");
+    }
+  } catch (e) {
+    res.send("Deserialization error: " + e.message);
+  }
+});
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Lab running on http://localhost:${PORT}`);
+});

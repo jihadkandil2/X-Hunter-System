@@ -1,0 +1,61 @@
+[
+    {
+        "Lab scenario": "OS command injection, simple case",
+        "Lab Description": "This lab contains an OS command injection vulnerability in the product stock checker.\nThe application executes a shell command containing user-supplied product and store IDs, and returns the raw output from the command in its response.\nTo solve the lab, execute the whoami command to determine the name of the current user.",
+        "Vulnerability name": "OS command injection"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with time delays",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The output from the command is not returned in the response.\nTo solve the lab, exploit the blind OS command injection vulnerability to cause a 10 second delay.",
+        "Vulnerability name": "OS command injection"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with output redirection",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The output from the command is not returned in the response. However, you can use output redirection to capture the output from the command. There is a writable folder at:\n/var/www/images/\nThe application serves the images for the product catalog from this location. You can redirect the output from the injected command to a file in this folder, and then use the image loading URL to retrieve the contents of the file.\nTo solve the lab, execute the whoami command and retrieve the output.",
+        "Vulnerability name": "OS command injection"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with out-of-band interaction",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The command is executed asynchronously and has no effect on the application's response. It is not possible to redirect output into a location that you can access. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, exploit the blind OS command injection vulnerability to issue a DNS lookup to Burp Collaborator.",
+        "Vulnerability name": "OS command injection"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with out-of-band data exfiltration",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The command is executed asynchronously and has no effect on the application's response. It is not possible to redirect output into a location that you can access. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, execute the whoami command and exfiltrate the output via a DNS query to Burp Collaborator. You will need to enter the name of the current user to complete the lab.",
+        "Vulnerability name": "OS command injection"
+      }
+
+
+      ,{"finished ":"#####################################Completed##############################################################################"},
+      {
+        "Lab scenario": "OS command injection, simple case",
+        "Lab Description": "This lab contains an OS command injection vulnerability in the product stock checker.\nThe application executes a shell command containing user-supplied product and store IDs, and returns the raw output from the command in its response.\nTo solve the lab, execute the whoami command to determine the name of the current user.",
+        "Vulnerability name": "OS command injection",
+        "lab level": "Medium",
+        "src code": "const express = require('express'), bodyParser = require('body-parser'), { exec } = require('child_process'), app = express(); app.use(bodyParser.urlencoded({ extended: true })); app.get('/stock', (req, res) => exec(`whoami`, (error, stdout) => error ? res.status(500).send(`Error executing command: ${error.message}`) : res.send(stdout))); const PORT = 4000; app.listen(PORT, () => console.log(`OS Command Injection lab running on http://localhost:${PORT}`));"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with time delays",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The output from the command is not returned in the response.\nTo solve the lab, exploit the blind OS command injection vulnerability to cause a 10 second delay.",
+        "Vulnerability name": "OS command injection",
+        "lab level": "hard",
+        "src code": "require('express')().use(require('body-parser').json()).post('/submit-feedback', (req, res) => require('child_process').exec(`ping 127.0.0.1 -n 11 > nul`, (error) => error ? res.status(500).send(`Error: ${error.message}`) : res.send('Feedback submitted successfully'))).listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with output redirection",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The output from the command is not returned in the response. However, you can use output redirection to capture the output from the command. There is a writable folder at:\n/var/www/images/\nThe application serves the images for the product catalog from this location. You can redirect the output from the injected command to a file in this folder, and then use the image loading URL to retrieve the contents of the file.\nTo solve the lab, execute the whoami command and retrieve the output.",
+        "Vulnerability name": "OS command injection",
+        "lab level": "medium",
+        "src code": "app.post('/submit-feedback', (req, res) => { const feedback = req.body.feedback; const command = `whoami > /var/www/images/output.txt`; exec(command, () => res.send('Feedback submitted successfully')); });"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with out-of-band interaction",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The command is executed asynchronously and has no effect on the application's response. It is not possible to redirect output into a location that you can access. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, exploit the blind OS command injection vulnerability to issue a DNS lookup to Burp Collaborator.",
+        "Vulnerability name": "OS command injection"
+      },
+      {
+        "Lab scenario": "Blind OS command injection with out-of-band data exfiltration",
+        "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The command is executed asynchronously and has no effect on the application's response. It is not possible to redirect output into a location that you can access. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, execute the whoami command and exfiltrate the output via a DNS query to Burp Collaborator. You will need to enter the name of the current user to complete the lab.",
+        "Vulnerability name": "OS command injection"
+      }
+]

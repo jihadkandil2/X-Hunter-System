@@ -1,0 +1,1347 @@
+[
+  {
+    "Lab scenario": "SQL injection vulnerability in WHERE clause allowing retrieval of hidden data",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. When the user selects a category, the application carries out a SQL query like the following:\nSELECT * FROM products WHERE category = 'Gifts' AND released = 1\nTo solve the lab, perform a SQL injection attack that causes the application to display one or more unreleased products.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection vulnerability allowing login bypass",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the login function.\nTo solve the lab, perform a SQL injection attack that logs in to the application as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, querying the database type and version on Oracle",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. You can use a UNION attack to retrieve the results from an injected query.\nTo solve the lab, display the database version string.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, querying the database type and version on MySQL and Microsoft",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. You can use a UNION attack to retrieve the results from an injected query.\nTo solve the lab, display the database version string.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, listing the database contents on non-Oracle databases",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response so you can use a UNION attack to retrieve data from other tables.\nThe application has a login function, and the database contains a table that holds usernames and passwords. You need to determine the name of this table and the columns it contains, then retrieve the contents of the table to obtain the username and password of all users.\nTo solve the lab, log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, listing the database contents on Oracle",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response so you can use a UNION attack to retrieve data from other tables.\nThe application has a login function, and the database contains a table that holds usernames and passwords. You need to determine the name of this table and the columns it contains, then retrieve the contents of the table to obtain the username and password of all users.\nTo solve the lab, log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, determining the number of columns returned by the query",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables. The first step of such an attack is to determine the number of columns that are being returned by the query. You will then use this technique in subsequent labs to construct the full attack.\nTo solve the lab, determine the number of columns returned by the query by performing a SQL injection UNION attack that returns an additional row containing null values.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, finding a column containing text",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables. To construct such an attack, you first need to determine the number of columns returned by the query. You can do this using a technique you learned in a previous lab. The next step is to identify a column that is compatible with string data.\nThe lab will provide a random value that you need to make appear within the query results. To solve the lab, perform a SQL injection UNION attack that returns an additional row containing the value provided. This technique helps you determine which columns are compatible with string data.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, retrieving data from other tables",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables. To construct such an attack, you need to combine some of the techniques you learned in previous labs.\nThe database contains a different table called users, with columns called username and password.\nTo solve the lab, perform a SQL injection UNION attack that retrieves all usernames and passwords, and use the information to log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, retrieving multiple values in a single column",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response so you can use a UNION attack to retrieve data from other tables.\nThe database contains a different table called users, with columns called username and password.\nTo solve the lab, perform a SQL injection UNION attack that retrieves all usernames and passwords, and use the information to log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with conditional responses",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and no error messages are displayed. But the application includes a Welcome back message in the page if the query returns any rows.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with conditional errors",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and the application does not respond any differently based on whether the query returns any rows. If the SQL query causes an error, then the application returns a custom error message.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Visible error-based SQL injection",
+    "Lab Description": "This lab contains a SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie. The results of the SQL query are not returned.\nThe database contains a different table called users, with columns called username and password. To solve the lab, find a way to leak the password for the administrator user, then log in to their account.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with time delays",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and the application does not respond any differently based on whether the query returns any rows or causes an error. However, since the query is executed synchronously, it is possible to trigger conditional time delays to infer information.\nTo solve the lab, exploit the SQL injection vulnerability to cause a 10 second delay.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with time delays and information retrieval",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and the application does not respond any differently based on whether the query returns any rows or causes an error. However, since the query is executed synchronously, it is possible to trigger conditional time delays to infer information.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with out-of-band interaction",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe SQL query is executed asynchronously and has no effect on the application's response. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, exploit the SQL injection vulnerability to cause a DNS lookup to Burp Collaborator.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with out-of-band data exfiltration",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe SQL query is executed asynchronously and has no effect on the application's response. However, you can trigger out-of-band interactions with an external domain.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection with filter bypass via XML encoding",
+    "Lab Description": "This lab contains a SQL injection vulnerability in its stock check feature. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables.\nThe database contains a users table, which contains the usernames and passwords of registered users. To solve the lab, perform a SQL injection attack to retrieve the admin user's credentials, then log in to their account.",
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Reflected XSS into HTML context with nothing encoded",
+    "Lab Description": "This lab contains a simple reflected cross-site scripting vulnerability in the search functionality.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored XSS into HTML context with nothing encoded",
+    "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.\nTo solve this lab, submit a comment that calls the alert function when the blog post is viewed.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in document.write sink using source location.search",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the search query tracking functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search, which you can control using the website URL.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in innerHTML sink using source location.search",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the search blog functionality. It uses an innerHTML assignment, which changes the HTML contents of a div element, using data from location.search.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in jQuery anchor href attribute sink using location.search source",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the submit feedback page. It uses the jQuery library's $ selector function to find an anchor element, and changes its href attribute using data from location.search.\nTo solve this lab, make the \"back\" link alert document.cookie.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in jQuery selector sink using a hashchange event",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability on the home page. It uses jQuery's $() selector function to auto-scroll to a given post, whose title is passed via the location.hash property.\nTo solve the lab, deliver an exploit to the victim that calls the print() function in their browser.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into attribute with angle brackets HTML-encoded",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search blog functionality where angle brackets are HTML-encoded. To solve this lab, perform a cross-site scripting attack that injects an attribute and calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored XSS into anchor href attribute with double quotes HTML-encoded",
+    "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality. To solve this lab, submit a comment that calls the alert function when the comment author name is clicked.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a JavaScript string with angle brackets HTML encoded",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality where angle brackets are encoded. The reflection occurs inside a JavaScript string. To solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in document.write sink using source location.search inside a select element",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the stock checker functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search which you can control using the website URL. The data is enclosed within a select element.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the select element and calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in a AngularJS expression within the search functionality.\nAngularJS is a popular JavaScript library, which scans the contents of HTML nodes containing the ng-app attribute (also known as an AngularJS directive). When a directive is added to the HTML code, you can execute JavaScript expressions within double curly braces. This technique is useful when angle brackets are being encoded.\nTo solve this lab, perform a cross-site scripting attack that executes an AngularJS expression and calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected DOM XSS",
+    "Lab Description": "This lab demonstrates a reflected DOM vulnerability. Reflected DOM vulnerabilities occur when the server-side application processes data from a request and echoes the data in the response. A script on the page then processes the reflected data in an unsafe way, ultimately writing it to a dangerous sink.\nTo solve this lab, create an injection that calls the alert() function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored DOM XSS",
+    "Lab Description": "This lab demonstrates a stored DOM vulnerability in the blog comment functionality. To solve this lab, exploit this vulnerability to call the alert() function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into HTML context with most tags and attributes blocked",
+    "Lab Description": "This lab contains a reflected XSS vulnerability in the search functionality but uses a web application firewall (WAF) to protect against common XSS vectors.\nTo solve the lab, perform a cross-site scripting attack that bypasses the WAF and calls the print() function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into HTML context with all tags blocked except custom ones",
+    "Lab Description": "This lab blocks all HTML tags except custom ones.\nTo solve the lab, perform a cross-site scripting attack that injects a custom tag and automatically alerts document.cookie.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with some SVG markup allowed",
+    "Lab Description": "This lab has a simple reflected XSS vulnerability. The site is blocking common tags but misses some SVG tags and events.\nTo solve the lab, perform a cross-site scripting attack that calls the alert() function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS in canonical link tag",
+    "Lab Description": "This lab reflects user input in a canonical link tag and escapes angle brackets.\nTo solve the lab, perform a cross-site scripting attack on the home page that injects an attribute that calls the alert function.\nTo assist with your exploit, you can assume that the simulated user will press the following key combinations:\nPlease note that the intended solution to this lab is only possible in Chrome.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a JavaScript string with single quote and backslash escaped",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality. The reflection occurs inside a JavaScript string with single quotes and backslashes escaped.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a JavaScript string with angle brackets and double quotes HTML-encoded and single quotes escaped",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality where angle brackets and double are HTML encoded and single quotes are escaped.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped",
+    "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.\nTo solve this lab, submit a comment that calls the alert function when the comment author name is clicked.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search blog functionality. The reflection occurs inside a template string with angle brackets, single, and double quotes HTML encoded, and backticks escaped. To solve this lab, perform a cross-site scripting attack that calls the alert function inside the template string.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Exploiting cross-site scripting to steal cookies",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. A simulated victim user views all comments after they are posted. To solve the lab, exploit the vulnerability to exfiltrate the victim's session cookie, then use this cookie to impersonate the victim.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Exploiting cross-site scripting to capture passwords",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. A simulated victim user views all comments after they are posted. To solve the lab, exploit the vulnerability to exfiltrate the victim's username and password then use these credentials to log in to the victim's account.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Exploiting XSS to bypass CSRF defenses",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. To solve the lab, exploit the vulnerability to steal a CSRF token, which you can then use to change the email address of someone who views the blog post comments.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with AngularJS sandbox escape without strings",
+    "Lab Description": "This lab uses AngularJS in an unusual way where the $eval function is not available and you will be unable to use any strings in AngularJS.\nTo solve the lab, perform a cross-site scripting attack that escapes the sandbox and executes the alert function without using the $eval function.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with AngularJS sandbox escape and CSP",
+    "Lab Description": "This lab uses CSP and AngularJS.\nTo solve the lab, perform a cross-site scripting attack that bypasses CSP, escapes the AngularJS sandbox, and alerts document.cookie.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with event handlers and href attributes blocked",
+    "Lab Description": "This lab contains a reflected XSS vulnerability with some whitelisted tags, but all events and anchor href attributes are blocked.\nTo solve the lab, perform a cross-site scripting attack that injects a vector that, when clicked, calls the alert function.\nNote that you need to label your vector with the word \"Click\" in order to induce the simulated lab user to click your vector. For example:\n<a href=\"\">Click me</a>",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS in a JavaScript URL with some characters blocked",
+    "Lab Description": "This lab reflects your input in a JavaScript URL, but all is not as it seems. This initially seems like a trivial challenge; however, the application is blocking some characters in an attempt to prevent XSS attacks.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function with the string 1337 contained somewhere in the alert message.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS protected by very strict CSP, with dangling markup attack",
+    "Lab Description": "This lab using a strict CSP that blocks outgoing requests to external web sites.\nTo solve the lab, first perform a cross-site scripting attack that bypasses the CSP and exfiltrates a simulated victim user's CSRF token using Burp Collaborator. You then need to change the simulated user's email address to hacker@evil-user.net.\nYou must label your vector with the word \"Click\" in order to induce the simulated user to click it. For example:\n<a href=\"\">Click me</a>\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS protected by CSP, with CSP bypass",
+    "Lab Description": "This lab uses CSP and contains a reflected XSS vulnerability.\nTo solve the lab, perform a cross-site scripting attack that bypasses the CSP and calls the alert function.\nPlease note that the intended solution to this lab is only possible in Chrome.",
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "CSRF vulnerability with no defenses",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF.\nTo solve the lab, craft some HTML that uses a CSRF attack to change the viewer's email address and upload it to your exploit server.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "CSRF where token validation depends on request method",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF. It attempts to block CSRF attacks, but only applies defenses to certain types of requests.\nTo solve the lab, use your exploit server to host an HTML page that uses a CSRF attack to change the viewer's email address.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "CSRF where token validation depends on token being present",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF.\nTo solve the lab, use your exploit server to host an HTML page that uses a CSRF attack to change the viewer's email address.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "CSRF where token is not tied to user session",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF. It uses tokens to try to prevent CSRF attacks, but they aren't integrated into the site's session handling system.\nTo solve the lab, use your exploit server to host an HTML page that uses a CSRF attack to change the viewer's email address.\nYou have two accounts on the application that you can use to help design your attack. The credentials are as follows:",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "CSRF where token is tied to non-session cookie",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF. It uses tokens to try to prevent CSRF attacks, but they aren't fully integrated into the site's session handling system.\nTo solve the lab, use your exploit server to host an HTML page that uses a CSRF attack to change the viewer's email address.\nYou have two accounts on the application that you can use to help design your attack. The credentials are as follows:",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "CSRF where token is duplicated in cookie",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF. It attempts to use the insecure \"double submit\" CSRF prevention technique.\nTo solve the lab, use your exploit server to host an HTML page that uses a CSRF attack to change the viewer's email address.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "SameSite Lax bypass via method override",
+    "Lab Description": "This lab's change email function is vulnerable to CSRF. To solve the lab, perform a CSRF attack that changes the victim's email address. You should use the provided exploit server to host your attack.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "SameSite Strict bypass via client-side redirect",
+    "Lab Description": "This lab's change email function is vulnerable to CSRF. To solve the lab, perform a CSRF attack that changes the victim's email address. You should use the provided exploit server to host your attack.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "SameSite Strict bypass via sibling domain",
+    "Lab Description": "This lab's live chat feature is vulnerable to cross-site WebSocket hijacking (CSWSH). To solve the lab, log in to the victim's account.\nTo do this, use the provided exploit server to perform a CSWSH attack that exfiltrates the victim's chat history to the default Burp Collaborator server. The chat history contains the login credentials in plain text.\nIf you haven't done so already, we recommend completing our topic on WebSocket vulnerabilities before attempting this lab.",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "SameSite Lax bypass via cookie refresh",
+    "Lab Description": "This lab's change email function is vulnerable to CSRF. To solve the lab, perform a CSRF attack that changes the victim's email address. You should use the provided exploit server to host your attack.\nThe lab supports OAuth-based login. You can log in via your social media account with the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "CSRF where Referer validation depends on header being present",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF. It attempts to block cross domain requests but has an insecure fallback.\nTo solve the lab, use your exploit server to host an HTML page that uses a CSRF attack to change the viewer's email address.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "CSRF with broken Referer validation",
+    "Lab Description": "This lab's email change functionality is vulnerable to CSRF. It attempts to detect and block cross domain requests, but the detection mechanism can be bypassed.\nTo solve the lab, use your exploit server to host an HTML page that uses a CSRF attack to change the viewer's email address.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-site request forgery (CSRF)"
+  },
+  {
+    "Lab scenario": "Basic clickjacking with CSRF token protection",
+    "Lab Description": "This lab contains login functionality and a delete account button that is protected by a CSRF token. A user will click on elements that display the word \"click\" on a decoy website.\nTo solve the lab, craft some HTML that frames the account page and fools the user into deleting their account. The lab is solved when the account is deleted.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking"
+  },
+  {
+    "Lab scenario": "Clickjacking with form input data prefilled from a URL parameter",
+    "Lab Description": "This lab extends the basic clickjacking example in Lab: Basic clickjacking with CSRF token protection. The goal of the lab is to change the email address of the user by prepopulating a form using a URL parameter and enticing the user to inadvertently click on an \"Update email\" button.\nTo solve the lab, craft some HTML that frames the account page and fools the user into updating their email address by clicking on a \"Click me\" decoy. The lab is solved when the email address is changed.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking"
+  },
+  {
+    "Lab scenario": "Clickjacking with a frame buster script",
+    "Lab Description": "This lab is protected by a frame buster which prevents the website from being framed. Can you get around the frame buster and conduct a clickjacking attack that changes the users email address?\nTo solve the lab, craft some HTML that frames the account page and fools the user into changing their email address by clicking on \"Click me\". The lab is solved when the email address is changed.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking"
+  },
+  {
+    "Lab scenario": "Exploiting clickjacking vulnerability to trigger DOM-based XSS",
+    "Lab Description": "This lab contains an XSS vulnerability that is triggered by a click. Construct a clickjacking attack that fools the user into clicking the \"Click me\" button to call the print() function.",
+    "Vulnerability name": "Clickjacking"
+  },
+  {
+    "Lab scenario": "Multistep clickjacking",
+    "Lab Description": "This lab has some account functionality that is protected by a CSRF token and also has a confirmation dialog to protect against Clickjacking. To solve this lab construct an attack that fools the user into clicking the delete account button and the confirmation dialog by clicking on \"Click me first\" and \"Click me next\" decoy actions. You will need to use two elements for this lab.\nYou can log in to the account yourself using the following credentials: wiener:peter",
+    "Vulnerability name": "Clickjacking"
+  },
+  {
+    "Lab scenario": "DOM XSS using web messages",
+    "Lab Description": "This lab demonstrates a simple web message vulnerability. To solve this lab, use the exploit server to post a message to the target site that causes the print() function to be called.",
+    "Vulnerability name": "DOM-based vulnerabilities"
+  },
+  {
+    "Lab scenario": "DOM XSS using web messages and a JavaScript URL",
+    "Lab Description": "This lab demonstrates a DOM-based redirection vulnerability that is triggered by web messaging. To solve this lab, construct an HTML page on the exploit server that exploits this vulnerability and calls the print() function.",
+    "Vulnerability name": "DOM-based vulnerabilities"
+  },
+  {
+    "Lab scenario": "DOM XSS using web messages and JSON.parse",
+    "Lab Description": "This lab uses web messaging and parses the message as JSON. To solve the lab, construct an HTML page on the exploit server that exploits this vulnerability and calls the print() function.",
+    "Vulnerability name": "DOM-based vulnerabilities"
+  },
+  {
+    "Lab scenario": "DOM-based open redirection",
+    "Lab Description": "This lab contains a DOM-based open-redirection vulnerability. To solve this lab, exploit this vulnerability and redirect the victim to the exploit server.",
+    "Vulnerability name": "DOM-based vulnerabilities"
+  },
+  {
+    "Lab scenario": "DOM-based cookie manipulation",
+    "Lab Description": "This lab demonstrates DOM-based client-side cookie manipulation. To solve this lab, inject a cookie that will cause XSS on a different page and call the print() function. You will need to use the exploit server to direct the victim to the correct pages.",
+    "Vulnerability name": "DOM-based vulnerabilities"
+  },
+  {
+    "Lab scenario": "Exploiting DOM clobbering to enable XSS",
+    "Lab Description": "This lab contains a DOM-clobbering vulnerability. The comment functionality allows \"safe\" HTML. To solve this lab, construct an HTML injection that clobbers a variable and uses XSS to call the alert() function.",
+    "Vulnerability name": "DOM-based vulnerabilities"
+  },
+  {
+    "Lab scenario": "Clobbering DOM attributes to bypass HTML filters",
+    "Lab Description": "This lab uses the HTMLJanitor library, which is vulnerable to DOM clobbering. To solve this lab, construct a vector that bypasses the filter and uses DOM clobbering to inject a vector that calls the print() function. You may need to use the exploit server in order to make your vector auto-execute in the victim's browser.",
+    "Vulnerability name": "DOM-based vulnerabilities"
+  },
+  {
+    "Lab scenario": "CORS vulnerability with basic origin reflection",
+    "Lab Description": "This website has an insecure CORS configuration in that it trusts all origins.\nTo solve the lab, craft some JavaScript that uses CORS to retrieve the administrator's API key and upload the code to your exploit server. The lab is solved when you successfully submit the administrator's API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-origin resource sharing (CORS)"
+  },
+  {
+    "Lab scenario": "CORS vulnerability with trusted null origin",
+    "Lab Description": "This website has an insecure CORS configuration in that it trusts the \"null\" origin.\nTo solve the lab, craft some JavaScript that uses CORS to retrieve the administrator's API key and upload the code to your exploit server. The lab is solved when you successfully submit the administrator's API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-origin resource sharing (CORS)"
+  },
+  {
+    "Lab scenario": "CORS vulnerability with trusted insecure protocols",
+    "Lab Description": "This website has an insecure CORS configuration in that it trusts all subdomains regardless of the protocol.\nTo solve the lab, craft some JavaScript that uses CORS to retrieve the administrator's API key and upload the code to your exploit server. The lab is solved when you successfully submit the administrator's API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Cross-origin resource sharing (CORS)"
+  },
+  {
+    "Lab scenario": "Exploiting XXE using external entities to retrieve files",
+    "Lab Description": "This lab has a \"Check stock\" feature that parses XML input and returns any unexpected values in the response.\nTo solve the lab, inject an XML external entity to retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Exploiting XXE to perform SSRF attacks",
+    "Lab Description": "This lab has a \"Check stock\" feature that parses XML input and returns any unexpected values in the response.\nThe lab server is running a (simulated) EC2 metadata endpoint at the default URL, which is http://169.254.169.254/. This endpoint can be used to retrieve data about the instance, some of which might be sensitive.\nTo solve the lab, exploit the XXE vulnerability to perform an SSRF attack that obtains the server's IAM secret access key from the EC2 metadata endpoint.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Blind XXE with out-of-band interaction",
+    "Lab Description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.\nYou can detect the blind XXE vulnerability by triggering out-of-band interactions with an external domain.\nTo solve the lab, use an external entity to make the XML parser issue a DNS lookup and HTTP request to Burp Collaborator.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Blind XXE with out-of-band interaction via XML parameter entities",
+    "Lab Description": "This lab has a \"Check stock\" feature that parses XML input, but does not display any unexpected values, and blocks requests containing regular external entities.\nTo solve the lab, use a parameter entity to make the XML parser issue a DNS lookup and HTTP request to Burp Collaborator.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Exploiting blind XXE to exfiltrate data using a malicious external DTD",
+    "Lab Description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.\nTo solve the lab, exfiltrate the contents of the /etc/hostname file.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Exploiting blind XXE to retrieve data via error messages",
+    "Lab Description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.\nTo solve the lab, use an external DTD to trigger an error message that displays the contents of the /etc/passwd file.\nThe lab contains a link to an exploit server on a different domain where you can host your malicious DTD.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Exploiting XInclude to retrieve files",
+    "Lab Description": "This lab has a \"Check stock\" feature that embeds the user input inside a server-side XML document that is subsequently parsed.\nBecause you don't control the entire XML document you can't define a DTD to launch a classic XXE attack.\nTo solve the lab, inject an XInclude statement to retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Exploiting XXE via image file upload",
+    "Lab Description": "This lab lets users attach avatars to comments and uses the Apache Batik library to process avatar image files.\nTo solve the lab, upload an image that displays the contents of the /etc/hostname file after processing. Then use the \"Submit solution\" button to submit the value of the server hostname.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Exploiting XXE to retrieve data by repurposing a local DTD",
+    "Lab Description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.\nTo solve the lab, trigger an error message containing the contents of the /etc/passwd file.\nYou'll need to reference an existing DTD file on the server and redefine an entity from it.",
+    "Vulnerability name": "XML external entity (XXE) injection"
+  },
+  {
+    "Lab scenario": "Basic SSRF against the local server",
+    "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://localhost/admin and delete the user carlos.",
+    "Vulnerability name": "Server-side request forgery (SSRF)"
+  },
+  {
+    "Lab scenario": "Basic SSRF against another back-end system",
+    "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, use the stock check functionality to scan the internal 192.168.0.X range for an admin interface on port 8080, then use it to delete the user carlos.",
+    "Vulnerability name": "Server-side request forgery (SSRF)"
+  },
+  {
+    "Lab scenario": "Blind SSRF with out-of-band detection",
+    "Lab Description": "This site uses analytics software which fetches the URL specified in the Referer header when a product page is loaded.\nTo solve the lab, use this functionality to cause an HTTP request to the public Burp Collaborator server.",
+    "Vulnerability name": "Server-side request forgery (SSRF)"
+  },
+  {
+    "Lab scenario": "SSRF with blacklist-based input filter",
+    "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://localhost/admin and delete the user carlos.\nThe developer has deployed two weak anti-SSRF defenses that you will need to bypass.",
+    "Vulnerability name": "Server-side request forgery (SSRF)"
+  },
+  {
+    "Lab scenario": "SSRF with filter bypass via open redirection vulnerability",
+    "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://192.168.0.12:8080/admin and delete the user carlos.\nThe stock checker has been restricted to only access the local application, so you will need to find an open redirect affecting the application first.",
+    "Vulnerability name": "Server-side request forgery (SSRF)"
+  },
+  {
+    "Lab scenario": "Blind SSRF with Shellshock exploitation",
+    "Lab Description": "This site uses analytics software which fetches the URL specified in the Referer header when a product page is loaded.\nTo solve the lab, use this functionality to perform a blind SSRF attack against an internal server in the 192.168.0.X range on port 8080. In the blind attack, use a Shellshock payload against the internal server to exfiltrate the name of the OS user.",
+    "Vulnerability name": "Server-side request forgery (SSRF)"
+  },
+  {
+    "Lab scenario": "SSRF with whitelist-based input filter",
+    "Lab Description": "This lab has a stock check feature which fetches data from an internal system.\nTo solve the lab, change the stock check URL to access the admin interface at http://localhost/admin and delete the user carlos.\nThe developer has deployed an anti-SSRF defense you will need to bypass.",
+    "Vulnerability name": "Server-side request forgery (SSRF)"
+  },
+  {
+    "Lab scenario": "HTTP request smuggling, confirming a CL.TE vulnerability via differential responses",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nTo solve the lab, smuggle a request to the back-end server, so that a subsequent request for / (the web root) triggers a 404 Not Found response.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "HTTP request smuggling, confirming a TE.CL vulnerability via differential responses",
+    "Lab Description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding.\nTo solve the lab, smuggle a request to the back-end server, so that a subsequent request for / (the web root) triggers a 404 Not Found response.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Exploiting HTTP request smuggling to bypass front-end security controls, CL.TE vulnerability",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. There's an admin panel at /admin, but the front-end server blocks access to it.\nTo solve the lab, smuggle a request to the back-end server that accesses the admin panel and deletes the user carlos.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Exploiting HTTP request smuggling to bypass front-end security controls, TE.CL vulnerability",
+    "Lab Description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding. There's an admin panel at /admin, but the front-end server blocks access to it.\nTo solve the lab, smuggle a request to the back-end server that accesses the admin panel and deletes the user carlos.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Exploiting HTTP request smuggling to reveal front-end request rewriting",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nThere's an admin panel at /admin, but it's only accessible to people with the IP address 127.0.0.1. The front-end server adds an HTTP header to incoming requests containing their IP address. It's similar to the X-Forwarded-For header but has a different name.\nTo solve the lab, smuggle a request to the back-end server that reveals the header that is added by the front-end server. Then smuggle a request to the back-end server that includes the added header, accesses the admin panel, and deletes the user carlos.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Exploiting HTTP request smuggling to capture other users' requests",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nTo solve the lab, smuggle a request to the back-end server that causes the next user's request to be stored in the application. Then retrieve the next user's request and use the victim user's cookies to access their account.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Exploiting HTTP request smuggling to deliver reflected XSS",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nThe application is also vulnerable to reflected XSS via the User-Agent header.\nTo solve the lab, smuggle a request to the back-end server that causes the next user's request to receive a response containing an XSS exploit that executes alert(1).",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Response queue poisoning via H2.TE request smuggling",
+    "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests even if they have an ambiguous length.\nTo solve the lab, delete the user carlos by using response queue poisoning to break into the admin panel at /admin. An admin user will log in approximately every 15 seconds.\nThe connection to the back-end is reset every 10 requests, so don't worry if you get it into a bad state - just send a few normal requests to get a fresh connection.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "H2.CL request smuggling",
+    "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests even if they have an ambiguous length.\nTo solve the lab, perform a request smuggling attack that causes the victim's browser to load and execute a malicious JavaScript file from the exploit server, calling alert(document.cookie). The victim user accesses the home page every 10 seconds.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "HTTP/2 request smuggling via CRLF injection",
+    "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming headers.\nTo solve the lab, use an HTTP/2-exclusive request smuggling vector to gain access to another user's account. The victim accesses the home page every 15 seconds.\nIf you're not familiar with Burp's exclusive features for HTTP/2 testing, please refer to the documentation for details on how to use them.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "HTTP/2 request splitting via CRLF injection",
+    "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming headers.\nTo solve the lab, delete the user carlos by using response queue poisoning to break into the admin panel at /admin. An admin user will log in approximately every 10 seconds.\nThe connection to the back-end is reset every 10 requests, so don't worry if you get it into a bad state - just send a few normal requests to get a fresh connection.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "CL.0 request smuggling",
+    "Lab Description": "This lab is vulnerable to CL.0 request smuggling attacks. The back-end server ignores the Content-Length header on requests to some endpoints.\nTo solve the lab, identify a vulnerable endpoint, smuggle a request to the back-end to access to the admin panel at /admin, then delete the user carlos.\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "HTTP request smuggling, basic CL.TE vulnerability",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server rejects requests that aren't using the GET or POST method.\nTo solve the lab, smuggle a request to the back-end server, so that the next request processed by the back-end server appears to use the method GPOST.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "HTTP request smuggling, basic TE.CL vulnerability",
+    "Lab Description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding. The front-end server rejects requests that aren't using the GET or POST method.\nTo solve the lab, smuggle a request to the back-end server, so that the next request processed by the back-end server appears to use the method GPOST.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "HTTP request smuggling, obfuscating the TE header",
+    "Lab Description": "This lab involves a front-end and back-end server, and the two servers handle duplicate HTTP request headers in different ways. The front-end server rejects requests that aren't using the GET or POST method.\nTo solve the lab, smuggle a request to the back-end server, so that the next request processed by the back-end server appears to use the method GPOST.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Exploiting HTTP request smuggling to perform web cache poisoning",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server is configured to cache certain responses.\nTo solve the lab, perform a request smuggling attack that causes the cache to be poisoned, such that a subsequent request for a JavaScript file receives a redirection to the exploit server. The poisoned cache should alert document.cookie.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Exploiting HTTP request smuggling to perform web cache deception",
+    "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server is caching static resources.\nTo solve the lab, perform a request smuggling attack such that the next user's request causes their API key to be saved in the cache. Then retrieve the victim user's API key from the cache and submit it as the lab solution. You will need to wait for 30 seconds from accessing the lab before attempting to trick the victim into caching their API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Bypassing access controls via HTTP/2 request tunnelling",
+    "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming header names. To solve the lab, access the admin panel at /admin as the administrator user and delete the user carlos.\nThe front-end server doesn't reuse the connection to the back-end, so isn't vulnerable to classic request smuggling attacks. However, it is still vulnerable to request tunnelling.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Web cache poisoning via HTTP/2 request tunnelling",
+    "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and doesn't consistently sanitize incoming headers.\nTo solve the lab, poison the cache in such a way that when the victim visits the home page, their browser executes alert(1). A victim user will visit the home page every 15 seconds.\nThe front-end server doesn't reuse the connection to the back-end, so isn't vulnerable to classic request smuggling attacks. However, it is still vulnerable to request tunnelling.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Client-side desync",
+    "Lab Description": "This lab is vulnerable to client-side desync attacks because the server ignores the Content-Length header on requests to some endpoints. You can exploit this to induce a victim's browser to disclose its session cookie.\nTo solve the lab:\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "Server-side pause-based request smuggling",
+    "Lab Description": "This lab is vulnerable to pause-based server-side request smuggling. The front-end server streams requests to the back-end, and the back-end server does not close the connection after a timeout on some endpoints.\nTo solve the lab, identify a pause-based CL.0 desync vector, smuggle a request to the back-end to the admin panel at /admin, then delete the user carlos.\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+    "Vulnerability name": "HTTP request smuggling"
+  },
+  {
+    "Lab scenario": "OS command injection, simple case",
+    "Lab Description": "This lab contains an OS command injection vulnerability in the product stock checker.\nThe application executes a shell command containing user-supplied product and store IDs, and returns the raw output from the command in its response.\nTo solve the lab, execute the whoami command to determine the name of the current user.",
+    "Vulnerability name": "OS command injection"
+  },
+  {
+    "Lab scenario": "Blind OS command injection with time delays",
+    "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The output from the command is not returned in the response.\nTo solve the lab, exploit the blind OS command injection vulnerability to cause a 10 second delay.",
+    "Vulnerability name": "OS command injection"
+  },
+  {
+    "Lab scenario": "Blind OS command injection with output redirection",
+    "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The output from the command is not returned in the response. However, you can use output redirection to capture the output from the command. There is a writable folder at:\n/var/www/images/\nThe application serves the images for the product catalog from this location. You can redirect the output from the injected command to a file in this folder, and then use the image loading URL to retrieve the contents of the file.\nTo solve the lab, execute the whoami command and retrieve the output.",
+    "Vulnerability name": "OS command injection"
+  },
+  {
+    "Lab scenario": "Blind OS command injection with out-of-band interaction",
+    "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The command is executed asynchronously and has no effect on the application's response. It is not possible to redirect output into a location that you can access. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, exploit the blind OS command injection vulnerability to issue a DNS lookup to Burp Collaborator.",
+    "Vulnerability name": "OS command injection"
+  },
+  {
+    "Lab scenario": "Blind OS command injection with out-of-band data exfiltration",
+    "Lab Description": "This lab contains a blind OS command injection vulnerability in the feedback function.\nThe application executes a shell command containing the user-supplied details. The command is executed asynchronously and has no effect on the application's response. It is not possible to redirect output into a location that you can access. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, execute the whoami command and exfiltrate the output via a DNS query to Burp Collaborator. You will need to enter the name of the current user to complete the lab.",
+    "Vulnerability name": "OS command injection"
+  },
+  {
+    "Lab scenario": "Basic server-side template injection",
+    "Lab Description": "This lab is vulnerable to server-side template injection due to the unsafe construction of an ERB template.\nTo solve the lab, review the ERB documentation to find out how to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.",
+    "Vulnerability name": "Server-side template injection"
+  },
+  {
+    "Lab scenario": "Basic server-side template injection (code context)",
+    "Lab Description": "This lab is vulnerable to server-side template injection due to the way it unsafely uses a Tornado template. To solve the lab, review the Tornado documentation to discover how to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Server-side template injection"
+  },
+  {
+    "Lab scenario": "Server-side template injection using documentation",
+    "Lab Description": "This lab is vulnerable to server-side template injection. To solve the lab, identify the template engine and use the documentation to work out how to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials:\ncontent-manager:C0nt3ntM4n4g3r",
+    "Vulnerability name": "Server-side template injection"
+  },
+  {
+    "Lab scenario": "Server-side template injection in an unknown language with a documented exploit",
+    "Lab Description": "This lab is vulnerable to server-side template injection. To solve the lab, identify the template engine and find a documented exploit online that you can use to execute arbitrary code, then delete the morale.txt file from Carlos's home directory.",
+    "Vulnerability name": "Server-side template injection"
+  },
+  {
+    "Lab scenario": "Server-side template injection with information disclosure via user-supplied objects",
+    "Lab Description": "This lab is vulnerable to server-side template injection due to the way an object is being passed into the template. This vulnerability can be exploited to access sensitive data.\nTo solve the lab, steal and submit the framework's secret key.\nYou can log in to your own account using the following credentials:\ncontent-manager:C0nt3ntM4n4g3r",
+    "Vulnerability name": "Server-side template injection"
+  },
+  {
+    "Lab scenario": "Server-side template injection in a sandboxed environment",
+    "Lab Description": "This lab uses the Freemarker template engine. It is vulnerable to server-side template injection due to its poorly implemented sandbox. To solve the lab, break out of the sandbox to read the file my_password.txt from Carlos's home directory. Then submit the contents of the file.\nYou can log in to your own account using the following credentials:\ncontent-manager:C0nt3ntM4n4g3r",
+    "Vulnerability name": "Server-side template injection"
+  },
+  {
+    "Lab scenario": "Server-side template injection with a custom exploit",
+    "Lab Description": "This lab is vulnerable to server-side template injection. To solve the lab, create a custom exploit to delete the file /.ssh/id_rsa from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Server-side template injection"
+  },
+  {
+    "Lab scenario": "File path traversal, simple case",
+    "Lab Description": "This lab contains a path traversal vulnerability in the display of product images.\nTo solve the lab, retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "Path traversal"
+  },
+  {
+    "Lab scenario": "File path traversal, traversal sequences blocked with absolute path bypass",
+    "Lab Description": "This lab contains a path traversal vulnerability in the display of product images.\nThe application blocks traversal sequences but treats the supplied filename as being relative to a default working directory.\nTo solve the lab, retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "Path traversal"
+  },
+  {
+    "Lab scenario": "File path traversal, traversal sequences stripped non-recursively",
+    "Lab Description": "This lab contains a path traversal vulnerability in the display of product images.\nThe application strips path traversal sequences from the user-supplied filename before using it.\nTo solve the lab, retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "Path traversal"
+  },
+  {
+    "Lab scenario": "File path traversal, traversal sequences stripped with superfluous URL-decode",
+    "Lab Description": "This lab contains a path traversal vulnerability in the display of product images.\nThe application blocks input containing path traversal sequences. It then performs a URL-decode of the input before using it.\nTo solve the lab, retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "Path traversal"
+  },
+  {
+    "Lab scenario": "File path traversal, validation of start of path",
+    "Lab Description": "This lab contains a path traversal vulnerability in the display of product images.\nThe application transmits the full file path via a request parameter, and validates that the supplied path starts with the expected folder.\nTo solve the lab, retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "Path traversal"
+  },
+  {
+    "Lab scenario": "File path traversal, validation of file extension with null byte bypass",
+    "Lab Description": "This lab contains a path traversal vulnerability in the display of product images.\nThe application validates that the supplied filename ends with the expected file extension.\nTo solve the lab, retrieve the contents of the /etc/passwd file.",
+    "Vulnerability name": "Path traversal"
+  },
+  {
+    "Lab scenario": "Unprotected admin functionality",
+    "Lab Description": "This lab has an unprotected admin panel.\nSolve the lab by deleting the user carlos.",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "Unprotected admin functionality with unpredictable URL",
+    "Lab Description": "This lab has an unprotected admin panel. It's located at an unpredictable location, but the location is disclosed somewhere in the application.\nSolve the lab by accessing the admin panel, and using it to delete the user carlos.",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "User role controlled by request parameter",
+    "Lab Description": "This lab has an admin panel at /admin, which identifies administrators using a forgeable cookie.\nSolve the lab by accessing the admin panel and using it to delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "User role can be modified in user profile",
+    "Lab Description": "This lab has an admin panel at /admin. It's only accessible to logged-in users with a roleid of 2.\nSolve the lab by accessing the admin panel and using it to delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "User ID controlled by request parameter",
+    "Lab Description": "This lab has a horizontal privilege escalation vulnerability on the user account page.\nTo solve the lab, obtain the API key for the user carlos and submit it as the solution.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "User ID controlled by request parameter, with unpredictable user IDs",
+    "Lab Description": "This lab has a horizontal privilege escalation vulnerability on the user account page, but identifies users with GUIDs.\nTo solve the lab, find the GUID for carlos, then submit his API key as the solution.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "User ID controlled by request parameter with data leakage in redirect",
+    "Lab Description": "This lab contains an access control vulnerability where sensitive information is leaked in the body of a redirect response.\nTo solve the lab, obtain the API key for the user carlos and submit it as the solution.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "User ID controlled by request parameter with password disclosure",
+    "Lab Description": "This lab has user account page that contains the current user's existing password, prefilled in a masked input.\nTo solve the lab, retrieve the administrator's password, then use it to delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "Insecure direct object references",
+    "Lab Description": "This lab stores user chat logs directly on the server's file system, and retrieves them using static URLs.\nSolve the lab by finding the password for the user carlos, and logging into their account.",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "URL-based access control can be circumvented",
+    "Lab Description": "This website has an unauthenticated admin panel at /admin, but a front-end system has been configured to block external access to that path. However, the back-end application is built on a framework that supports the X-Original-URL header.\nTo solve the lab, access the admin panel and delete the user carlos.",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "Method-based access control can be circumvented",
+    "Lab Description": "This lab implements access controls based partly on the HTTP method of requests. You can familiarize yourself with the admin panel by logging in using the credentials administrator:admin.\nTo solve the lab, log in using the credentials wiener:peter and exploit the flawed access controls to promote yourself to become an administrator.",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "Multi-step process with no access control on one step",
+    "Lab Description": "This lab has an admin panel with a flawed multi-step process for changing a user's role. You can familiarize yourself with the admin panel by logging in using the credentials administrator:admin.\nTo solve the lab, log in using the credentials wiener:peter and exploit the flawed access controls to promote yourself to become an administrator.",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "Referer-based access control",
+    "Lab Description": "This lab controls access to certain admin functionality based on the Referer header. You can familiarize yourself with the admin panel by logging in using the credentials administrator:admin.\nTo solve the lab, log in using the credentials wiener:peter and exploit the flawed access controls to promote yourself to become an administrator.",
+    "Vulnerability name": "Access control vulnerabilities"
+  },
+  {
+    "Lab scenario": "Username enumeration via different responses",
+    "Lab Description": "This lab is vulnerable to username enumeration and password brute-force attacks. It has an account with a predictable username and password, which can be found in the following wordlists:\nTo solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "2FA simple bypass",
+    "Lab Description": "This lab's two-factor authentication can be bypassed. You have already obtained a valid username and password, but do not have access to the user's 2FA verification code. To solve the lab, access Carlos's account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Password reset broken logic",
+    "Lab Description": "This lab's password reset functionality is vulnerable. To solve the lab, reset Carlos's password then log in and access his \"My account\" page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Username enumeration via subtly different responses",
+    "Lab Description": "This lab is subtly vulnerable to username enumeration and password brute-force attacks. It has an account with a predictable username and password, which can be found in the following wordlists:\nTo solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Username enumeration via response timing",
+    "Lab Description": "This lab is vulnerable to username enumeration using its response times. To solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Broken brute-force protection, IP block",
+    "Lab Description": "This lab is vulnerable due to a logic flaw in its password brute-force protection. To solve the lab, brute-force the victim's password, then log in and access their account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Username enumeration via account lock",
+    "Lab Description": "This lab is vulnerable to username enumeration. It uses account locking, but this contains a logic flaw. To solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "2FA broken logic",
+    "Lab Description": "This lab's two-factor authentication is vulnerable due to its flawed logic. To solve the lab, access Carlos's account page.\nYou also have access to the email server to receive your 2FA verification code.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Brute-forcing a stay-logged-in cookie",
+    "Lab Description": "This lab allows users to stay logged in even after they close their browser session. The cookie used to provide this functionality is vulnerable to brute-forcing.\nTo solve the lab, brute-force Carlos's cookie to gain access to his My account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Offline password cracking",
+    "Lab Description": "This lab stores the user's password hash in a cookie. The lab also contains an XSS vulnerability in the comment functionality. To solve the lab, obtain Carlos's stay-logged-in cookie and use it to crack his password. Then, log in as carlos and delete his account from the \"My account\" page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Password reset poisoning via middleware",
+    "Lab Description": "This lab is vulnerable to password reset poisoning. The user carlos will carelessly click on any links in emails that he receives. To solve the lab, log in to Carlos's account. You can log in to your own account using the following credentials: wiener:peter. Any emails sent to this account can be read via the email client on the exploit server.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Password brute-force via password change",
+    "Lab Description": "This lab's password change functionality makes it vulnerable to brute-force attacks. To solve the lab, use the list of candidate passwords to brute-force Carlos's account and access his \"My account\" page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Broken brute-force protection, multiple credentials per request",
+    "Lab Description": "This lab is vulnerable due to a logic flaw in its brute-force protection. To solve the lab, brute-force Carlos's password, then access his account page.",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "2FA bypass using a brute-force attack",
+    "Lab Description": "This lab's two-factor authentication is vulnerable to brute-forcing. You have already obtained a valid username and password, but do not have access to the user's 2FA verification code. To solve the lab, brute-force the 2FA code and access Carlos's account page.\nVictim's credentials: carlos:montoya",
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Manipulating WebSocket messages to exploit vulnerabilities",
+    "Lab Description": "This online shop has a live chat feature implemented using WebSockets.\nChat messages that you submit are viewed by a support agent in real time.\nTo solve the lab, use a WebSocket message to trigger an alert() popup in the support agent's browser.",
+    "Vulnerability name": "WebSockets"
+  },
+  {
+    "Lab scenario": "Cross-site WebSocket hijacking",
+    "Lab Description": "This online shop has a live chat feature implemented using WebSockets.\nTo solve the lab, use the exploit server to host an HTML/JavaScript payload that uses a cross-site WebSocket hijacking attack to exfiltrate the victim's chat history, then use this gain access to their account.",
+    "Vulnerability name": "WebSockets"
+  },
+  {
+    "Lab scenario": "Manipulating the WebSocket handshake to exploit vulnerabilities",
+    "Lab Description": "This online shop has a live chat feature implemented using WebSockets.\nIt has an aggressive but flawed XSS filter.\nTo solve the lab, use a WebSocket message to trigger an alert() popup in the support agent's browser.",
+    "Vulnerability name": "WebSockets"
+  },
+  {
+    "Lab scenario": "Web cache poisoning with an unkeyed header",
+    "Lab Description": "This lab is vulnerable to web cache poisoning because it handles input from an unkeyed header in an unsafe way. An unsuspecting user regularly visits the site's home page. To solve this lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Web cache poisoning with an unkeyed cookie",
+    "Lab Description": "This lab is vulnerable to web cache poisoning because cookies aren't included in the cache key. An unsuspecting user regularly visits the site's home page. To solve this lab, poison the cache with a response that executes alert(1) in the visitor's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Web cache poisoning with multiple headers",
+    "Lab Description": "This lab contains a web cache poisoning vulnerability that is only exploitable when you use multiple headers to craft a malicious request. A user visits the home page roughly once a minute. To solve this lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Targeted web cache poisoning using an unknown header",
+    "Lab Description": "This lab is vulnerable to web cache poisoning. A victim user will view any comments that you post. To solve this lab, you need to poison the cache with a response that executes alert(document.cookie) in the visitor's browser. However, you also need to make sure that the response is served to the specific subset of users to which the intended victim belongs.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Web cache poisoning via an unkeyed query string",
+    "Lab Description": "This lab is vulnerable to web cache poisoning because the query string is unkeyed. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the home page with a response that executes alert(1) in the victim's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Web cache poisoning via an unkeyed query parameter",
+    "Lab Description": "This lab is vulnerable to web cache poisoning because it excludes a certain parameter from the cache key. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the cache with a response that executes alert(1) in the victim's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Parameter cloaking",
+    "Lab Description": "This lab is vulnerable to web cache poisoning because it excludes a certain parameter from the cache key. There is also inconsistent parameter parsing between the cache and the back-end. A user regularly visits this site's home page using Chrome.\nTo solve the lab, use the parameter cloaking technique to poison the cache with a response that executes alert(1) in the victim's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Web cache poisoning via a fat GET request",
+    "Lab Description": "This lab is vulnerable to web cache poisoning. It accepts GET requests that have a body, but does not include the body in the cache key. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the cache with a response that executes alert(1) in the victim's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "URL normalization",
+    "Lab Description": "This lab contains an XSS vulnerability that is not directly exploitable due to browser URL-encoding.\nTo solve the lab, take advantage of the cache's normalization process to exploit this vulnerability. Find the XSS vulnerability and inject a payload that will execute alert(1) in the victim's browser. Then, deliver the malicious URL to the victim.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Web cache poisoning to exploit a DOM vulnerability via a cache with strict cacheability criteria",
+    "Lab Description": "This lab contains a DOM-based vulnerability that can be exploited as part of a web cache poisoning attack. A user visits the home page roughly once a minute. Note that the cache used by this lab has stricter criteria for deciding which responses are cacheable, so you will need to study the cache behavior closely.\nTo solve the lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Combining web cache poisoning vulnerabilities",
+    "Lab Description": "This lab is susceptible to web cache poisoning, but only if you construct a complex exploit chain.\nA user visits the home page roughly once a minute and their language is set to English. To solve this lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Cache key injection",
+    "Lab Description": "This lab contains multiple independent vulnerabilities, including cache key injection. A user regularly visits this site's home page using Chrome.\nTo solve the lab, combine the vulnerabilities to execute alert(1) in the victim's browser. Note that you will need to make use of the Pragma: x-get-cache-key header in order to solve this lab.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Internal cache poisoning",
+    "Lab Description": "This lab is vulnerable to web cache poisoning. It uses multiple layers of caching. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the internal cache so that the home page executes alert(document.cookie) in the victim's browser.",
+    "Vulnerability name": "Web cache poisoning"
+  },
+  {
+    "Lab scenario": "Modifying serialized objects",
+    "Lab Description": "This lab uses a serialization-based session mechanism and is vulnerable to privilege escalation as a result. To solve the lab, edit the serialized object in the session cookie to exploit this vulnerability and gain administrative privileges. Then, delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Modifying serialized data types",
+    "Lab Description": "This lab uses a serialization-based session mechanism and is vulnerable to authentication bypass as a result. To solve the lab, edit the serialized object in the session cookie to access the administrator account. Then, delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Using application functionality to exploit insecure deserialization",
+    "Lab Description": "This lab uses a serialization-based session mechanism. A certain feature invokes a dangerous method on data provided in a serialized object. To solve the lab, edit the serialized object in the session cookie and use it to delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter\nYou also have access to a backup account: gregg:rosebud",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Arbitrary object injection in PHP",
+    "Lab Description": "This lab uses a serialization-based session mechanism and is vulnerable to arbitrary object injection as a result. To solve the lab, create and inject a malicious serialized object to delete the morale.txt file from Carlos's home directory. You will need to obtain source code access to solve this lab.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Exploiting Java deserialization with Apache Commons",
+    "Lab Description": "This lab uses a serialization-based session mechanism and loads the Apache Commons Collections library. Although you don't have source code access, you can still exploit this lab using pre-built gadget chains.\nTo solve the lab, use a third-party tool to generate a malicious serialized object containing a remote code execution payload. Then, pass this object into the website to delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Exploiting PHP deserialization with a pre-built gadget chain",
+    "Lab Description": "This lab has a serialization-based session mechanism that uses a signed cookie. It also uses a common PHP framework. Although you don't have source code access, you can still exploit this lab's insecure deserialization using pre-built gadget chains.\nTo solve the lab, identify the target framework then use a third-party tool to generate a malicious serialized object containing a remote code execution payload. Then, work out how to generate a valid signed cookie containing your malicious object. Finally, pass this into the website to delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Exploiting Ruby deserialization using a documented gadget chain",
+    "Lab Description": "This lab uses a serialization-based session mechanism and the Ruby on Rails framework. There are documented exploits that enable remote code execution via a gadget chain in this framework.\nTo solve the lab, find a documented exploit and adapt it to create a malicious serialized object containing a remote code execution payload. Then, pass this object into the website to delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Developing a custom gadget chain for Java deserialization",
+    "Lab Description": "This lab uses a serialization-based session mechanism. If you can construct a suitable gadget chain, you can exploit this lab's insecure deserialization to obtain the administrator's password.\nTo solve the lab, gain access to the source code and use it to construct a gadget chain to obtain the administrator's password. Then, log in as the administrator and delete carlos.\nYou can log in to your own account using the following credentials: wiener:peter\nNote that solving this lab requires basic familiarity with another topic that we've covered on the Web Security Academy.",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Developing a custom gadget chain for PHP deserialization",
+    "Lab Description": "This lab uses a serialization-based session mechanism. By deploying a custom gadget chain, you can exploit its insecure deserialization to achieve remote code execution. To solve the lab, delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Using PHAR deserialization to deploy a custom gadget chain",
+    "Lab Description": "This lab does not explicitly use deserialization. However, if you combine PHAR deserialization with other advanced hacking techniques, you can still achieve remote code execution via a custom gadget chain.\nTo solve the lab, delete the morale.txt file from Carlos's home directory.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Insecure deserialization"
+  },
+  {
+    "Lab scenario": "Information disclosure in error messages",
+    "Lab Description": "This lab's verbose error messages reveal that it is using a vulnerable version of a third-party framework. To solve the lab, obtain and submit the version number of this framework.",
+    "Vulnerability name": "Information disclosure"
+  },
+  {
+    "Lab scenario": "Information disclosure on debug page",
+    "Lab Description": "This lab contains a debug page that discloses sensitive information about the application. To solve the lab, obtain and submit the SECRET_KEY environment variable.",
+    "Vulnerability name": "Information disclosure"
+  },
+  {
+    "Lab scenario": "Source code disclosure via backup files",
+    "Lab Description": "This lab leaks its source code via backup files in a hidden directory. To solve the lab, identify and submit the database password, which is hard-coded in the leaked source code.",
+    "Vulnerability name": "Information disclosure"
+  },
+  {
+    "Lab scenario": "Authentication bypass via information disclosure",
+    "Lab Description": "This lab's administration interface has an authentication bypass vulnerability, but it is impractical to exploit without knowledge of a custom HTTP header used by the front-end.\nTo solve the lab, obtain the header name then use it to bypass the lab's authentication. Access the admin interface and delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Information disclosure"
+  },
+  {
+    "Lab scenario": "Information disclosure in version control history",
+    "Lab Description": "This lab discloses sensitive information via its version control history. To solve the lab, obtain the password for the administrator user then log in and delete the user carlos.",
+    "Vulnerability name": "Information disclosure"
+  },
+  {
+    "Lab scenario": "Excessive trust in client-side controls",
+    "Lab Description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its purchasing workflow to buy items for an unintended price. To solve the lab, buy a \"Lightweight l33t leather jacket\".\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "High-level logic vulnerability",
+    "Lab Description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its purchasing workflow to buy items for an unintended price. To solve the lab, buy a \"Lightweight l33t leather jacket\".\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Inconsistent security controls",
+    "Lab Description": "This lab's flawed logic allows arbitrary users to access administrative functionality that should only be available to company employees. To solve the lab, access the admin panel and delete the user carlos.",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Flawed enforcement of business rules",
+    "Lab Description": "This lab has a logic flaw in its purchasing workflow. To solve the lab, exploit this flaw to buy a \"Lightweight l33t leather jacket\".\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Low-level logic flaw",
+    "Lab Description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its purchasing workflow to buy items for an unintended price. To solve the lab, buy a \"Lightweight l33t leather jacket\".\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Inconsistent handling of exceptional input",
+    "Lab Description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its account registration process to gain access to administrative functionality. To solve the lab, access the admin panel and delete the user carlos.",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Weak isolation on dual-use endpoint",
+    "Lab Description": "This lab makes a flawed assumption about the user's privilege level based on their input. As a result, you can exploit the logic of its account management features to gain access to arbitrary users' accounts. To solve the lab, access the administrator account and delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Insufficient workflow validation",
+    "Lab Description": "This lab makes flawed assumptions about the sequence of events in the purchasing workflow. To solve the lab, exploit this flaw to buy a \"Lightweight l33t leather jacket\".\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Authentication bypass via flawed state machine",
+    "Lab Description": "This lab makes flawed assumptions about the sequence of events in the login process. To solve the lab, exploit this flaw to bypass the lab's authentication, access the admin interface, and delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Infinite money logic flaw",
+    "Lab Description": "This lab has a logic flaw in its purchasing workflow. To solve the lab, exploit this flaw to buy a \"Lightweight l33t leather jacket\".\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Authentication bypass via encryption oracle",
+    "Lab Description": "This lab contains a logic flaw that exposes an encryption oracle to users. To solve the lab, exploit this flaw to gain access to the admin panel and delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Bypassing access controls using email address parsing discrepancies",
+    "Lab Description": "This lab validates email addresses to prevent attackers from registering addresses from unauthorized domains. There is a parser discrepancy in the validation logic and library used to parse email addresses.\nTo solve the lab, exploit this flaw to register an account and delete carlos.",
+    "Vulnerability name": "Business logic vulnerabilities"
+  },
+  {
+    "Lab scenario": "Basic password reset poisoning",
+    "Lab Description": "This lab is vulnerable to password reset poisoning. The user carlos will carelessly click on any links in emails that he receives. To solve the lab, log in to Carlos's account.\nYou can log in to your own account using the following credentials: wiener:peter. Any emails sent to this account can be read via the email client on the exploit server.",
+    "Vulnerability name": "HTTP Host header attacks"
+  },
+  {
+    "Lab scenario": "Host header authentication bypass",
+    "Lab Description": "This lab makes an assumption about the privilege level of the user based on the HTTP Host header.\nTo solve the lab, access the admin panel and delete the user carlos.",
+    "Vulnerability name": "HTTP Host header attacks"
+  },
+  {
+    "Lab scenario": "Web cache poisoning via ambiguous requests",
+    "Lab Description": "This lab is vulnerable to web cache poisoning due to discrepancies in how the cache and the back-end application handle ambiguous requests. An unsuspecting user regularly visits the site's home page.\nTo solve the lab, poison the cache so the home page executes alert(document.cookie) in the victim's browser.",
+    "Vulnerability name": "HTTP Host header attacks"
+  },
+  {
+    "Lab scenario": "Routing-based SSRF",
+    "Lab Description": "This lab is vulnerable to routing-based SSRF via the Host header. You can exploit this to access an insecure intranet admin panel located on an internal IP address.\nTo solve the lab, access the internal admin panel located in the 192.168.0.0/24 range, then delete the user carlos.",
+    "Vulnerability name": "HTTP Host header attacks"
+  },
+  {
+    "Lab scenario": "SSRF via flawed request parsing",
+    "Lab Description": "This lab is vulnerable to routing-based SSRF due to its flawed parsing of the request's intended host. You can exploit this to access an insecure intranet admin panel located at an internal IP address.\nTo solve the lab, access the internal admin panel located in the 192.168.0.0/24 range, then delete the user carlos.",
+    "Vulnerability name": "HTTP Host header attacks"
+  },
+  {
+    "Lab scenario": "Host validation bypass via connection state attack",
+    "Lab Description": "This lab is vulnerable to routing-based SSRF via the Host header. Although the front-end server may initially appear to perform robust validation of the Host header, it makes assumptions about all requests on a connection based on the first request it receives.\nTo solve the lab, exploit this behavior to access an internal admin panel located at 192.168.0.1/admin, then delete the user carlos.\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+    "Vulnerability name": "HTTP Host header attacks"
+  },
+  {
+    "Lab scenario": "Password reset poisoning via dangling markup",
+    "Lab Description": "This lab is vulnerable to password reset poisoning via dangling markup. To solve the lab, log in to Carlos's account.\nYou can log in to your own account using the following credentials: wiener:peter. Any emails sent to this account can be read via the email client on the exploit server.",
+    "Vulnerability name": "HTTP Host header attacks"
+  },
+  {
+    "Lab scenario": "Authentication bypass via OAuth implicit flow",
+    "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. Flawed validation by the client application makes it possible for an attacker to log in to other users' accounts without knowing their password.\nTo solve the lab, log in to Carlos's account. His email address is carlos@carlos-montoya.net.\nYou can log in with your own social media account using the following credentials: wiener:peter.",
+    "Vulnerability name": "OAuth authentication"
+  },
+  {
+    "Lab scenario": "SSRF via OpenID dynamic client registration",
+    "Lab Description": "This lab allows client applications to dynamically register themselves with the OAuth service via a dedicated registration endpoint. Some client-specific data is used in an unsafe way by the OAuth service, which exposes a potential vector for SSRF.\nTo solve the lab, craft an SSRF attack to access http://169.254.169.254/latest/meta-data/iam/security-credentials/admin/ and steal the secret access key for the OAuth provider's cloud environment.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "OAuth authentication"
+  },
+  {
+    "Lab scenario": "Forced OAuth profile linking",
+    "Lab Description": "This lab gives you the option to attach a social media profile to your account so that you can log in via OAuth instead of using the normal username and password. Due to the insecure implementation of the OAuth flow by the client application, an attacker can manipulate this functionality to obtain access to other users' accounts.\nTo solve the lab, use a CSRF attack to attach your own social media profile to the admin user's account on the blog website, then access the admin panel and delete carlos.\nThe admin user will open anything you send from the exploit server and they always have an active session on the blog website.\nYou can log in to your own accounts using the following credentials:",
+    "Vulnerability name": "OAuth authentication"
+  },
+  {
+    "Lab scenario": "OAuth account hijacking via redirect_uri",
+    "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. A misconfiguration by the OAuth provider makes it possible for an attacker to steal authorization codes associated with other users' accounts.\nTo solve the lab, steal an authorization code associated with the admin user, then use it to access their account and delete the user carlos.\nThe admin user will open anything you send from the exploit server and they always have an active session with the OAuth service.\nYou can log in with your own social media account using the following credentials: wiener:peter.",
+    "Vulnerability name": "OAuth authentication"
+  },
+  {
+    "Lab scenario": "Stealing OAuth access tokens via an open redirect",
+    "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. Flawed validation by the OAuth service makes it possible for an attacker to leak access tokens to arbitrary pages on the client application.\nTo solve the lab, identify an open redirect on the blog website and use this to steal an access token for the admin user's account. Use the access token to obtain the admin's API key and submit the solution using the button provided in the lab banner.\nThe admin user will open anything you send from the exploit server and they always have an active session with the OAuth service.\nYou can log in via your own social media account using the following credentials: wiener:peter.",
+    "Vulnerability name": "OAuth authentication"
+  },
+  {
+    "Lab scenario": "Stealing OAuth access tokens via a proxy page",
+    "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. Flawed validation by the OAuth service makes it possible for an attacker to leak access tokens to arbitrary pages on the client application.\nTo solve the lab, identify a secondary vulnerability in the client application and use this as a proxy to steal an access token for the admin user's account. Use the access token to obtain the admin's API key and submit the solution using the button provided in the lab banner.\nThe admin user will open anything you send from the exploit server and they always have an active session with the OAuth service.\nYou can log in via your own social media account using the following credentials: wiener:peter.",
+    "Vulnerability name": "OAuth authentication"
+  },
+  {
+    "Lab scenario": "Remote code execution via web shell upload",
+    "Lab Description": "This lab contains a vulnerable image upload function. It doesn't perform any validation on the files users upload before storing them on the server's filesystem.\nTo solve the lab, upload a basic PHP web shell and use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "File upload vulnerabilities"
+  },
+  {
+    "Lab scenario": "Web shell upload via Content-Type restriction bypass",
+    "Lab Description": "This lab contains a vulnerable image upload function. It attempts to prevent users from uploading unexpected file types, but relies on checking user-controllable input to verify this.\nTo solve the lab, upload a basic PHP web shell and use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "File upload vulnerabilities"
+  },
+  {
+    "Lab scenario": "Web shell upload via path traversal",
+    "Lab Description": "This lab contains a vulnerable image upload function. The server is configured to prevent execution of user-supplied files, but this restriction can be bypassed by exploiting a secondary vulnerability.\nTo solve the lab, upload a basic PHP web shell and use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "File upload vulnerabilities"
+  },
+  {
+    "Lab scenario": "Web shell upload via extension blacklist bypass",
+    "Lab Description": "This lab contains a vulnerable image upload function. Certain file extensions are blacklisted, but this defense can be bypassed due to a fundamental flaw in the configuration of this blacklist.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "File upload vulnerabilities"
+  },
+  {
+    "Lab scenario": "Web shell upload via obfuscated file extension",
+    "Lab Description": "This lab contains a vulnerable image upload function. Certain file extensions are blacklisted, but this defense can be bypassed using a classic obfuscation technique.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "File upload vulnerabilities"
+  },
+  {
+    "Lab scenario": "Remote code execution via polyglot web shell upload",
+    "Lab Description": "This lab contains a vulnerable image upload function. Although it checks the contents of the file to verify that it is a genuine image, it is still possible to upload and execute server-side code.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "File upload vulnerabilities"
+  },
+  {
+    "Lab scenario": "Web shell upload via race condition",
+    "Lab Description": "This lab contains a vulnerable image upload function. Although it performs robust validation on any files that are uploaded, it is possible to bypass this validation entirely by exploiting a race condition in the way it processes them.\nTo solve the lab, upload a basic PHP web shell, then use it to exfiltrate the contents of the file /home/carlos/secret. Submit this secret using the button provided in the lab banner.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "File upload vulnerabilities"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via unverified signature",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. Due to implementation flaws, the server doesn't verify the signature of any JWTs that it receives.\nTo solve the lab, modify your session token to gain access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via flawed signature verification",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. The server is insecurely configured to accept unsigned JWTs.\nTo solve the lab, modify your session token to gain access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via weak signing key",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. It uses an extremely weak secret key to both sign and verify tokens. This can be easily brute-forced using a wordlist of common secrets.\nTo solve the lab, first brute-force the website's secret key. Once you've obtained this, use it to sign a modified session token that gives you access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via jwk header injection",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. The server supports the jwk parameter in the JWT header. This is sometimes used to embed the correct verification key directly in the token. However, it fails to check whether the provided key came from a trusted source.\nTo solve the lab, modify and sign a JWT that gives you access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via jku header injection",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. The server supports the jku parameter in the JWT header. However, it fails to check whether the provided URL belongs to a trusted domain before fetching the key.\nTo solve the lab, forge a JWT that gives you access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via kid header path traversal",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. In order to verify the signature, the server uses the kid parameter in JWT header to fetch the relevant key from its filesystem.\nTo solve the lab, forge a JWT that gives you access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via algorithm confusion",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. It uses a robust RSA key pair to sign and verify tokens. However, due to implementation flaws, this mechanism is vulnerable to algorithm confusion attacks.\nTo solve the lab, first obtain the server's public key. This is exposed via a standard endpoint. Use this key to sign a modified session token that gives you access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "JWT authentication bypass via algorithm confusion with no exposed key",
+    "Lab Description": "This lab uses a JWT-based mechanism for handling sessions. It uses a robust RSA key pair to sign and verify tokens. However, due to implementation flaws, this mechanism is vulnerable to algorithm confusion attacks.\nTo solve the lab, first obtain the server's public key. Use this key to sign a modified session token that gives you access to the admin panel at /admin, then delete the user carlos.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Vulnerability name": "JWT"
+  },
+  {
+    "Lab scenario": "Discovering vulnerabilities quickly with targeted scanning",
+    "Lab Description": "This lab contains a vulnerability that enables you to read arbitrary files from the server. To solve the lab, retrieve the contents of /etc/passwd within 10 minutes.\nDue to the tight time limit, we recommend using Burp Scanner to help you. You can obviously scan the entire site to identify the vulnerability, but this might not leave you enough time to solve the lab. Instead, use your intuition to identify endpoints that are likely to be vulnerable, then try running a targeted scan on a specific request. Once Burp Scanner has identified an attack vector, you can use your own expertise to find a way to exploit it.",
+    "Vulnerability name": "Essential skills"
+  },
+  {
+    "Lab scenario": "Scanning non-standard data structures",
+    "Lab Description": "This lab contains a vulnerability that is difficult to find manually. It is located in a non-standard data structure.\nTo solve the lab, use Burp Scanner's Scan selected insertion point feature to identify the vulnerability, then manually exploit it and delete carlos.\nYou can log in to your own account with the following credentials: wiener:peter",
+    "Vulnerability name": "Essential skills"
+  },
+  {
+    "Lab scenario": "Client-side prototype pollution via browser APIs",
+    "Lab Description": "This lab is vulnerable to DOM XSS via client-side prototype pollution. The website's developers have noticed a potential gadget and attempted to patch it. However, you can bypass the measures they've taken.\nTo solve the lab:\nYou can solve this lab manually in your browser, or use DOM Invader to help you.\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Widespread prototype pollution gadgets by Gareth Heyes.",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "DOM XSS via client-side prototype pollution",
+    "Lab Description": "This lab is vulnerable to DOM XSS via client-side prototype pollution. To solve the lab:\nYou can solve this lab manually in your browser, or use DOM Invader to help you.",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "DOM XSS via an alternative prototype pollution vector",
+    "Lab Description": "This lab is vulnerable to DOM XSS via client-side prototype pollution. To solve the lab:\nYou can solve this lab manually in your browser, or use DOM Invader to help you.",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Client-side prototype pollution via flawed sanitization",
+    "Lab Description": "This lab is vulnerable to DOM XSS via client-side prototype pollution. Although the developers have implemented measures to prevent prototype pollution, these can be easily bypassed.\nTo solve the lab:",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Client-side prototype pollution in third-party libraries",
+    "Lab Description": "This lab is vulnerable to DOM XSS via client-side prototype pollution. This is due to a gadget in a third-party library, which is easy to miss due to the minified source code. Although it's technically possible to solve this lab manually, we recommend using DOM Invader as this will save you a considerable amount of time and effort.\nTo solve the lab:\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Widespread prototype pollution gadgets by Gareth Heyes.",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Privilege escalation via server-side prototype pollution",
+    "Lab Description": "This lab is built on Node.js and the Express framework. It is vulnerable to server-side prototype pollution because it unsafely merges user-controllable input into a server-side JavaScript object. This is simple to detect because any polluted properties inherited via the prototype chain are visible in an HTTP response.\nTo solve the lab:\nYou can log in to your own account with the following credentials: wiener:peter",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Detecting server-side prototype pollution without polluted property reflection",
+    "Lab Description": "This lab is built on Node.js and the Express framework. It is vulnerable to server-side prototype pollution because it unsafely merges user-controllable input into a server-side JavaScript object.\nTo solve the lab, confirm the vulnerability by polluting Object.prototype in a way that triggers a noticeable but non-destructive change in the server's behavior. As this lab is designed to help you practice non-destructive detection techniques, you don't need to progress to exploitation.\nYou can log in to your own account with the following credentials: wiener:peter",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Bypassing flawed input filters for server-side prototype pollution",
+    "Lab Description": "This lab is built on Node.js and the Express framework. It is vulnerable to server-side prototype pollution because it unsafely merges user-controllable input into a server-side JavaScript object.\nTo solve the lab:\nYou can log in to your own account with the following credentials: wiener:peter",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Remote code execution via server-side prototype pollution",
+    "Lab Description": "This lab is built on Node.js and the Express framework. It is vulnerable to server-side prototype pollution because it unsafely merges user-controllable input into a server-side JavaScript object.\nDue to the configuration of the server, it's possible to pollute Object.prototype in such a way that you can inject arbitrary system commands that are subsequently executed on the server.\nTo solve the lab:\nIn this lab, you already have escalated privileges, giving you access to admin functionality. You can log in to your own account with the following credentials: wiener:peter",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Exfiltrating sensitive data via server-side prototype pollution",
+    "Lab Description": "This lab is built on Node.js and the Express framework. It is vulnerable to server-side prototype pollution because it unsafely merges user-controllable input into a server-side JavaScript object.\nDue to the configuration of the server, it's possible to pollute Object.prototype in such a way that you can inject arbitrary system commands that are subsequently executed on the server.\nTo solve the lab:\nIn this lab, you already have escalated privileges, giving you access to admin functionality. You can log in to your own account with the following credentials: wiener:peter",
+    "Vulnerability name": "Prototype pollution"
+  },
+  {
+    "Lab scenario": "Accessing private GraphQL posts",
+    "Lab Description": "The blog page for this lab contains a hidden blog post that has a secret password. To solve the lab, find the hidden blog post and enter the password.\nLearn more about Working with GraphQL in Burp Suite.",
+    "Vulnerability name": "GraphQL API vulnerabilities"
+  },
+  {
+    "Lab scenario": "Accidental exposure of private GraphQL fields",
+    "Lab Description": "The user management functions for this lab are powered by a GraphQL endpoint. The lab contains an access control vulnerability whereby you can induce the API to reveal user credential fields.\nTo solve the lab, sign in as the administrator and delete the username carlos.\nLearn more about Working with GraphQL in Burp Suite.",
+    "Vulnerability name": "GraphQL API vulnerabilities"
+  },
+  {
+    "Lab scenario": "Finding a hidden GraphQL endpoint",
+    "Lab Description": "The user management functions for this lab are powered by a hidden GraphQL endpoint. You won't be able to find this endpoint by simply clicking pages in the site. The endpoint also has some defenses against introspection.\nTo solve the lab, find the hidden endpoint and delete carlos.\nLearn more about Working with GraphQL in Burp Suite.",
+    "Vulnerability name": "GraphQL API vulnerabilities"
+  },
+  {
+    "Lab scenario": "Bypassing GraphQL brute force protections",
+    "Lab Description": "The user login mechanism for this lab is powered by a GraphQL API. The API endpoint has a rate limiter that returns an error if it receives too many requests from the same origin in a short space of time.\nTo solve the lab, brute force the login mechanism to sign in as carlos. Use the list of authentication lab passwords as your password source.\nLearn more about Working with GraphQL in Burp Suite.",
+    "Vulnerability name": "GraphQL API vulnerabilities"
+  },
+  {
+    "Lab scenario": "Performing CSRF exploits over GraphQL",
+    "Lab Description": "The user management functions for this lab are powered by a GraphQL endpoint. The endpoint accepts requests with a content-type of x-www-form-urlencoded and is therefore vulnerable to cross-site request forgery (CSRF) attacks.\nTo solve the lab, craft some HTML that uses a CSRF attack to change the viewer's email address, then upload it to your exploit server.\nYou can log in to your own account using the following credentials: wiener:peter.\nLearn more about Working with GraphQL in Burp Suite.",
+    "Vulnerability name": "GraphQL API vulnerabilities"
+  },
+  {
+    "Lab scenario": "Limit overrun race conditions",
+    "Lab Description": "This lab's purchasing flow contains a race condition that enables you to purchase items for an unintended price.\nTo solve the lab, successfully purchase a Lightweight L33t Leather Jacket.\nYou can log in to your account with the following credentials: wiener:peter.",
+    "Vulnerability name": "Race conditions"
+  },
+  {
+    "Lab scenario": "Bypassing rate limits via race conditions",
+    "Lab Description": "This lab's login mechanism uses rate limiting to defend against brute-force attacks. However, this can be bypassed due to a race condition.\nTo solve the lab:\nYou can log in to your account with the following credentials: wiener:peter.\nYou should use the following list of potential passwords:",
+    "Vulnerability name": "Race conditions"
+  },
+  {
+    "Lab scenario": "Multi-endpoint race conditions",
+    "Lab Description": "This lab's purchasing flow contains a race condition that enables you to purchase items for an unintended price.\nTo solve the lab, successfully purchase a Lightweight L33t Leather Jacket.\nYou can log into your account with the following credentials: wiener:peter.",
+    "Vulnerability name": "Race conditions"
+  },
+  {
+    "Lab scenario": "Single-endpoint race conditions",
+    "Lab Description": "This lab's email change feature contains a race condition that enables you to associate an arbitrary email address with your account.\nSomeone with the address carlos@ginandjuice.shop has a pending invite to be an administrator for the site, but they have not yet created an account. Therefore, any user who successfully claims this address will automatically inherit admin privileges.\nTo solve the lab:\nYou can log in to your own account with the following credentials: wiener:peter.\nYou also have access to an email client, where you can view all emails sent to @exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net addresses.",
+    "Vulnerability name": "Race conditions"
+  },
+  {
+    "Lab scenario": "Exploiting time-sensitive vulnerabilities",
+    "Lab Description": "This lab contains a password reset mechanism. Although it doesn't contain a race condition, you can exploit the mechanism's broken cryptography by sending carefully timed requests.\nTo solve the lab:\nYou can log into your account with the following credentials: wiener:peter.",
+    "Vulnerability name": "Race conditions"
+  },
+  {
+    "Lab scenario": "Partial construction race conditions",
+    "Lab Description": "This lab contains a user registration mechanism. A race condition enables you to bypass email verification and register with an arbitrary email address that you do not own.\nTo solve the lab, exploit this race condition to create an account, then log in and delete the user carlos.",
+    "Vulnerability name": "Race conditions"
+  },
+  {
+    "Lab scenario": "Detecting NoSQL injection",
+    "Lab Description": "The product category filter for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection.\nTo solve the lab, perform a NoSQL injection attack that causes the application to display unreleased products.",
+    "Vulnerability name": "NoSQL injection"
+  },
+  {
+    "Lab scenario": "Exploiting NoSQL operator injection to bypass authentication",
+    "Lab Description": "The login functionality for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection using MongoDB operators.\nTo solve the lab, log into the application as the administrator user.\nYou can log in to your own account using the following credentials: wiener:peter.",
+    "Vulnerability name": "NoSQL injection"
+  },
+  {
+    "Lab scenario": "Exploiting NoSQL injection to extract data",
+    "Lab Description": "The user lookup functionality for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection.\nTo solve the lab, extract the password for the administrator user, then log in to their account.\nYou can log in to your own account using the following credentials: wiener:peter.",
+    "Vulnerability name": "NoSQL injection"
+  },
+  {
+    "Lab scenario": "Exploiting NoSQL operator injection to extract unknown fields",
+    "Lab Description": "The user lookup functionality for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection.\nTo solve the lab, log in as carlos.",
+    "Vulnerability name": "NoSQL injection"
+  },
+  {
+    "Lab scenario": "Exploiting an API endpoint using documentation",
+    "Lab Description": "To solve the lab, find the exposed API documentation and delete carlos. You can log in to your own account using the following credentials: wiener:peter.",
+    "Vulnerability name": "API testing"
+  },
+  {
+    "Lab scenario": "Exploiting server-side parameter pollution in a query string",
+    "Lab Description": "To solve the lab, log in as the administrator and delete carlos.",
+    "Vulnerability name": "API testing"
+  },
+  {
+    "Lab scenario": "Finding and exploiting an unused API endpoint",
+    "Lab Description": "To solve the lab, exploit a hidden API endpoint to buy a Lightweight l33t Leather Jacket. You can log in to your own account using the following credentials: wiener:peter.",
+    "Vulnerability name": "API testing"
+  },
+  {
+    "Lab scenario": "Exploiting a mass assignment vulnerability",
+    "Lab Description": "To solve the lab, find and exploit a mass assignment vulnerability to buy a Lightweight l33t Leather Jacket. You can log in to your own account using the following credentials: wiener:peter.",
+    "Vulnerability name": "API testing"
+  },
+  {
+    "Lab scenario": "Exploiting server-side parameter pollution in a REST URL",
+    "Lab Description": "To solve the lab, log in as the administrator and delete carlos.",
+    "Vulnerability name": "API testing"
+  },
+  {
+    "Lab scenario": "Exploiting LLM APIs with excessive agency",
+    "Lab Description": "To solve the lab, use the LLM to delete the user carlos.",
+    "Vulnerability name": "Web LLM attacks"
+  },
+  {
+    "Lab scenario": "Exploiting vulnerabilities in LLM APIs",
+    "Lab Description": "This lab contains an OS command injection vulnerability that can be exploited via its APIs. You can call these APIs via the LLM. To solve the lab, delete the morale.txt file from Carlos' home directory.",
+    "Vulnerability name": "Web LLM attacks"
+  },
+  {
+    "Lab scenario": "Indirect prompt injection",
+    "Lab Description": "This lab is vulnerable to indirect prompt injection. The user carlos frequently uses the live chat to ask about the Lightweight \"l33t\" Leather Jacket product. To solve the lab, delete carlos.",
+    "Vulnerability name": "Web LLM attacks"
+  },
+  {
+    "Lab scenario": "Exploiting insecure output handling in LLMs",
+    "Lab Description": "This lab handles LLM output insecurely, leaving it vulnerable to XSS. The user carlos frequently uses the live chat to ask about the Lightweight \"l33t\" Leather Jacket product. To solve the lab, use indirect prompt injection to perform an XSS attack that deletes carlos.",
+    "Vulnerability name": "Web LLM attacks"
+  },
+  {
+    "Lab scenario": "Exploiting path mapping for web cache deception",
+    "Lab Description": "To solve the lab, find the API key for the user carlos. You can log in to your own account using the following credentials: wiener:peter.",
+    "Vulnerability name": "Web cache deception"
+  },
+  {
+    "Lab scenario": "Exploiting path delimiters for web cache deception",
+    "Lab Description": "To solve the lab, find the API key for the user carlos. You can log in to your own account using the following credentials: wiener:peter.\nWe have provided a list of possible delimiter characters to help you solve the lab: Web cache deception lab delimiter list.",
+    "Vulnerability name": "Web cache deception"
+  },
+  {
+    "Lab scenario": "Exploiting origin server normalization for web cache deception",
+    "Lab Description": "To solve the lab, find the API key for the user carlos. You can log in to your own account using the following credentials: wiener:peter.\nWe have provided a list of possible delimiter characters to help you solve the lab: Web cache deception lab delimiter list.",
+    "Vulnerability name": "Web cache deception"
+  },
+  {
+    "Lab scenario": "Exploiting cache server normalization for web cache deception",
+    "Lab Description": "To solve the lab, find the API key for the user carlos. You can log in to your own account using the following credentials: wiener:peter.\nWe have provided a list of possible delimiter characters to help you solve the lab: Web cache deception lab delimiter list.",
+    "Vulnerability name": "Web cache deception"
+  },
+  {
+    "Lab scenario": "Exploiting exact-match cache rules for web cache deception",
+    "Lab Description": "To solve the lab, change the email address for the user administrator. You can log in to your own account using the following credentials: wiener:peter.\nWe have provided a list of possible delimiter characters to help you solve the lab: Web cache deception lab delimiter list.",
+    "Vulnerability name": "Web cache deception"
+  }
+]

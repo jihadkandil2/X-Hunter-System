@@ -1,0 +1,36 @@
+[
+    {
+        "Lab scenario": "Forced OAuth profile linking",
+        "Lab Description": "This lab gives you the option to attach a social media profile to your account so that you can log in via OAuth instead of using the normal username and password. Due to the insecure implementation of the OAuth flow by the client application, an attacker can manipulate this functionality to obtain access to other users' accounts.\nTo solve the lab, use a CSRF attack to attach your own social media profile to the admin user's account on the blog website, then access the admin panel and delete carlos.\nThe admin user will open anything you send from the exploit server and they always have an active session on the blog website.\nYou can log in to your own accounts using the following credentials:",
+        "Vulnerability name": "OAuth authentication"
+      },
+      {
+        "Lab scenario": "OAuth account hijacking via redirect_uri",
+        "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. A misconfiguration by the OAuth provider makes it possible for an attacker to steal authorization codes associated with other users' accounts.\nTo solve the lab, steal an authorization code associated with the admin user, then use it to access their account and delete the user carlos.\nThe admin user will open anything you send from the exploit server and they always have an active session with the OAuth service.\nYou can log in with your own social media account using the following credentials: wiener:peter.",
+        "Vulnerability name": "OAuth authentication"
+      },
+      {
+        "Lab scenario": "Stealing OAuth access tokens via an open redirect",
+        "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. Flawed validation by the OAuth service makes it possible for an attacker to leak access tokens to arbitrary pages on the client application.\nTo solve the lab, identify an open redirect on the blog website and use this to steal an access token for the admin user's account. Use the access token to obtain the admin's API key and submit the solution using the button provided in the lab banner.\nThe admin user will open anything you send from the exploit server and they always have an active session with the OAuth service.\nYou can log in via your own social media account using the following credentials: wiener:peter.",
+        "Vulnerability name": "OAuth authentication"
+      },
+      {
+        "Lab scenario": "Stealing OAuth access tokens via a proxy page",
+        "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. Flawed validation by the OAuth service makes it possible for an attacker to leak access tokens to arbitrary pages on the client application.\nTo solve the lab, identify a secondary vulnerability in the client application and use this as a proxy to steal an access token for the admin user's account. Use the access token to obtain the admin's API key and submit the solution using the button provided in the lab banner.\nThe admin user will open anything you send from the exploit server and they always have an active session with the OAuth service.\nYou can log in via your own social media account using the following credentials: wiener:peter.",
+        "Vulnerability name": "OAuth authentication"
+      },
+      {
+        "Lab scenario": "Authentication bypass via OAuth implicit flow",
+        "Lab Description": "This lab uses an OAuth service to allow users to log in with their social media account. Flawed validation by the client application makes it possible for an attacker to log in to other users' accounts without knowing their password.\nTo solve the lab, log in to Carlos's account. His email address is carlos@carlos-montoya.net.\nYou can log in with your own social media account using the following credentials: wiener:peter.",
+        "Vulnerability name": "OAuth authentication",
+        "lab level": "Medium",
+        "src code": "const express = require('express'); const bodyParser = require('body-parser'); const session = require('express-session'); const app = express(); app.use(bodyParser.urlencoded({ extended: true })); app.use(session({ secret: 'secretKey', resave: false, saveUninitialized: true })); const users = [{ email: 'carlos@carlos-montoya.net', name: 'Carlos' }, { email: 'wiener@peter.net', name: 'Wiener' }]; app.get('/oauth/callback', (req, res) => { const { token, email } = req.query; if (token && email) { req.session.user = users.find(user => user.email === email); res.redirect('/dashboard'); } else { res.status(400).send('Invalid OAuth response'); } }); app.get('/dashboard', (req, res) => { if (!req.session.user) { return res.status(401).send('Unauthorized'); } res.send(`<h1>Welcome ${req.session.user.name}</h1><p>Email: ${req.session.user.email}</p>`); }); const PORT = 4000; app.listen(PORT, () => console.log(`OAuth Authentication Bypass Lab running on http://localhost:${PORT}`));"
+      },
+      {
+        "Lab scenario": "SSRF via OpenID dynamic client registration",
+        "Lab Description": "This lab allows client applications to dynamically register themselves with the OAuth service via a dedicated registration endpoint. Some client-specific data is used in an unsafe way by the OAuth service, which exposes a potential vector for SSRF.\nTo solve the lab, craft an SSRF attack to access http://169.254.169.254/latest/meta-data/iam/security-credentials/admin/ and steal the secret access key for the OAuth provider's cloud environment.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "OAuth authentication",
+        "lab level": "medium",
+        "src code":"const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/register', (req, res) => {\n  const { client_name, redirect_uris, logo_uri } = req.body;\n  console.log(`Client Name: ${client_name}`);\n  console.log(`Redirect URIs: ${redirect_uris}`);\n  console.log(`Logo URI: ${logo_uri}`);\n  res.json({ message: 'Client registered successfully' });\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`SSRF Lab running on http://localhost:${PORT}`));"
+      }
+]

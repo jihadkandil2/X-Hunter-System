@@ -1,0 +1,138 @@
+[
+    {
+        "Lab scenario": "HTTP request smuggling, confirming a CL.TE vulnerability via differential responses",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nTo solve the lab, smuggle a request to the back-end server, so that a subsequent request for / (the web root) triggers a 404 Not Found response.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "HTTP request smuggling, confirming a TE.CL vulnerability via differential responses",
+        "Lab Description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding.\nTo solve the lab, smuggle a request to the back-end server, so that a subsequent request for / (the web root) triggers a 404 Not Found response.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "Exploiting HTTP request smuggling to bypass front-end security controls, CL.TE vulnerability",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. There's an admin panel at /admin, but the front-end server blocks access to it.\nTo solve the lab, smuggle a request to the back-end server that accesses the admin panel and deletes the user carlos.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "Exploiting HTTP request smuggling to bypass front-end security controls, TE.CL vulnerability",
+        "Lab Description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding. There's an admin panel at /admin, but the front-end server blocks access to it.\nTo solve the lab, smuggle a request to the back-end server that accesses the admin panel and deletes the user carlos.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "Exploiting HTTP request smuggling to reveal front-end request rewriting",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nThere's an admin panel at /admin, but it's only accessible to people with the IP address 127.0.0.1. The front-end server adds an HTTP header to incoming requests containing their IP address. It's similar to the X-Forwarded-For header but has a different name.\nTo solve the lab, smuggle a request to the back-end server that reveals the header that is added by the front-end server. Then smuggle a request to the back-end server that includes the added header, accesses the admin panel, and deletes the user carlos.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "Exploiting HTTP request smuggling to capture other users' requests",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nTo solve the lab, smuggle a request to the back-end server that causes the next user's request to be stored in the application. Then retrieve the next user's request and use the victim user's cookies to access their account.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "Exploiting HTTP request smuggling to deliver reflected XSS",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.\nThe application is also vulnerable to reflected XSS via the User-Agent header.\nTo solve the lab, smuggle a request to the back-end server that causes the next user's request to receive a response containing an XSS exploit that executes alert(1).",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "Response queue poisoning via H2.TE request smuggling",
+        "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests even if they have an ambiguous length.\nTo solve the lab, delete the user carlos by using response queue poisoning to break into the admin panel at /admin. An admin user will log in approximately every 15 seconds.\nThe connection to the back-end is reset every 10 requests, so don't worry if you get it into a bad state - just send a few normal requests to get a fresh connection.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "H2.CL request smuggling",
+        "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests even if they have an ambiguous length.\nTo solve the lab, perform a request smuggling attack that causes the victim's browser to load and execute a malicious JavaScript file from the exploit server, calling alert(document.cookie). The victim user accesses the home page every 10 seconds.",
+        "Vulnerability name": "HTTP request smuggling"
+    },
+    {
+        "Lab scenario": "HTTP/2 request smuggling via CRLF injection",
+        "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming headers.\nTo solve the lab, use an HTTP/2-exclusive request smuggling vector to gain access to another user's account. The victim accesses the home page every 15 seconds.\nIf you're not familiar with Burp's exclusive features for HTTP/2 testing, please refer to the documentation for details on how to use them.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "HTTP/2 request splitting via CRLF injection",
+        "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming headers.\nTo solve the lab, delete the user carlos by using response queue poisoning to break into the admin panel at /admin. An admin user will log in approximately every 10 seconds.\nThe connection to the back-end is reset every 10 requests, so don't worry if you get it into a bad state - just send a few normal requests to get a fresh connection.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "CL.0 request smuggling",
+        "Lab Description": "This lab is vulnerable to CL.0 request smuggling attacks. The back-end server ignores the Content-Length header on requests to some endpoints.\nTo solve the lab, identify a vulnerable endpoint, smuggle a request to the back-end to access to the admin panel at /admin, then delete the user carlos.\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "HTTP request smuggling, basic CL.TE vulnerability",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server rejects requests that aren't using the GET or POST method.\nTo solve the lab, smuggle a request to the back-end server, so that the next request processed by the back-end server appears to use the method GPOST.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "HTTP request smuggling, basic TE.CL vulnerability",
+        "Lab Description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding. The front-end server rejects requests that aren't using the GET or POST method.\nTo solve the lab, smuggle a request to the back-end server, so that the next request processed by the back-end server appears to use the method GPOST.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "HTTP request smuggling, obfuscating the TE header",
+        "Lab Description": "This lab involves a front-end and back-end server, and the two servers handle duplicate HTTP request headers in different ways. The front-end server rejects requests that aren't using the GET or POST method.\nTo solve the lab, smuggle a request to the back-end server, so that the next request processed by the back-end server appears to use the method GPOST.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "Exploiting HTTP request smuggling to perform web cache poisoning",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server is configured to cache certain responses.\nTo solve the lab, perform a request smuggling attack that causes the cache to be poisoned, such that a subsequent request for a JavaScript file receives a redirection to the exploit server. The poisoned cache should alert document.cookie.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "Exploiting HTTP request smuggling to perform web cache deception",
+        "Lab Description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server is caching static resources.\nTo solve the lab, perform a request smuggling attack such that the next user's request causes their API key to be saved in the cache. Then retrieve the victim user's API key from the cache and submit it as the lab solution. You will need to wait for 30 seconds from accessing the lab before attempting to trick the victim into caching their API key.\nYou can log in to your own account using the following credentials: wiener:peter",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "Bypassing access controls via HTTP/2 request tunnelling",
+        "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming header names. To solve the lab, access the admin panel at /admin as the administrator user and delete the user carlos.\nThe front-end server doesn't reuse the connection to the back-end, so isn't vulnerable to classic request smuggling attacks. However, it is still vulnerable to request tunnelling.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "Web cache poisoning via HTTP/2 request tunnelling",
+        "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and doesn't consistently sanitize incoming headers.\nTo solve the lab, poison the cache in such a way that when the victim visits the home page, their browser executes alert(1). A victim user will visit the home page every 15 seconds.\nThe front-end server doesn't reuse the connection to the back-end, so isn't vulnerable to classic request smuggling attacks. However, it is still vulnerable to request tunnelling.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "Client-side desync",
+        "Lab Description": "This lab is vulnerable to client-side desync attacks because the server ignores the Content-Length header on requests to some endpoints. You can exploit this to induce a victim's browser to disclose its session cookie.\nTo solve the lab:\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+        "Vulnerability name": "HTTP request smuggling"
+      },
+      {
+        "Lab scenario": "Server-side pause-based request smuggling",
+        "Lab Description": "This lab is vulnerable to pause-based server-side request smuggling. The front-end server streams requests to the back-end, and the back-end server does not close the connection after a timeout on some endpoints.\nTo solve the lab, identify a pause-based CL.0 desync vector, smuggle a request to the back-end to the admin panel at /admin, then delete the user carlos.\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+        "Vulnerability name": "HTTP request smuggling"
+      }
+      
+      
+    ,{"finish": "#################################"},
+    {
+      "Lab scenario": "Bypassing access controls via HTTP/2 request tunnelling",
+      "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming header names. To solve the lab, access the admin panel at /admin as the administrator user and delete the user carlos.\nThe front-end server doesn't reuse the connection to the back-end, so isn't vulnerable to classic request smuggling attacks. However, it is still vulnerable to request tunnelling.",
+      "Vulnerability name": "HTTP request smuggling",
+      "lab level": "hard",
+      "src code": "const express = require('express'); const app = express(); app.use(express.json()); app.post('/admin', (req, res) => { if (req.headers['x-http2-smuggle']) { res.send('Access granted as administrator'); } else { res.status(403).send('Forbidden'); } }); app.listen(3000, () => { console.log('Lab running on http://localhost:3000'); });"
+    },
+    {
+      "Lab scenario": "Web cache poisoning via HTTP/2 request tunnelling",
+      "Lab Description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and doesn't consistently sanitize incoming headers.\nTo solve the lab, poison the cache in such a way that when the victim visits the home page, their browser executes alert(1). A victim user will visit the home page every 15 seconds.\nThe front-end server doesn't reuse the connection to the back-end, so isn't vulnerable to classic request smuggling attacks. However, it is still vulnerable to request tunnelling.",
+      "Vulnerability name": "HTTP request smuggling",
+      "lab level": "medium",
+      "src code": "const express = require('express'); const app = express(); app.use(express.json()); app.get('/', (req, res) => { if (req.headers['x-cache-poison']) { res.send('<script>alert(1)</script>'); } else { res.send('<h1>Welcome to the homepage</h1>'); } }); app.listen(3000, () => { console.log('Lab running on http://localhost:3000'); });"
+    },
+    {
+      "Lab scenario": "Client-side desync",
+      "Lab Description": "This lab is vulnerable to client-side desync attacks because the server ignores the Content-Length header on requests to some endpoints. You can exploit this to induce a victim's browser to disclose its session cookie.\nTo solve the lab:\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+      "Vulnerability name": "HTTP request smuggling",
+      "lab level": "Hard",
+      "src code": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.post('/vulnerable-endpoint', (req, res) => { res.send('Vulnerable to client-side desync'); }); const PORT = 4000; app.listen(PORT, () => console.log(`Client-side desync lab running on http://localhost:${PORT}`));"
+    },
+    {
+      "Lab scenario": "Server-side pause-based request smuggling",
+      "Lab Description": "This lab is vulnerable to pause-based server-side request smuggling. The front-end server streams requests to the back-end, and the back-end server does not close the connection after a timeout on some endpoints.\nTo solve the lab, identify a pause-based CL.0 desync vector, smuggle a request to the back-end to the admin panel at /admin, then delete the user carlos.\nThis lab is based on real-world vulnerabilities discovered by PortSwigger Research. For more details, check out Browser-Powered Desync Attacks: A New Frontier in HTTP Request Smuggling.",
+      "Vulnerability name": "HTTP request smuggling",
+      "lab level": "hard",
+      "src code": "app.use(express.json());\napp.post('/submit', (req, res) => {\n  const { data } = req.body;\n  res.send(`Received: ${data}`);\n});"
+    }
+]

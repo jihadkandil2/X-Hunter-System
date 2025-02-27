@@ -1,0 +1,87 @@
+[
+    {
+        "Lab scenario": "Web cache poisoning to exploit a DOM vulnerability via a cache with strict cacheability criteria",
+        "Lab Description": "This lab contains a DOM-based vulnerability that can be exploited as part of a web cache poisoning attack. A user visits the home page roughly once a minute. Note that the cache used by this lab has stricter criteria for deciding which responses are cacheable, so you will need to study the cache behavior closely.\nTo solve the lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+        "Vulnerability name": "Web cache poisoning"
+      },
+      {
+        "Lab scenario": "Combining web cache poisoning vulnerabilities",
+        "Lab Description": "This lab is susceptible to web cache poisoning, but only if you construct a complex exploit chain.\nA user visits the home page roughly once a minute and their language is set to English. To solve this lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+        "Vulnerability name": "Web cache poisoning"
+      },
+      {
+        "Lab scenario": "Cache key injection",
+        "Lab Description": "This lab contains multiple independent vulnerabilities, including cache key injection. A user regularly visits this site's home page using Chrome.\nTo solve the lab, combine the vulnerabilities to execute alert(1) in the victim's browser. Note that you will need to make use of the Pragma: x-get-cache-key header in order to solve this lab.",
+        "Vulnerability name": "Web cache poisoning"
+      },
+      {
+        "Lab scenario": "Internal cache poisoning",
+        "Lab Description": "This lab is vulnerable to web cache poisoning. It uses multiple layers of caching. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the internal cache so that the home page executes alert(document.cookie) in the victim's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "lab level": "Medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\nconst port = 3000;\n\napp.use(bodyParser.urlencoded({ extended: true }));\napp.use(bodyParser.json());\n\n// Simulated internal cache for the home page.\n// Initially, the home page content is safe.\nlet homepageCache = {\n  content: `<html>\n  <head><title>Home</title></head>\n  <body>\n    <h1>Welcome to our website!</h1>\n    <p>This content is served from our internal cache.</p>\n  </body>\n</html>`\n};\n\n// Vulnerable endpoint to poison the internal cache.\napp.post('/poison', (req, res) => {\n  const maliciousContent = req.body.content;\n  if (maliciousContent) {\n    homepageCache.content = maliciousContent;\n    res.send(\"Cache updated successfully.\");\n  } else {\n    res.send(\"No content provided.\");\n  }\n});\n\n// Home page route that serves content from the internal cache.\napp.get('/', (req, res) => {\n  res.send(homepageCache.content);\n});\n\n// Instructions route\napp.get('/instructions', (req, res) => {\n  res.send(`\n    <h1>Internal Cache Poisoning Lab</h1>\n    <p>This lab is vulnerable to web cache poisoning through an internal cache used to serve the home page.</p>\n    <p>To solve the lab, poison the internal cache so that when a victim (a Chrome user) visits the home page, it executes <code>alert(document.cookie)</code>.</p>\n    <p>For example, send a POST request to <code>/poison</code> with the following JSON payload:</p>\n    <pre>{ \"content\": \"<html><head><title>Hacked</title></head><body><script>alert(document.cookie)</script></body></html>\" }</pre>\n    <p>After poisoning the cache, when the home page (<code>/</code>) is loaded, the malicious script will execute.</p>\n  `);\n});\n\napp.listen(port, () => {\n  console.log(`Lab running on http://localhost:${port}`);\n});"
+      },
+      {
+        "Lab scenario": "Web cache poisoning with an unkeyed header",
+        "Lab Description": "This lab is vulnerable to web cache poisoning because it handles input from an unkeyed header in an unsafe way. An unsuspecting user regularly visits the site's home page. To solve this lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst app = express();\nconst port = 3000;\n\nlet cachedPage = '<html><body><h1>Safe Page</h1></body></html>';\n\napp.get('/', (req, res) => {\n  const poisonCookie = req.cookies.payload;\n  \n  if (poisonCookie) {\n    cachedPage = `<html><body>\n      <h1>Cookie Poisoning Lab</h1>\n      <script>${decodeURIComponent(poisonCookie)}</script>\n    </body></html>`;\n  }\n  res.send(cachedPage);\n});\n\napp.listen(port, () => console.log('Server running: http://localhost:'+port));",
+      "Lab Level": "Medium"
+      },
+      {
+        "Lab scenario": "Web cache poisoning with an unkeyed cookie",
+        "Lab Description": "This lab is vulnerable to web cache poisoning because cookies aren't included in the cache key. An unsuspecting user regularly visits the site's home page. To solve this lab, poison the cache with a response that executes alert(1) in the visitor's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst app = express();\nconst port = 3000;\n\nlet cachedPage = '<html><body><h1>Safe Page</h1></body></html>';\n\napp.get('/', (req, res) => {\n  const poisonCookie = req.cookies.payload;\n  \n  if (poisonCookie) {\n    cachedPage = `<html><body>\n      <h1>Cookie Poisoning Lab</h1>\n      <script>${decodeURIComponent(poisonCookie)}</script>\n    </body></html>`;\n  }\n  res.send(cachedPage);\n});\n\napp.listen(port, () => console.log('Server running: http://localhost:'+port));",
+      "Lab Level": "Medium"
+      },
+      {
+        "Lab scenario": "Web cache poisoning with multiple headers",
+        "Lab Description": "This lab contains a web cache poisoning vulnerability that is only exploitable when you use multiple headers to craft a malicious request. A user visits the home page roughly once a minute. To solve this lab, poison the cache with a response that executes alert(document.cookie) in the visitor's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst app = express();\nconst port = 3000;\n\nlet cachedContent = '<html><body><h1>Safe Content</h1></body></html>';\n\napp.get('/update', (req, res) => {\n  const geo = req.header('X-Forwarded-For');\n  const userType = req.header('X-User-Type');\n  const payload = req.query.x;\n  \n  if (geo && userType === 'premium' && payload) {\n    cachedContent = `<html><body>\n      <h1>Multi-Header Lab</h1>\n      <script>${decodeURIComponent(payload)}</script>\n    </body></html>`;\n  }\n  res.send(cachedContent);\n});\n\napp.get('/', (req, res) => {\n  res.send(cachedContent);\n});\n\napp.listen(port, () => console.log('Server running: http://localhost:'+port));",
+      "Lab Level": "Hard"
+      },
+      {
+        "Lab scenario": "Targeted web cache poisoning using an unknown header",
+        "Lab Description": "This lab is vulnerable to web cache poisoning. A victim user will view any comments that you post. To solve this lab, you need to poison the cache with a response that executes alert(document.cookie) in the visitor's browser. However, you also need to make sure that the response is served to the specific subset of users to which the intended victim belongs.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst app = express();\nconst port = 3000;\n\napp.get('/', (req, res) => {\n  res.send('Visit /comments endpoint');\n});\n\nlet cachedResponse = '<html><body><div id=\"comments\"></div></body></html>';\n\napp.get('/comments', (req, res) => {\n  const userGroup = req.header('X-User-Group');\n  const payload = req.query.payload;\n  \n  if(userGroup === 'premium' && payload) {\n    cachedResponse = `<html><body>\n      <div id=\"comments\">\n        <script>${decodeURIComponent(payload)}</script>\n      </div>\n    </body></html>`;\n  }\n  res.send(cachedResponse);\n});\n\napp.listen(port, () => console.log('Server running: http://localhost:'+port));",
+      "Lab Level": "Hard"
+      },
+      {
+        "Lab scenario": "Web cache poisoning via an unkeyed query string",
+        "Lab Description": "This lab is vulnerable to web cache poisoning because the query string is unkeyed. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the home page with a response that executes alert(1) in the victim's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst app = express();\nconst port = 3000;\n\nlet cachedResponse = '<html><body><h1>Safe Content</h1></body></html>';\n\napp.get('/poison', (req, res) => {\n  const payload = req.query.x;\n  if(payload) {\n    cachedResponse = `<html><body>\n      <h1>Hacked</h1>\n      <script>${decodeURIComponent(payload)}</script>\n    </body></html>`;\n  }\n  res.send('Cache updated');\n});\n\napp.get('/', (req, res) => {\n  res.send(cachedResponse);\n});\n\napp.listen(port, () => console.log('Server running: http://localhost:'+port));",
+      "Lab Level": "Medium"
+      },
+      {
+        "Lab scenario": "Web cache poisoning via an unkeyed query parameter",
+        "Lab Description": "This lab is vulnerable to web cache poisoning because it excludes a certain parameter from the cache key. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the cache with a response that executes alert(1) in the victim's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst app = express();\nconst port = 3000;\n\nlet cachedPage = '<html><body><h1>Safe Content</h1></body></html>';\n\napp.get('/update', (req, res) => {\n  const lang = req.query.lang; // Keyed parameter\n  const payload = req.query.payload; // Unkeyed parameter\n  \n  if(payload) {\n    cachedPage = `<html><body>\n      <h1>Hacked</h1>\n      <script>${decodeURIComponent(payload)}</script>\n    </body></html>`;\n  }\n  res.send(`Updated for lang: ${lang}`);\n});\n\napp.get('/', (req, res) => {\n  res.send(cachedPage);\n});\n\napp.listen(port, () => console.log('Server running: http://localhost:'+port));",
+        "Lab Level": "Medium"
+      },
+      {
+        "Lab scenario": "Parameter cloaking",
+        "Lab Description": "This lab is vulnerable to web cache poisoning because it excludes a certain parameter from the cache key. There is also inconsistent parameter parsing between the cache and the back-end. A user regularly visits this site's home page using Chrome.\nTo solve the lab, use the parameter cloaking technique to poison the cache with a response that executes alert(1) in the victim's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst app = express();\nconst port = 3000;\n\nlet cachedContent = '<html><body><h1>Safe Page</h1></body></html>';\n\n// Vulnerable parameter processing\napp.get('/poison', (req, res) => {\n  const utmSource = req.query.utm_source;\n  const utmContent = req.query.utm_content;\n  \n  // Cache key uses only utm_source\n  if(utmContent) {\n    cachedContent = `<html><body><h1>Hacked</h1><script>${decodeURIComponent(utmContent)}</script></body></html>`;\n  }\n  res.send(`Cache updated with source: ${utmSource}`);\n});\n\n// Homepage with cache key based on utm_source only\napp.get('/', (req, res) => {\n  res.send(cachedContent);\n});\n\napp.listen(port, () => console.log(`Server running on port ${port}`));",
+      "Lab Level": "Medium"
+      },
+      {
+        "Lab scenario": "Web cache poisoning via a fat GET request",
+        "Lab Description": "This lab is vulnerable to web cache poisoning. It accepts GET requests that have a body, but does not include the body in the cache key. A user regularly visits this site's home page using Chrome.\nTo solve the lab, poison the cache with a response that executes alert(1) in the victim's browser.",
+        "Vulnerability name": "Web cache poisoning",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\nconst port = 3000;\n\napp.use(bodyParser.urlencoded({ extended: true }));\napp.use(bodyParser.json());\n\nlet homepageCache = {\n  content: `<html>\\n  <head><title>Home</title></head>\\n  <body>\\n    <h1>Welcome to our website!</h1>\\n    <p>This is the safe cached content.</p>\\n  </body>\\n</html>`\n};\n\napp.get('/poison', (req, res) => {\n  let maliciousContent = req.query.poison;\n  if (maliciousContent) {\n    maliciousContent = decodeURIComponent(maliciousContent);\n    homepageCache.content = maliciousContent;\n    res.send(\\\"Cache poisoned successfully via query parameter.\\\");\n  } else {\n    res.send(\\\"No poison payload provided.\\\");\n  }\n});\n\napp.get('/', (req, res) => {\n  res.send(homepageCache.content);\n});\n\napp.get('/instructions', (req, res) => {\n  res.send(`\\n    <h1>Fat GET Request Cache Poisoning Lab</h1>\\n    <p>This lab...`);\n});\n\napp.listen(port, () => {\n  console.log(`Lab running on http://localhost:${port}`);\n});",
+        "Lab Level": "Medium"
+      },
+      {
+        "Lab scenario": "URL normalization",
+        "Lab Description": "This lab contains an XSS vulnerability that is not directly exploitable due to browser URL-encoding.\nTo solve the lab, take advantage of the cache's normalization process to exploit this vulnerability. Find the XSS vulnerability and inject a payload that will execute alert(1) in the victim's browser. Then, deliver the malicious URL to the victim.",
+        "Vulnerability name": "Web cache poisoning",
+        "lab level": "Medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\nconst port = 3000;\n\napp.use(bodyParser.urlencoded({ extended: true }));\napp.use(bodyParser.json());\n\n// Simulated internal cache for the home page\nlet homepageCache = {\n  content: `<html>\n  <head><title>Home</title></head>\n  <body>\n    <h1>Welcome to our site</h1>\n    <p>Normal content here.</p>\n  </body>\n</html>`\n};\n\n// Vulnerable endpoint: update the cached homepage content with unsanitized input\napp.post('/poison', (req, res) => {\n  const { input } = req.body;\n  if (input) {\n    // Simulate cache normalization: decode URL-encoded input before caching\n    homepageCache.content = `<html>\n  <head><title>Home</title></head>\n  <body>\n    <h1>Welcome to our site</h1>\n    <p>${decodeURIComponent(input)}</p>\n  </body>\n</html>`;\n    res.send(\"Cache updated successfully.\");\n  } else {\n    res.send(\"No input provided.\");\n  }\n});\n\n// Home page route that serves content from the internal cache\napp.get('/', (req, res) => {\n  res.send(homepageCache.content);\n});\n\n// Instructions route\napp.get('/instructions', (req, res) => {\n  res.send(`\n    <h1>URL Normalization Lab</h1>\n    <p>This lab contains an XSS vulnerability that is normally not directly exploitable because the browser URL-encodes the injected payload.</p>\n    <p>To solve the lab, poison the internal cache by sending a specially crafted payload that, after URL normalization (i.e., decoding), injects an XSS payload.</p>\n    <p>For example, send a POST request to <code>/poison</code> with payload:</p>\n    <pre>{ \"input\": \"Hello%3Cscript%3Ealert(1)%3C/script%3E\" }</pre>\n    <p>Then, when the home page is requested, it should execute <code>alert(1)</code> in the victim's browser.</p>\n  `);\n});\n\napp.listen(port, () => {\n  console.log(`Lab running on http://localhost:${port}`);\n});"
+      }
+]

@@ -318,17 +318,401 @@
   "Vulnerability name": "Authentication",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst crypto = require('crypto');\nconst app = express();\napp.use(bodyParser.json());\n\nconst users = [{\n  username: 'carlos',\n  passwordHash: crypto.createHash('sha256').update('Summer2024').digest('hex'),\n  isAdmin: true\n}];\n\nconst sessions = new Map();\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  const user = users.find(u => u.username === username);\n  \n  if (!user || user.passwordHash !== crypto.createHash('sha256').update(password).digest('hex')) {\n    return res.status(401).send('Invalid credentials');\n  }\n\n  const sessionId = crypto.randomBytes(16).toString('hex');\n  sessions.set(sessionId, {\n    username: user.username,\n    passwordHash: user.passwordHash // Storing password hash at time of login\n  });\n\n  res.cookie('session', sessionId, { httpOnly: true });\n  res.send('Logged in successfully');\n});\n\napp.post('/change-password', (req, res) => {\n  const sessionId = req.cookies.session;\n  const { newPassword } = req.body;\n  \n  if (!sessions.has(sessionId)) return res.status(401).send('Unauthorized');\n  \n  const user = users.find(u => u.username === sessions.get(sessionId).username);\n  user.passwordHash = crypto.createHash('sha256').update(newPassword).digest('hex');\n  \n  // Critical flaw: Doesn't update existing sessions' passwordHash\n  res.send('Password changed successfully');\n});\n\napp.get('/admin/export', (req, res) => {\n  const sessionId = req.cookies.session;\n  const session = sessions.get(sessionId);\n  \n  if (!session) return res.status(401).send('Unauthorized');\n  \n  const user = users.find(u => u.username === session.username);\n  \n  // Vulnerability: Only checks initial password hash, not current\n  if (session.passwordHash === user.passwordHash && user.isAdmin) {\n    res.send('ADMIN DATA: All financial records downloaded');\n  } else {\n    res.status(403).send('Admin access required');\n  }\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`Session Lab running on http://localhost:${PORT}`));"
+},
+{
+  "lab_scenario": "Authentication bypass due to unsanitized login input",
+  "lab_description": "This lab demonstrates a vulnerability where user input in the login form is concatenated directly into the SQL query, allowing injection that bypasses password verification.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('user1', 'pass1')\");\n});\n\napp.post('/login', (req, res) => {\n  const username = req.body.username;\n  const password = req.body.password;\n  const query = SELECT * FROM users WHERE username = '${username}' AND password = '${password}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else if (rows.length > 0) res.send('Login successful');\n    else res.send('Login failed');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Plaintext password storage vulnerability",
+  "lab_description": "This lab shows an authentication system that stores passwords in plaintext, making it trivial for attackers to retrieve credentials if the database is compromised.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('admin', 'admin123')\");\n});\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  const query = SELECT * FROM users WHERE username = '${username}' AND password = '${password}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else if (rows.length > 0) res.send('Login successful');\n    else res.send('Login failed');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Missing password verification in login process",
+  "lab_description": "This lab simulates a login endpoint where the system only checks for the existence of a username and ignores the password, allowing attackers to log in with any password.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('user1', 'pass1')\");\n});\n\napp.post('/login', (req, res) => {\n  const username = req.body.username;\n  // Vulnerable: password is not verified\n  const query = SELECT * FROM users WHERE username = '${username}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else if (rows.length > 0) res.send('Login successful');\n    else res.send('Login failed');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Hardcoded credentials in source code",
+  "lab_description": "This lab simulates an authentication system that uses hardcoded credentials embedded in the source code. An attacker can easily read these values to gain access.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\n// Hardcoded credentials\nconst ADMIN_USER = 'admin';\nconst ADMIN_PASS = 'admin123';\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === ADMIN_USER && password === ADMIN_PASS) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Weak session token generation with predictable algorithm",
+  "lab_description": "This lab demonstrates a vulnerability where session tokens are generated using a predictable algorithm, allowing attackers to guess valid tokens and hijack sessions.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst crypto = require('crypto');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'predictableSecret',\n  resave: false,\n  saveUninitialized: true\n}));\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username && password) {\n    // Predictable token using username and current time\n    const token = crypto.createHash('md5').update(username + Date.now().toString()).digest('hex');\n    req.session.token = token;\n    res.json({ token: token });\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.get('/profile', (req, res) => {\n  if (req.session.token) res.send(Profile accessed with token ${req.session.token});\n  else res.send('Not authenticated');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Insecure JWT handling with weak secret",
+  "lab_description": "This lab simulates a system that uses JSON Web Tokens for authentication but employs a weak secret and does not enforce proper verification, making it easy for attackers to forge tokens.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst jwt = require('jsonwebtoken');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst SECRET = 'weaksecret';\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username && password) {\n    const token = jwt.sign({ username: username }, SECRET);\n    res.json({ token: token });\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.get('/protected', (req, res) => {\n  const token = req.headers.authorization;\n  try {\n    const payload = jwt.verify(token, SECRET);\n    res.send(Access granted for ${payload.username});\n  } catch (err) {\n    res.status(401).send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Session fixation vulnerability in login process",
+  "lab_description": "This lab demonstrates a vulnerability where the session ID is not regenerated upon login, allowing attackers to fix a session ID and hijack the session later.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  // Vulnerable: session ID remains unchanged after login\n  res.send('Login successful');\n});\n\napp.get('/profile', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Please log in');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Bypass of admin override due to missing access checks",
+  "lab_description": "This lab simulates an admin override function that lacks proper access control. Attackers can exploit this flaw to perform administrative actions without proper authorization.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/adminOverride', (req, res) => {\n  const token = req.body.overrideToken;\n  // Vulnerable: token check is weak\n  if (token === 'override123') {\n    res.send('Admin override successful');\n  } else {\n    res.send('Access denied');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication vulnerability due to predictable session IDs",
+  "lab_description": "This lab shows a system that generates session IDs in a predictable manner, enabling attackers to guess and hijack sessions.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'predictableSecret',\n  resave: false,\n  saveUninitialized: true,\n  cookie: { secure: false }\n}));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Not authenticated');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Token exchange vulnerability with improper validation",
+  "lab_description": "This lab simulates a token exchange endpoint that fails to properly validate tokens, allowing attackers to exchange arbitrary tokens for access tokens.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/tokenExchange', (req, res) => {\n  const token = req.body.token;\n  if (token === 'validToken') {\n    res.json({ newToken: 'newToken123' });\n  } else {\n    res.json({ newToken: token });\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Default credentials vulnerability in system configuration",
+  "lab_description": "This lab simulates an authentication system using default credentials that have not been changed from the initial configuration, making it trivial to log in.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst DEFAULT_USER = 'defaultUser';\nconst DEFAULT_PASS = 'defaultPass';\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === DEFAULT_USER && password === DEFAULT_PASS) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Misconfigured OAuth callback vulnerability",
+  "lab_description": "This lab simulates an OAuth authentication flow where the callback URL is taken directly from user input without validation, allowing attackers to redirect users to malicious sites.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/oauth/callback', (req, res) => {\n  const { token, callbackUrl } = req.body;\n  if (token === 'validToken') {\n    res.redirect(callbackUrl);\n  } else {\n    res.send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Weak two-factor authentication implementation",
+  "lab_description": "This lab simulates a two-factor authentication system where the one-time password (OTP) is not properly verified. Attackers can bypass the 2FA step by supplying any value.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/2fa', (req, res) => {\n  const { username, password, otp } = req.body;\n  // Vulnerable: OTP is not verified properly\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Insecure password reset without token validation",
+  "lab_description": "This lab simulates a password reset feature where the reset token passed in the URL is not validated, allowing attackers to reset any user's password.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (email, password) VALUES ('user@example.com', 'oldpass')\");\n});\n\napp.post('/resetPassword', (req, res) => {\n  const token = req.query.token;\n  const newPass = req.body.newPassword;\n  const query = UPDATE users SET password = '${newPass}' WHERE email = '${token}';\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Password reset successful');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Hardcoded API keys for authentication",
+  "lab_description": "This lab demonstrates an authentication mechanism that uses hardcoded API keys, exposing them in the source code. Attackers can extract these keys and bypass authentication.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst API_KEY = 'hardcoded123';\n\napp.post('/apiAccess', (req, res) => {\n  const key = req.body.apiKey;\n  if (key === API_KEY) {\n    res.send('Access granted');\n  } else {\n    res.send('Access denied');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Insecure cookie settings in session management",
+  "lab_description": "This lab simulates a session management vulnerability where session cookies are set without secure or HttpOnly flags, making them vulnerable to theft via XSS.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'insecureSecret',\n  resave: false,\n  saveUninitialized: true,\n  cookie: { secure: false, httpOnly: false }\n}));\n\napp.post('/login', (req, res) => {\n  if (req.body.username && req.body.password) {\n    req.session.user = req.body.username;\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.get('/profile', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Not logged in');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Weak password strength enforcement in registration",
+  "lab_description": "This lab simulates a registration process that fails to enforce strong password requirements, allowing users to set easily guessable passwords.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/register', (req, res) => {\n  const { username, password } = req.body;\n  // Vulnerable: No password complexity check\n  if (username && password) {\n    res.send('Registration successful');\n  } else {\n    res.send('Registration failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Open redirect in login flow enabling bypass",
+  "lab_description": "This lab simulates a login flow where a redirect URL parameter is not validated. Attackers can manipulate this parameter to redirect users to a malicious site after authentication.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password, redirectUrl } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.redirect(redirectUrl);\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Unencrypted login over HTTP",
+  "lab_description": "This lab simulates an authentication system that transmits credentials over plain HTTP, exposing them to network sniffing and interception by attackers.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username && password) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\n// Note: This server runs over HTTP\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "CSRF vulnerability in authentication",
+  "lab_description": "This lab simulates a cross-site request forgery vulnerability in the login process where an attacker can force a login action from another site without the user's consent.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\n// Vulnerable: No CSRF protection\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Insecure password change without current password verification",
+  "lab_description": "This lab simulates a password change functionality that does not require the user to input their current password. An attacker who hijacks the session can change the password without knowing the old one.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/changePassword', (req, res) => {\n  if (req.session.user) {\n    res.send('Password changed successfully');\n  } else {\n    res.send('Not authenticated');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Insecure token refresh mechanism without validation",
+  "lab_description": "This lab simulates a token refresh endpoint that accepts any refresh token and returns a new access token without proper validation, allowing attackers to bypass authentication.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/refreshToken', (req, res) => {\n  const refreshToken = req.body.refreshToken;\n  if (refreshToken) {\n    res.json({ accessToken: 'newAccessToken123' });\n  } else {\n    res.status(400).send('Invalid refresh token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication bypass due to insufficient logging",
+  "lab_description": "This lab simulates a scenario where the authentication process lacks sufficient logging, making it easier for attackers to perform brute-force attacks undetected.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Open redirect vulnerability in SSO callback",
+  "lab_description": "This lab simulates an SSO authentication flow where the callback URL is directly taken from user input without validation, allowing attackers to redirect users to malicious sites.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/sso/callback', (req, res) => {\n  const { token, redirectUrl } = req.body;\n  if (token === 'validToken') {\n    res.redirect(redirectUrl);\n  } else {\n    res.send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication vulnerability due to hardcoded default credentials",
+  "lab_description": "This lab simulates a system that uses default credentials for authentication. These default credentials are well-known and allow attackers to gain access easily.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Low",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst DEFAULT_USER = 'defaultUser';\nconst DEFAULT_PASS = 'defaultPass';\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === DEFAULT_USER && password === DEFAULT_PASS) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication vulnerability in misconfigured token refresh",
+  "lab_description": "This lab simulates a token refresh endpoint that fails to validate the refresh token properly, enabling attackers to obtain new access tokens using arbitrary tokens.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/refresh', (req, res) => {\n  const token = req.body.refreshToken;\n  if (token) {\n    res.json({ accessToken: 'refreshedToken123' });\n  } else {\n    res.status(400).send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication bypass via insecure password change mechanism",
+  "lab_description": "This lab simulates a password change feature that does not require verification of the current password, allowing attackers with an active session to change the password without knowing the old one.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/changePassword', (req, res) => {\n  if (req.session.user) {\n    res.send('Password changed successfully');\n  } else {\n    res.send('Not authenticated');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication vulnerability due to insecure cookie attributes",
+  "lab_description": "This lab simulates a system that sets session cookies without secure attributes, making them vulnerable to theft via XSS. Attackers can steal these cookies and hijack sessions.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'insecureSecret',\n  resave: false,\n  saveUninitialized: true,\n  cookie: { secure: false, httpOnly: false }\n}));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Not authenticated');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication bypass via insecure token exchange",
+  "lab_description": "This lab simulates a token exchange endpoint that returns a new token without proper validation of the provided token, allowing attackers to forge tokens.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Medium",
+  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/exchange', (req, res) => {\n  const providedToken = req.body.token;\n  if (providedToken === 'validToken') {\n    res.json({ token: 'newToken123' });\n  } else {\n    res.json({ token: providedToken });\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "lab_scenario": "Authentication vulnerability in session termination on logout",
+  "lab_description": "This lab simulates a logout process where the session is not properly destroyed, allowing attackers to reuse the session ID after logout.",
+  "vulnerability_name": "Authentication Vulnerability",
+  "lab_level": "Hard",
+  "src_code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\napp.post('/logout', (req, res) => {\n  // Vulnerable: session is not destroyed\n  res.send('Logged out');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Please log in');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Weak Hash-Based Authentication Tokens",
+  "Lab Description": "This lab uses weak hash-based authentication tokens generated with a static salt and MD5 hashing. The token format is MD5(username + 'secret123'). Attackers can compute valid tokens for other users if they know the salt. To solve the lab, compute the authentication token for the 'admin' user and access their profile.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const crypto = require('crypto'); const app = express(); const users = [{ username: 'user', password: 'password123' }, { username: 'admin', password: 'admin456' }]; const SALT = 'secret123'; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (!user) return res.status(401).send('Invalid credentials'); const token = crypto.createHash('md5').update(user.username + SALT).digest('hex'); res.cookie('authToken', token); res.send('Welcome, ' + username); }); app.get('/profile', (req, res) => { const authToken = req.cookies.authToken; const user = users.find(u => crypto.createHash('md5').update(u.username + SALT).digest('hex') === authToken); if (!user) return res.status(401).send('Unauthorized'); res.send('Profile for ' + user.username); }); const PORT = 4000; app.listen(PORT, () => console.log('Weak Token Generation Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Bypass Session Termination via Stale Password Hash Validation",
+  "Lab Description": "This lab's authentication system fails to invalidate existing sessions after password changes, allowing attackers to maintain persistent access using old credentials. To solve the lab: 1. Authenticate with Carlos's credentials (user: carlos, password: Summer2024). 2. Change Carlos's password while preserving your active session. 3. Use the original session cookie to access the /admin/export endpoint and download sensitive financial records. The system only validates sessions against initial password hashes, not current credentials.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst crypto = require('crypto');\nconst app = express();\napp.use(bodyParser.json());\n\nconst users = [{\n  username: 'carlos',\n  passwordHash: crypto.createHash('sha256').update('Summer2024').digest('hex'),\n  isAdmin: true\n}];\n\nconst sessions = new Map();\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  const user = users.find(u => u.username === username);\n  \n  if (!user || user.passwordHash !== crypto.createHash('sha256').update(password).digest('hex')) {\n    return res.status(401).send('Invalid credentials');\n  }\n\n  const sessionId = crypto.randomBytes(16).toString('hex');\n  sessions.set(sessionId, {\n    username: user.username,\n    passwordHash: user.passwordHash // Storing password hash at time of login\n  });\n\n  res.cookie('session', sessionId, { httpOnly: true });\n  res.send('Logged in successfully');\n});\n\napp.post('/change-password', (req, res) => {\n  const sessionId = req.cookies.session;\n  const { newPassword } = req.body;\n  \n  if (!sessions.has(sessionId)) return res.status(401).send('Unauthorized');\n  \n  const user = users.find(u => u.username === sessions.get(sessionId).username);\n  user.passwordHash = crypto.createHash('sha256').update(newPassword).digest('hex');\n  \n  // Critical flaw: Doesn't update existing sessions' passwordHash\n  res.send('Password changed successfully');\n});\n\napp.get('/admin/export', (req, res) => {\n  const sessionId = req.cookies.session;\n  const session = sessions.get(sessionId);\n  \n  if (!session) return res.status(401).send('Unauthorized');\n  \n  const user = users.find(u => u.username === session.username);\n  \n  // Vulnerability: Only checks initial password hash, not current\n  if (session.passwordHash === user.passwordHash && user.isAdmin) {\n    res.send('ADMIN DATA: All financial records downloaded');\n  } else {\n    res.status(403).send('Admin access required');\n  }\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`Session Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Exploit a weak password reset mechanism to access the admin account.",
+  "Lab Description": "The application features a password reset mechanism that generates a reset token identical to the username. This design flaw allows an attacker to reset any user's password simply by knowing their username and using it as the token. In this lab, there is an admin user with the username 'admin'. To solve the lab, follow these steps: 1. Request a password reset for the user 'attacker'. 2. Observe the reset link provided (e.g., '/reset?token=attacker'). 3. Modify the token in the URL to 'admin' (e.g., '/reset?token=admin'). 4. Reset the admin's password to a new value of your choice. 5. Log in as 'admin' using the new password to gain access. This lab demonstrates how predictable tokens can lead to unauthorized access, emphasizing the importance of secure token generation in authentication systems.",
+  "Vulnerability name": "Insecure Password Reset Token",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\nlet users = { 'attacker': 'attackerpass', 'admin': 'adminpass' };\n\napp.get('/login', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\" placeholder=\"Username\"><input name=\"password\" type=\"password\" placeholder=\"Password\"><button type=\"submit\">Login</button></form>');\n});\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (users[username] && users[username] === password) {\n    res.send(`Welcome, ${username}!`);\n  } else {\n    res.status(401).send('Invalid credentials');\n  }\n});\n\napp.get('/forgot', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\" placeholder=\"Username\"><button type=\"submit\">Request reset</button></form>');\n});\n\napp.post('/forgot', (req, res) => {\n  const { username } = req.body;\n  if (users[username]) {\n    const resetLink = `/reset?token=${username}`;\n    res.send(`Reset link: <a href=\"${resetLink}\">${resetLink}</a>`);\n  } else {\n    res.status(404).send('User not found');\n  }\n});\n\napp.get('/reset', (req, res) => {\n  const { token } = req.query;\n  if (!token || !users[token]) {\n    res.status(400).send('Invalid token');\n  } else {\n    res.send(`<form method=\"post\"><input name=\"token\" type=\"hidden\" value=\"${token}\"><input name=\"new_password\" type=\"password\" placeholder=\"New Password\"><button type=\"submit\">Reset password</button></form>`);\n  }\n});\n\napp.post('/reset', (req, res) => {\n  const { token, new_password } = req.body;\n  if (users[token]) {\n    users[token] = new_password;\n    res.send('Password reset successfully');\n  } else {\n    res.status(400).send('Invalid token');\n  }\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`Insecure Password Reset Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Bypass Certificate-Based Authentication via Forged Client-Side TLS Verification",
+  "Lab Description": "This lab implements flawed certificate pinning where client certificate validation only checks the public key rather than full certificate chain. Attackers can forge certificates using extracted public keys to impersonate administrators. To solve the lab: 1. Obtain the server's pinned public key from /security.txt. 2. Generate a malicious certificate matching the public key. 3. Authenticate using the forged certificate to access the /audit/reports endpoint and delete all audit logs.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst fs = require('fs');\nconst spdy = require('spdy');\nconst app = express();\n\n// Server configuration\nconst pinnedPublicKey = fs.readFileSync('./pinned-key.pub', 'utf8');\nconst authorizedUsers = ['CN=admin'];\n\n// Vulnerable TLS middleware\napp.use((req, res, next) => {\n  const cert = req.socket.getPeerCertificate();\n  \n  if (!cert || !cert.raw) {\n    return res.status(401).send('Client certificate required');\n  }\n\n  // Critical flaw: Only compares public keys\n  const clientPublicKey = cert.publicKey.export({ type: 'spki', format: 'pem' });\n  if (clientPublicKey !== pinnedPublicKey) {\n    return res.status(403).send('Invalid certificate');\n  }\n\n  // Secondary flaw: Subject validation bypass\n  req.isAdmin = cert.subject.CN === 'admin';\n  next();\n});\n\napp.get('/audit/reports', (req, res) => {\n  if (!req.isAdmin) return res.status(403).send('Admin required');\n  res.send('AUDIT CONTROLS: <button onclick=\"fetch('/audit/purge')\">DELETE ALL</button>');\n});\n\napp.post('/audit/purge', (req, res) => {\n  res.send('All audit logs destroyed - Lab solved');\n});\n\n// Expose public key (simulate security misconfiguration)\napp.get('/security.txt', (req, res) => {\n  res.send(pinnedPublicKey);\n});\n\nspdy.createServer({\n  key: fs.readFileSync('./server.key'),\n  cert: fs.readFileSync('./server.crt'),\n  requestCert: true,\n  rejectUnauthorized: false // Critical: Accepts self-signed certs\n}, app).listen(4000, () => {\n  console.log(`Certificate Lab running on https://localhost:4000`);\n});"
+},
+{
+  "Lab scenario": "Predictable Cookie-Based Session Hijacking",
+  "Lab Description": "This lab uses a predictable cookie value derived from the username to authenticate users. The cookie format is 'user-<username>'. Attackers can impersonate other users by knowing their usernames and constructing the corresponding cookie value. To solve the lab, access another user's profile by manipulating the cookie value.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const app = express(); const users = [{ username: 'alice', password: 'password123' }, { username: 'bob', password: 'password456' }]; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (!user) return res.status(401).send('Invalid credentials'); // Set predictable cookie res.cookie('auth', 'user-' + user.username); res.send('Welcome, ' + username); }); app.get('/profile', (req, res) => { const authCookie = req.cookies.auth; if (!authCookie) return res.status(401).send('Unauthorized'); const parts = authCookie.split('-'); if (parts[0] !== 'user' || parts.length !== 2) return res.status(401).send('Invalid cookie'); const username = parts[1]; const user = users.find(u => u.username === username); if (!user) return res.status(401).send('Unauthorized'); res.send('Profile for ' + username); }); const PORT = 4000; app.listen(PORT, () => console.log('Predictable Cookie Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Exploit a web application with a weak password policy that allows users to set very short or predictable passwords, making them easy to guess.",
+  "Lab Description": "The application has a login page where users can authenticate with a username and password. However, it enforces no minimum password length or complexity requirements. This allows an attacker to guess the password of a user by trying common or short passwords, such as '123' or 'password'. Your task is to: 1. Attempt to log in as the user 'admin' by guessing their password. 2. Use simple, common passwords (e.g., 'admin', '123', or 'pass') until you succeed. 3. Once logged in, access the protected '/dashboard' page to confirm the exploit. This lab demonstrates the importance of enforcing strong password policies (e.g., minimum length, mix of characters) to prevent attackers from easily guessing credentials. Hint: Try short or predictable passwords that someone might use if no rules are enforced.",
+  "Vulnerability name": "Weak Password Policy",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst users = { 'admin': '123' }; // Weak password!\n\napp.get('/login', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\" placeholder=\"Username\"><br><input name=\"password\" type=\"password\" placeholder=\"Password\"><br><button type=\"submit\">Login</button></form>');\n});\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (users[username] && users[username] === password) {\n    res.send('Login successful! <a href=\"/dashboard\">Go to Dashboard</a>');\n  } else {\n    res.status(401).send('Invalid username or password');\n  }\n});\n\napp.get('/dashboard', (req, res) => {\n  res.send('Welcome to the Admin Dashboard!');\n});\n\nconst PORT = 5000;\napp.listen(PORT, () => console.log(`Weak Password Policy Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Bypass FIDO2 Authentication via Forged Attestation Statements",
+  "Lab Description": "This lab's WebAuthn implementation fails to properly validate authenticator attestation data, allowing attackers to register malicious security keys as admin devices. To solve: 1. Intercept WebAuthn registration traffic. 2. Forge attestation statement using software emulated authenticator. 3. Bypass admin privilege checks by manipulating credential ID format. 4. Access /control-panel to disable security systems.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst { WebAuthn } = require('node-webauthn');\nconst app = express();\napp.use(bodyParser.json());\n\nconst webauthn = new WebAuthn({\n  rpName: 'Vulnerable Corp',\n  rpID: 'localhost',\n  origin: 'http://localhost:4000',\n  attestation: 'direct',\n  // Critical flaw: No attestation format validation\n  supportedAlgorithmIDs: [-7, -257]\n});\n\nconst users = [{\n  id: 'admin',\n  credentials: [],\n  role: 'user'\n}];\n\napp.post('/webauthn/register', async (req, res) => {\n  const options = webauthn.generateRegistrationOptions({\n    userID: 'attacker',\n    userName: 'attacker',\n    // Vulnerability: Accepts any authenticator type\n    authenticatorSelection: { userVerification: 'discouraged' }\n  });\n\n  req.session.challenge = options.challenge;\n  res.json(options);\n});\n\napp.post('/webauthn/register/complete', async (req, res) => {\n  const result = await webauthn.verifyRegistration({\n    credential: req.body,\n    expectedChallenge: req.session.challenge,\n    expectedOrigin: 'http://localhost:4000',\n    // Critical flaw: Disabled attestation verification\n    requireUserVerification: false\n  });\n\n  // Vulnerability: Privilege escalation via credential ID pattern\n  if (result.credentialID.toString('hex').startsWith('admin')) {\n    users[0].role = 'admin';\n  }\n\n  res.send('Registration successful');\n});\n\napp.get('/control-panel', (req, res) => {\n  if (users[0].role !== 'admin') return res.status(403).send('Access denied');\n  res.send('SECURITY CONTROLS: <button onclick=\"fetch('/shutdown')\">DISABLE ALL</button>');\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`WebAuthn Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Steal OAuth Tokens through Promiscuous CORS Configuration",
+  "Lab Description": "This lab's OAuth provider has insecure CORS settings allowing arbitrary origins to retrieve access tokens. Exploit: 1. Lure victim to malicious site loading cross-origin iframe. 2. Use XHR from attacker.com to /oauth/userinfo. 3. Exfiltrate tokens via DNS prefetch. 4. Access /api/admin to revoke all 2FA settings. The lab uses refresh_token grant with long-lived tokens.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst cors = require('cors');\nconst app = express();\n\napp.use(cors({\n  // Critical flaw: Reflects arbitrary origin with credentials\n  origin: (origin, callback) => callback(null, true),\n  credentials: true\n}));\n\nconst tokens = new Map();\ntokens.set('admin_token', { \n  user: 'admin',\n  scope: ['admin'],\n  expires: Date.now() + 31536000000 // 1 year expiration\n});\n\napp.get('/oauth/userinfo', (req, res) => {\n  const token = req.headers.authorization?.split(' ')[1];\n  const session = tokens.get(token);\n  \n  if (!session) return res.status(401).send('Invalid token');\n  res.json({\n    user: session.user,\n    scope: session.scope,\n    // Vulnerability: Returns sensitive metadata\n    security: { 2fa_enabled: false }\n  });\n});\n\napp.post('/api/admin/disable-2fa', (req, res) => {\n  const token = req.headers.authorization?.split(' ')[1];\n  if (!tokens.get(token)?.scope.includes('admin')) {\n    return res.status(403).send('Admin required');\n  }\n  res.send('All 2FA disabled - Lab solved');\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`CORS Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Exploit a weak password policy to guess a user's password.",
+  "Lab Description": "The application enforces a weak password policy that allows very short and simple passwords (e.g., minimum 3 characters, no complexity requirements). Your task is to guess the password for the user 'user1' and log into their account. Hint: The password is a common three-letter word.",
+  "Vulnerability name": "Weak Password Policy",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\n// Simulated database with user credentials\nconst users = { 'user1': 'cat', 'admin': 'dog' };\n\n// Serve the login page\napp.get('/login', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\" placeholder=\"Username\"><input name=\"password\" type=\"password\" placeholder=\"Password\"><button type=\"submit\">Login</button></form>');\n});\n\n// Handle login attempts\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (users[username] && users[username] === password) {\n    res.send(`Welcome, ${username}!`);\n  } else {\n    res.status(401).send('Login failed');\n  }\n});\n\nconst PORT = 8000;\napp.listen(PORT, () => console.log(`Weak Password Policy Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Exploit hardcoded credentials to log in as an admin user.",
+  "Lab Description": "The application contains hardcoded credentials embedded in its source code. Your task is to examine the code, identify the admin username and password, and use them to log in. Once successful, you'll see a welcome message confirming your access as an admin.",
+  "Vulnerability name": "Hardcoded Credentials",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\n// Hardcoded admin credentials\nconst ADMIN_USERNAME = 'admin';\nconst ADMIN_PASSWORD = 'secret123';\n\n// Serve the login page\napp.get('/login', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\" placeholder=\"Username\"><input name=\"password\" type=\"password\" placeholder=\"Password\"><button type=\"submit\">Login</button></form>');\n});\n\n// Handle login attempts\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {\n    res.send(`Welcome, ${username}! You have admin access.`);\n  } else {\n    res.status(401).send('Login failed: Incorrect username or password');\n  }\n});\n\nconst PORT = 9000;\napp.listen(PORT, () => console.log(`Hardcoded Credentials Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Unauthorized File Access via IDOR",
+  "Lab Description": "This lab allows attackers to download sensitive files by manipulating the file ID parameter in the download endpoint. The application does not validate whether the user is authorized to access the requested file. To solve the lab, download a restricted file by guessing its ID.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const app = express(); const files = { 1: { id: 1, name: 'user1_file.txt', content: 'User 1 data' }, 2: { id: 2, name: 'admin_file.txt', content: 'Admin data' } }; app.get('/download/:fileId', (req, res) => { const fileId = parseInt(req.params.fileId); const file = files[fileId]; if (!file) return res.status(404).send('File not found'); res.send(file.content); }); const PORT = 4000; app.listen(PORT, () => console.log('IDOR File Download Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Session Reuse After Logout",
+  "Lab Description": "This lab's logout functionality does not properly invalidate the session, allowing attackers to reuse the session cookie even after the user has logged out. To solve the lab, intercept the session cookie, force the user to log out, then use the same cookie to access their account.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const session = require('express-session'); const app = express(); app.use(session({ secret: 'secret', resave: false, saveUninitialized: true })); app.post('/login', (req, res) => { req.session.user = 'alice'; res.send('Logged in'); }); app.post('/logout', (req, res) => { // Vulnerability: Session not invalidated req.session.user = null; res.send('Logged out'); }); app.get('/profile', (req, res) => { if (req.session.user) res.send('Welcome, alice!'); else res.status(401).send('Unauthorized'); }); const PORT = 4000; app.listen(PORT, () => console.log('Session Reuse Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Session ID Predictability via User Email",
+  "Lab Description": "This lab generates session IDs using the user's email address (e.g., 'session-' + email). Attackers can impersonate users by knowing their email and constructing the corresponding session ID. To solve the lab, access another user's profile using their email-derived session ID.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const app = express(); const users = [{ email: 'user@example.com', password: 'password123' }, { email: 'admin@example.com', password: 'admin456' }]; app.post('/login', (req, res) => { const { email, password } = req.body; const user = users.find(u => u.email === email && u.password === password); if (!user) return res.status(401).send('Invalid credentials'); res.cookie('session', 'session-' + user.email); res.send('Welcome!'); }); app.get('/profile', (req, res) => { const session = req.cookies.session; const user = users.find(u => 'session-' + u.email === session); if (!user) return res.status(401).send('Unauthorized'); res.send('Profile for ' + user.email); }); const PORT = 4000; app.listen(PORT, () => console.log('Predictable Session ID Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Unauthorized Email Update via API",
+  "Lab Description": "This lab's API endpoint allows attackers to update any user's email by including the target user's ID in the request body. The backend does not validate authorization. To solve the lab, change another user's email using their ID.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = [{ id: 1, email: 'user@example.com' }, { id: 2, email: 'admin@example.com' }]; app.post('/update-email', (req, res) => { const { userId, newEmail } = req.body; const user = users.find(u => u.id === userId); if (!user) return res.status(404).send('User not found'); user.email = newEmail; res.send('Email updated to ' + newEmail); }); const PORT = 4000; app.listen(PORT, () => console.log('Missing Authorization Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Brute-Forceable Session IDs",
+  "Lab Description": "This lab uses a weak random number generator (Math.random()) to create 4-digit session IDs. Attackers can brute-force all possible IDs (0000-9999) to hijack sessions. To solve the lab, iterate through session IDs to find an active one.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const app = express(); let sessionId = Math.floor(Math.random() * 9000) + 1000; // 4-digit ID app.get('/profile', (req, res) => { const userSession = req.query.session; if (userSession === sessionId.toString()) { res.send('Welcome! Active session: ' + sessionId); } else { res.status(401).send('Unauthorized'); } }); const PORT = 4000; app.listen(PORT, () => console.log('Weak Randomness Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Hijack SAML Flows via Assertion Consumer Service Manipulation",
+  "Lab Description": "This lab's SAML IdP doesn't invalidate used assertions, allowing replay attacks. To solve: 1. Initiate SP-initiated SSO to capture SAMLRequest. 2. Modify `AssertionConsumerServiceURL` to attacker endpoint. 3. Replay assertion via original ACS URL. 4. Access /partner/data as federated admin.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst xmlCrypto = require('xml-crypto');\nconst xmldom = require('xmldom');\nconst xpath = require('xpath');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/saml/acs', (req, res) => {\n  try {\n    const SAMLResponse = Buffer.from(req.body.SAMLResponse, 'base64').toString();\n    const doc = new xmldom.DOMParser().parseFromString(SAMLResponse);\n    \n    // Extract assertion with XPath\n    const select = xpath.useNamespaces({\n      saml: 'urn:oasis:names:tc:SAML:2.0:assertion',\n      ds: 'http://www.w3.org/2000/09/xmldsig#'\n    });\n    \n    const assertion = select('//saml:Assertion', doc)[0];\n    const signature = select('//ds:Signature', doc)[0];\n\n    // Verify signature\n    const verifier = new xmlCrypto.SignedXml({ signatureAlgorithm: 'rsa-sha256' });\n    verifier.loadSignature(signature.toString());\n    \n    if (!verifier.checkSignature(assertion.toString())) {\n      return res.status(403).send('Invalid signature');\n    }\n\n    // Vulnerability: No assertion replay prevention\n    res.redirect('/partner/data');\n  } catch (error) {\n    res.status(500).send('SAML processing error');\n  }\n});\n\napp.get('/partner/data', (req, res) => {\n  res.send('FEDERATED DATA: Cross-tenant customer records');\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`SAML Replay Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Predict HMAC-Based One-Time Passwords via State Manipulation",
+  "Lab Description": "This lab's 2FA system uses a flawed HMAC-SHA256 implementation where the nonce isn't properly randomized. Attackers can: 1. Capture two consecutive OTPs. 2. Reverse-engineer the HMAC key using length extension attacks. 3. Generate future OTPs to access /admin/backup. The nonce increments by 1 second but resets during password changes.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const crypto = require('crypto');\nconst express = require('express');\nconst app = express();\n\nlet hmacKey = crypto.randomBytes(32);\nlet nonce = Date.now();\n\napp.post('/2fa', (req, res) => {\n  const { code } = req.body;\n  const currentNonce = Math.floor(Date.now() / 1000);\n  \n  // Critical flaw: Reusable nonce window\n  const validCodes = [currentNonce - 1, currentNonce, currentNonce + 1]\n    .map(t => crypto.createHmac('sha256', hmacKey).update(t.toString()).digest('hex'));\n  \n  if (!validCodes.includes(code)) return res.status(401).send('Invalid code');\n  res.send('Admin dashboard unlocked');\n});\n\napp.post('/change-password', (req, res) => {\n  // Vulnerability: Resets nonce but preserves HMAC key\n  nonce = Date.now();\n  res.send('Password changed');\n});\n\napp.get('/admin/backup', (req, res) => {\n  res.send('SYSTEM BACKUP: Cryptographic keys archived');\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`OTP Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Steal Identity Tokens via OpenID Connect Misconfiguration",
+  "Lab Description": "This lab's OIDC implementation fetches JWKS keys from an attacker-controlled URL due to insecure `issuer` validation. Exploit: 1. Register a malicious OAuth client with `redirect_uri=http://attacker.com`. 2. Forge JWT with `iss` pointing to your server. 3. Capture the server's HTTP request to your JWKS endpoint containing privileged `kid` tokens. 4. Use leaked tokens to access /vault and decrypt secrets.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst jwt = require('jsonwebtoken');\nconst axios = require('axios');\nconst app = express();\n\nconst clients = [{\n  client_id: 'legacy-app',\n  jwks_uri: 'https://metadata.google.com/.well-known/jwks.json' // Default trusted\n}];\n\napp.post('/oauth/token', async (req, res) => {\n  const { assertion } = req.body;\n  const decoded = jwt.decode(assertion, { complete: true });\n  \n  // Critical flaw: Blindly trusts JWT `iss` claim\n  const client = clients.find(c => c.client_id === decoded.payload.iss);\n  const jwks = (await axios.get(client.jwks_uri)).data;\n  \n  // Vulnerability: No host validation for JWKS_URI\n  const key = jwks.keys.find(k => k.kid === decoded.header.kid);\n  const verified = jwt.verify(assertion, pemKey(key), { algorithms: ['RS256'] });\n  \n  res.json({ access_token: 'leaked_system_token' });\n});\n\napp.get('/vault', (req, res) => {\n  const token = req.headers.authorization?.split(' ')[1];\n  if (token !== 'leaked_system_token') return res.status(403);\n  res.send('VAULT UNLOCKED: Root certificates extracted');\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`OIDC Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Predictable Reset Tokens Using Timestamps",
+  "Lab Description": "This lab generates password reset tokens using the current timestamp plus a fixed offset (e.g., 'token-' + (Date.now() + 10000)). Attackers can predict tokens by knowing when they were generated. To solve the lab, compute the reset token for the 'admin' account using the approximate timestamp.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const app = express(); const users = { 'admin': { password: 'admin123', resetToken: null } }; app.post('/request-reset', (req, res) => { const { username } = req.body; const user = users[username]; if (!user) return res.status(404).send('User not found'); const timestamp = Date.now(); user.resetToken = 'token-' + (timestamp + 10000); res.send('Reset token generated'); }); app.post('/reset-password', (req, res) => { const { username, token, newPassword } = req.body; const user = users[username]; if (!user || user.resetToken !== token) return res.status(401).send('Invalid token'); user.password = newPassword; user.resetToken = null; res.send('Password reset'); }); const PORT = 4000; app.listen(PORT, () => console.log('Timestamp Token Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Unauthorized Role Modification",
+  "Lab Description": "This lab allows attackers to escalate privileges by modifying the 'role' parameter in API requests. The backend does not validate if the user is authorized to change roles. To solve the lab, change your role to 'admin' by tampering with the request.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = [{ id: 1, role: 'user' }, { id: 2, role: 'admin' }]; app.post('/update-role', (req, res) => { const { userId, newRole } = req.body; const user = users.find(u => u.id === userId); if (!user) return res.status(404).send('User not found'); user.role = newRole; res.send('Role updated to ' + newRole); }); const PORT = 4000; app.listen(PORT, () => console.log('Role Escalation Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Session ID Exposed in URL",
+  "Lab Description": "This lab stores the session ID in the URL instead of a secure cookie. Attackers can steal session IDs from server logs or shared URLs. To solve the lab, intercept another user's session ID from their URL and access their profile.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Medium",
+  "src code": "const express = require('express'); const app = express(); let sessionId = 'abc123'; app.get('/profile', (req, res) => { const userSession = req.query.session; if (userSession === sessionId) { res.send('Welcome! Active session: ' + sessionId); } else { res.status(401).send('Unauthorized'); } }); app.get('/login', (req, res) => { res.send(`Logged in. Your session ID is: ${sessionId}`); }); const PORT = 4000; app.listen(PORT, () => console.log('URL Session ID Lab running on http://localhost:' + PORT));"
+},
+{
+  "Lab scenario": "Privilege Escalation via PAR Request URI Manipulation",
+  "Lab Description": "This OAuth 2.1 implementation mishandles Pushed Authorization Request URIs, allowing attackers to: 1. Intercept `request_uri` during client registration. 2. Replace scopes with `admin:full`. 3. Force authorization server to process modified request. 4. Access SCIM API to create backdoor admin account.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst uuid = require('uuid');\nconst app = express();\n\nconst parRequests = new Map();\n\napp.post('/par', (req, res) => {\n  const { client_id, scope } = req.body;\n  const request_uri = `urn:ietf:params:oauth:request_uri:${uuid.v4()}`;\n  \n  // Critical flaw: No client-scope binding\n  parRequests.set(request_uri, {\n    client_id,\n    scope // Vulnerable: Attacker can override\n  });\n  \n  res.json({ request_uri, expires_in: 300 });\n});\n\napp.post('/authorize', (req, res) => {\n  const { request_uri } = req.body;\n  const request = parRequests.get(request_uri);\n  \n  // Vulnerability: Trusts unmodified PAR\n  if (request.scope.includes('admin:full')) {\n    res.redirect(`/scim/create-admin?client=${request.client_id}`);\n  } else {\n    res.send('Standard authorization granted');\n  }\n});\n\napp.post('/scim/create-admin', (req, res) => {\n  res.send('Backdoor admin created - Lab solved');\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`PAR Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Bypass Facial Recognition via Stored Template Reuse",
+  "Lab Description": "This lab's biometric authentication system stores facial recognition templates as static SHA-256 hashes. Attackers can: 1. Extract template hashes from insecure S3 bucket. 2. Replay admin's facial hash via API parameter. 3. Bypass liveness detection to access /biometric/safe. The system compares hashes without timestamp validation.",
+  "Vulnerability name": "Authentication",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst crypto = require('crypto');\nconst app = express();\n\nconst facialHashes = {\n  admin: '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4'\n};\n\napp.post('/verify-biometric', (req, res) => {\n  const { image, hash } = req.body;\n  \n  // Critical flaw: Accepts precomputed hashes\n  const computedHash = hash || crypto.createHash('sha256').update(image).digest('hex');\n  \n  // Vulnerability: No anti-replay mechanism\n  if (Object.values(facialHashes).includes(computedHash)) {\n    res.send('Authentication successful');\n  } else {\n    res.status(403).send('Biometric mismatch');\n  }\n});\n\napp.get('/biometric/safe', (req, res) => {\n  res.send('BIOMETRIC VAULT: DNA profiles downloaded');\n});\n\nconst PORT = 4000;\napp.listen(PORT, () => console.log(`Biometric Lab running on http://localhost:${PORT}`));"
+},
+{
+  "Lab scenario": "Exploit a weak password policy to guess a user's password.(Weak Password Policy)",
+  "Lab Description": "The application allows users to set very short and simple passwords with no complexity requirements. Try logging in as 'admin' by guessing a common password like '123'. This demonstrates how weak password policies can lead to unauthorized access.",
+  "Vulnerability name": "Authentication ",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\nconst users = { 'admin': '123' };\napp.get('/login', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\"><input name=\"password\" type=\"password\"><button type=\"submit\">Login</button></form>');\n});\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (users[username] && users[username] === password) {\n    res.send(`Welcome, ${username}!`);\n  } else {\n    res.status(401).send('Invalid credentials');\n  }\n});\napp.listen(3001, () => console.log('Server running on port 3001'));"
+},
+{
+  "Lab scenario": "Exploit insecure session management to reuse a session after logout. (Insecure Session Management)",
+  "Lab Description": "The application fails to properly invalidate session cookies upon logout. Log in as 'user1', capture the session cookie, log out, then use the same cookie to access the account page again. This shows the importance of fully destroying sessions on logout.",
+  "Vulnerability name": "Authentication ",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst session = require('express-session');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\nconst users = { 'user1': 'password' };\napp.get('/login', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\"><input name=\"password\" type=\"password\"><button type=\"submit\">Login</button></form>');\n});\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (users[username] && users[username] === password) {\n    req.session.username = username;\n    res.send('Logged in');\n  } else {\n    res.status(401).send('Invalid credentials');\n  }\n});\napp.get('/account', (req, res) => {\n  if (req.session.username) {\n    res.send(`Welcome, ${req.session.username}!`);\n  } else {\n    res.status(401).send('Please log in');\n  }\n});\napp.get('/logout', (req, res) => {\n  req.session.username = null; // Not destroying the session\n  res.send('Logged out');\n});\napp.listen(3002, () => console.log('Server running on port 3002'));"
+},
+{
+  "Lab scenario": "Exploit the lack of rate limiting to perform credential stuffing(Credential Stuffing)",
+  "Lab Description": "The application does not limit the number of login attempts, allowing attackers to try multiple passwords for a known username. Try logging in as 'user1' with different passwords until you guess 'password123'. This highlights the need for rate limiting or account lockouts.",
+  "Vulnerability name": "Authentication ",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\nconst users = { 'user1': 'password123' };\napp.get('/login', (req, res) => {\n  res.send('<form method=\"post\"><input name=\"username\"><input name=\"password\" type=\"password\"><button type=\"submit\">Login</button></form>');\n});\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (users[username] && users[username] === password) {\n    res.send(`Welcome, ${username}!`);\n  } else {\n    res.send('Invalid credentials'); // No rate limiting\n  }\n});\napp.listen(3003, () => console.log('Server running on port 3003'));"
 }
 
   
   
   
-  
-  
-  
-  
-  
-  
-  
-
   ]

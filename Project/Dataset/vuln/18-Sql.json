@@ -132,7 +132,7 @@
     "lab_scenario": "SQL injection in search filter with parameter manipulation",
     "lab_description": "This lab simulates a search endpoint where user-provided filters are concatenated into a query. The lack of proper sanitization allows attackers to manipulate parameters to retrieve unauthorized data.",
     "vulnerability_name": "SQL Injection",
-    "lab_level": "Low",
+    "lab_level": "Easy",
     "src_code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT, price REAL)\");\n  db.run(\"INSERT INTO items (name, price) VALUES ('Book', 10.99)\");\n});\n\napp.get('/filter', (req, res) => {\n  const filter = req.query.filter;\n  const query = SELECT * FROM items WHERE name = '${filter}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
   },
   {

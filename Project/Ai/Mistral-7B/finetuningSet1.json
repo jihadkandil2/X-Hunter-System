@@ -1982,7 +1982,7 @@
 {
   "Lab scenario": "Blind SQL injection with delay-based response",
   "Lab Description": "This lab demonstrates a blind SQL injection vulnerability where response time delays are used to infer database content. Manipulate the SQL query to induce a delay when conditions are met, allowing extraction of sensitive data via timing analysis.",
-  "Vulnerability name": "Blind SQL Injection",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('admin', 'adminpass')\");\n});\n\napp.post('/login', (req, res) => {\n  const username = req.body.username;\n  const password = req.body.password;\n  const query = SELECT username, password, CASE WHEN (username='${username}' AND password='${password}') THEN (SELECT sleep(5)) ELSE 0 END as delay FROM users;;\n  console.log(\"Executing query:\", query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send(\"Error occurred.\");\n    else {\n      const delay = rows[0].delay;\n      if (delay >= 5) res.send(\"Vulnerability exploited: Blind SQL Injection detected.\");\n      else res.send(\"No vulnerability exploited.\");\n    }\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
@@ -1996,14 +1996,14 @@
 {
   "Lab scenario": "SQL injection with error-based data extraction",
   "Lab Description": "This lab demonstrates an error-based SQL injection vulnerability. By manipulating the query, attackers can force errors that reveal database structure details such as table names and column details.",
-  "Vulnerability name": "SQL Injection (Error-based)",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Easy",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: false }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, price REAL)\");\n  db.run(\"INSERT INTO products (name, price) VALUES ('Laptop', 1200.00)\");\n});\n\napp.get('/search', (req, res) => {\n  const keyword = req.query.keyword;\n  const query = SELECT * FROM products WHERE name = '${keyword}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send(err.message);\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "SQL injection allowing multiple statement execution",
   "Lab Description": "This lab simulates a vulnerability where user input is concatenated into a query that allows execution of multiple SQL statements, enabling attackers to run unauthorized commands such as dropping tables or extracting data.",
-  "Vulnerability name": "SQL Injection (Multiple Statement)",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('admin', 'adminpass')\");\n});\n\napp.post('/execute', (req, res) => {\n  const input = req.body.input;\n  const query = BEGIN; SELECT * FROM users; ${input}; COMMIT;;\n  console.log('Executing query:', query);\n  db.exec(query, (err) => {\n    if (err) res.status(500).send('Error occurred.');\n    else res.send('Query executed successfully.');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
@@ -2052,49 +2052,49 @@
 {
   "Lab scenario": "Boolean-based blind SQL injection in login system",
   "Lab Description": "This lab demonstrates a boolean-based blind SQL injection vulnerability in a login system. By injecting conditions like 'OR 1=1', attackers can bypass authentication. Exploit the vulnerability to log in with incorrect credentials.",
-  "Vulnerability name": "Blind SQL Injection",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Easy",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('admin', 'adminpass')\");\n});\n\napp.post('/login', (req, res) => {\n  const username = req.body.username;\n  const password = req.body.password;\n  const query = SELECT * FROM users WHERE username = '${username}' AND password = '${password}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else if (rows.length > 0) res.send('Login successful');\n    else res.send('Login failed');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "Time-based blind SQL injection in account verification",
   "Lab Description": "This lab exhibits a time-based blind SQL injection vulnerability in an account verification endpoint. By injecting a sleep delay, attackers can infer data based on the response time.",
-  "Vulnerability name": "Time-based SQL Injection",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE accounts (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO accounts (username, password) VALUES ('user', 'pass')\");\n});\n\napp.post('/verify', (req, res) => {\n  const username = req.body.username;\n  const password = req.body.password;\n  const query = SELECT username, CASE WHEN (username='${username}' AND password='${password}') THEN (SELECT sleep(5)) ELSE 0 END as delay FROM accounts;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else if (rows[0].delay >= 5) res.send('Vulnerability exploited: Delay detected');\n    else res.send('No vulnerability exploited');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "Time-based SQL injection in mobile backend",
   "Lab Description": "This lab simulates a mobile app backend vulnerable to time-based SQL injection. By injecting a sleep delay, the system response indicates successful exploitation of the vulnerability.",
-  "Vulnerability name": "Time-based SQL Injection",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Medium",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE orders (id INTEGER PRIMARY KEY, product TEXT, status TEXT)\");\n  db.run(\"INSERT INTO orders (product, status) VALUES ('Phone', 'Pending')\");\n});\n\napp.post('/confirm', (req, res) => {\n  const product = req.body.product;\n  const query = SELECT product, CASE WHEN (product='${product}') THEN (SELECT sleep(5)) ELSE 0 END as delay FROM orders;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else if (rows[0].delay >= 5) res.send('Vulnerability exploited: Delay detected');\n    else res.send('No vulnerability exploited');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "Out-of-band SQL injection via DNS exfiltration in web API",
   "Lab Description": "This lab simulates an out-of-band SQL injection vulnerability where the system exfiltrates data via DNS lookups. Attackers trigger a DNS query that includes sensitive data.",
-  "Vulnerability name": "SQL Injection (Out-of-Band)",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nfunction dnsLookup(data) {\n  console.log('Simulated DNS Lookup for:', data);\n  return data;\n}\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE secrets (id INTEGER PRIMARY KEY, info TEXT)\");\n  db.run(\"INSERT INTO secrets (info) VALUES ('dnsSecretData')\");\n});\n\napp.post('/api/exfil', (req, res) => {\n  const param = req.body.param;\n  const query = SELECT * FROM secrets WHERE info = '${param}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else {\n      dnsLookup(rows[0].info);\n      res.send('DNS exfiltration triggered');\n    }\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "Out-of-band SQL injection with HTTP callback for data exfiltration",
   "Lab Description": "This lab demonstrates an out-of-band SQL injection vulnerability where the application triggers an HTTP callback to exfiltrate data. Attackers inject SQL that causes an HTTP request to an external logging service.",
-  "Vulnerability name": "SQL Injection (Out-of-Band)",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\nconst axios = require('axios');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE reports (id INTEGER PRIMARY KEY, data TEXT)\");\n  db.run(\"INSERT INTO reports (data) VALUES ('reportDataXYZ')\");\n});\n\napp.post('/reportExfil', (req, res) => {\n  const param = req.body.param;\n  const query = SELECT * FROM reports WHERE data = '${param}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else {\n      axios.post('http://example.com/log', { data: rows[0].data })\n        .then(() => res.send('HTTP callback triggered'))\n        .catch(() => res.status(500).send('Callback error'));\n    }\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "Out-of-band SQL injection via SMTP in order system",
   "Lab Description": "This lab simulates a vulnerability where the application sends exfiltrated data via email using SMTP due to an SQL injection flaw. Attackers trigger an SQL injection that causes sensitive data to be emailed out.",
-  "Vulnerability name": "SQL Injection (Out-of-Band)",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Medium",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\nconst nodemailer = require('nodemailer');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst transporter = nodemailer.createTransport({\n  host: 'smtp.example.com',\n  port: 587,\n  secure: false,\n  auth: { user: 'user@example.com', pass: 'password' }\n});\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE documents (id INTEGER PRIMARY KEY, content TEXT)\");\n  db.run(\"INSERT INTO documents (content) VALUES ('ftpSecretData')\");\n});\n\napp.post('/ftpExfil', (req, res) => {\n  const param = req.body.param;\n  const query = SELECT * FROM documents WHERE content = '${param}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else {\n      console.log('Simulated FTP Transfer of:', rows[0].content);\n      res.send('FTP exfiltration simulated');\n    }\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "Out-of-band SQL injection exploiting API misconfiguration for remote logging",
   "Lab Description": "This lab simulates an API endpoint that is misconfigured and vulnerable to SQL injection. The vulnerability allows attackers to inject SQL that triggers remote logging of sensitive data via an external logging service.",
-  "Vulnerability name": "SQL Injection (Out-of-Band)",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\nconst axios = require('axios');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE logs (id INTEGER PRIMARY KEY, info TEXT)\");\n  db.run(\"INSERT INTO logs (info) VALUES ('logDataXYZ')\");\n});\n\napp.post('/remoteLog', (req, res) => {\n  const param = req.body.param;\n  const query = SELECT * FROM logs WHERE info = '${param}';\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else {\n      axios.post('http://logging.example.com/api/log', { data: rows[0].info })\n        .then(() => res.send('Remote logging triggered'))\n        .catch(() => res.status(500).send('Remote logging failed'));\n    }\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
@@ -2199,7 +2199,7 @@
 {
   "Lab scenario": "SQL injection with multiple statement execution vulnerability",
   "Lab Description": "This lab demonstrates a vulnerability where user input is concatenated into an SQL command that allows execution of multiple SQL statements. Exploit this vulnerability to execute unauthorized statements, such as dropping tables or extracting confidential data.",
-  "Vulnerability name": "SQL Injection (Multiple Statement)",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('admin', 'adminpass')\");\n});\n\napp.post('/execute', (req, res) => {\n  const input = req.body.input;\n  // Vulnerable to injection of multiple statements\n  const query = BEGIN; SELECT * FROM users; ${input}; COMMIT;;\n  console.log(\"Executing query:\", query);\n  db.exec(query, (err) => {\n    if (err) {\n      res.status(500).send(\"Error occurred.\");\n    } else {\n      res.send(\"Query executed successfully.\");\n    }\n  });\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(Lab running on http://localhost:${PORT});\n});"
 },
@@ -2241,7 +2241,7 @@
 {
   "Lab scenario": "SQL injection with boolean-based blind attack",
   "Lab Description": "This lab showcases a boolean-based blind SQL injection vulnerability. By injecting conditional logic into the query, the attacker can infer the existence of data based on the application's responses. Exploit the vulnerability to deduce sensitive information from the database.",
-  "Vulnerability name": "Blind SQL Injection",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE accounts (id INTEGER PRIMARY KEY, username TEXT, secret TEXT)\");\n  db.run(\"INSERT INTO accounts (username, secret) VALUES ('admin', 's3cr3t')\");\n});\n\napp.post('/check', (req, res) => {\n  const condition = req.body.condition; // e.g., '1=1' or '1=0'\n  const query = SELECT CASE WHEN (${condition}) THEN 'True' ELSE 'False' END as result;\n  console.log(\"Executing query:\", query);\n  db.get(query, [], (err, row) => {\n    if (err) {\n      res.status(500).send(\"Error occurred.\");\n    } else {\n      res.send(row.result);\n    }\n  });\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(Lab running on http://localhost:${PORT});\n});"
 },
@@ -2353,7 +2353,7 @@
 {
   "Lab scenario": "Blind SQL injection with delay-based response",
   "Lab Description": "This lab demonstrates a blind SQL injection vulnerability where response time delays are used to infer database content. Manipulate the SQL query to induce a delay when conditions are met, allowing extraction of sensitive data based on timing differences.",
-  "Vulnerability name": "Blind SQL Injection",
+  "Vulnerability name": "SQL Injection",
   "lab level": "Hard",
   "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('admin', 'adminpass')\");\n  db.run(\"INSERT INTO users (username, password) VALUES ('user', 'userpass')\");\n});\n\napp.post('/login', (req, res) => {\n  const username = req.body.username;\n  const password = req.body.password;\n  const query = SELECT username, password, CASE WHEN (username='${username}' AND password='${password}') THEN (SELECT sleep(5)) ELSE 0 END as delay FROM users;;\n  console.log(\"Executing query:\", query);\n  db.all(query, [], (err, rows) => {\n    if (err) {\n      res.status(500).send(\"Error occurred.\");\n    } else {\n      const delay = rows[0].delay;\n      if (delay >= 5) {\n        res.send(\"Vulnerability exploited: Blind SQL Injection detected.\");\n      } else {\n        res.send(\"No vulnerability exploited.\");\n      }\n    }\n  });\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(Lab running on http://localhost:${PORT});\n});"
 },
@@ -2745,7 +2745,7 @@
 {
 "Lab scenario": "Blog post retrieval with error-based injection",
 "Lab Description": "A blog platform retrieves posts based on a title provided by the user. Poor error handling reveals SQL errors that an attacker can use to deduce the schema.",
-"Vulnerability name": "SQL Injection (Error-based)",
+"Vulnerability name": "SQL Injection",
 "lab level": "Easy",
 "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: false }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE posts (id INTEGER PRIMARY KEY, title TEXT, content TEXT)\");\n  db.run(\"INSERT INTO posts (title, content) VALUES ('Hello', 'Welcome to my blog')\");\n});\n\napp.get('/getPost', (req, res) => {\n  const title = req.query.title;\n  const query = `SELECT * FROM posts WHERE title = '${title}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send(err.message);\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
 },
@@ -2924,13 +2924,6 @@
 "lab level": "Easy",
 "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE loyalty (id INTEGER PRIMARY KEY, username TEXT, points INTEGER)\");\n  db.run(\"INSERT INTO loyalty (username, points) VALUES ('user1', 100)\");\n});\n\napp.post('/checkLoyalty', (req, res) => {\n  const username = req.body.username;\n  const query = `SELECT * FROM loyalty WHERE username = '${username}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
 }
-
-
-
-
-
-
-
 
 
 
@@ -3157,7 +3150,7 @@
 {
   "Lab scenario": "Log into the system by exploiting unchanged default credentials.",
   "Lab Description": "The application is a simple web server with a login page. It was deployed with default credentials that were never changed: username 'admin' and password 'admin'. Your task is to log into the system using these default credentials. Once logged in, you will see a 'Welcome, admin!' message, indicating success.",
-  "Vulnerability name": "Autnentication",
+  "Vulnerability name": "Authentication",
   "lab level": "easy",
   "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\n// Default credentials\nconst users = { 'admin': 'admin' };\n\n// Serve the login page\napp.get('/login', (req, res) => {\n  res.send(\"<form method='post'><input name='username' placeholder='Username'><input name='password' type='password' placeholder='Password'><button type='submit'>Login</button></form>\");\n});\n\n// Handle login attempts\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === 'admin' && password === 'admin') {\n    res.send('Welcome, admin!');\n  } else {\n    res.status(401).send('Login failed');\n  }\n});\n\nconst PORT = 7000;\napp.listen(PORT, () => console.log(`Insecure Default Credentials Lab running on http://localhost:${PORT}`));"
 },
@@ -3323,137 +3316,137 @@
   "lab level": "easy"
 },
 {
-  "lab_scenario": "Misconfigured OAuth callback vulnerability",
-  "lab_description": "This lab simulates an OAuth Autnenticationflow where the callback URL is taken directly from user input without validation, allowing attackers to redirect users to malicious sites.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/oauth/callback', (req, res) => {\n  const { token, callbackUrl } = req.body;\n  if (token === 'validToken') {\n    res.redirect(callbackUrl);\n  } else {\n    res.send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "Misconfigured OAuth callback vulnerability",
+  "Lab Description": "This lab simulates an OAuth Autnenticationflow where the callback URL is taken directly from user input without validation, allowing attackers to redirect users to malicious sites.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/oauth/callback', (req, res) => {\n  const { token, callbackUrl } = req.body;\n  if (token === 'validToken') {\n    res.redirect(callbackUrl);\n  } else {\n    res.send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Weak two-factor Autnenticationimplementation",
-  "lab_description": "This lab simulates a two-factor Autnenticationsystem where the one-time password (OTP) is not properly verified. Attackers can bypass the 2FA step by supplying any value.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/2fa', (req, res) => {\n  const { username, password, otp } = req.body;\n  // Vulnerable: OTP is not verified properly\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "Weak two-factor Autnenticationimplementation",
+  "Lab Description": "This lab simulates a two-factor Autnenticationsystem where the one-time password (OTP) is not properly verified. Attackers can bypass the 2FA step by supplying any value.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/2fa', (req, res) => {\n  const { username, password, otp } = req.body;\n  // Vulnerable: OTP is not verified properly\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Insecure password reset without token validation",
-  "lab_description": "This lab simulates a password reset feature where the reset token passed in the URL is not validated, allowing attackers to reset any user's password.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (email, password) VALUES ('user@example.com', 'oldpass')\");\n});\n\napp.post('/resetPassword', (req, res) => {\n  const token = req.query.token;\n  const newPass = req.body.newPassword;\n  const query = UPDATE users SET password = '${newPass}' WHERE email = '${token}';\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Password reset successful');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "Insecure password reset without token validation",
+  "Lab Description": "This lab simulates a password reset feature where the reset token passed in the URL is not validated, allowing attackers to reset any user's password.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT, password TEXT)\");\n  db.run(\"INSERT INTO users (email, password) VALUES ('user@example.com', 'oldpass')\");\n});\n\napp.post('/resetPassword', (req, res) => {\n  const token = req.query.token;\n  const newPass = req.body.newPassword;\n  const query = UPDATE users SET password = '${newPass}' WHERE email = '${token}';\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Password reset successful');\n  });\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "hardcoded API keys for authentication",
-  "lab_description": "This lab demonstrates an Autnenticationmechanism that uses hardcoded API keys, exposing them in the source code. Attackers can extract these keys and bypass authentication.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst API_KEY = 'hardcoded123';\n\napp.post('/apiAccess', (req, res) => {\n  const key = req.body.apiKey;\n  if (key === API_KEY) {\n    res.send('Access granted');\n  } else {\n    res.send('Access denied');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "easy"
+  "Lab scenario": "hardcoded API keys for authentication",
+  "Lab Description": "This lab demonstrates an Autnenticationmechanism that uses hardcoded API keys, exposing them in the source code. Attackers can extract these keys and bypass authentication.",
+  "Vulnerability name": "Authentication",
+  "lab level": "easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst API_KEY = 'hardcoded123';\n\napp.post('/apiAccess', (req, res) => {\n  const key = req.body.apiKey;\n  if (key === API_KEY) {\n    res.send('Access granted');\n  } else {\n    res.send('Access denied');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Insecure cookie settings in session management",
-  "lab_description": "This lab simulates a session management vulnerability where session cookies are set without secure or HttpOnly flags, making them vulnerable to theft via XSS.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'insecureSecret',\n  resave: false,\n  saveUninitialized: true,\n  cookie: { secure: false, httpOnly: false }\n}));\n\napp.post('/login', (req, res) => {\n  if (req.body.username && req.body.password) {\n    req.session.user = req.body.username;\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.get('/profile', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Not logged in');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "medium"
+  "Lab scenario": "Insecure cookie settings in session management",
+  "Lab Description": "This lab simulates a session management vulnerability where session cookies are set without secure or HttpOnly flags, making them vulnerable to theft via XSS.",
+  "Vulnerability name": "Authentication",
+  "lab level": "medium",
+  "src code": "const express = require('express');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'insecureSecret',\n  resave: false,\n  saveUninitialized: true,\n  cookie: { secure: false, httpOnly: false }\n}));\n\napp.post('/login', (req, res) => {\n  if (req.body.username && req.body.password) {\n    req.session.user = req.body.username;\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.get('/profile', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Not logged in');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Weak password strength enforcement in registration",
-  "lab_description": "This lab simulates a registration process that fails to enforce strong password requirements, allowing users to set easily guessable passwords.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/register', (req, res) => {\n  const { username, password } = req.body;\n  // Vulnerable: No password complexity check\n  if (username && password) {\n    res.send('Registration successful');\n  } else {\n    res.send('Registration failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "easy"
+  "Lab scenario": "Weak password strength enforcement in registration",
+  "Lab Description": "This lab simulates a registration process that fails to enforce strong password requirements, allowing users to set easily guessable passwords.",
+  "Vulnerability name": "Authentication",
+  "lab level": "easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/register', (req, res) => {\n  const { username, password } = req.body;\n  // Vulnerable: No password complexity check\n  if (username && password) {\n    res.send('Registration successful');\n  } else {\n    res.send('Registration failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Open redirect in login flow enabling bypass",
-  "lab_description": "This lab simulates a login flow where a redirect URL parameter is not validated. Attackers can manipulate this parameter to redirect users to a malicious site after authentication.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password, redirectUrl } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.redirect(redirectUrl);\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "medium"
+  "Lab scenario": "Open redirect in login flow enabling bypass",
+  "Lab Description": "This lab simulates a login flow where a redirect URL parameter is not validated. Attackers can manipulate this parameter to redirect users to a malicious site after authentication.",
+  "Vulnerability name": "Authentication",
+  "lab level": "medium",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password, redirectUrl } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.redirect(redirectUrl);\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Unencrypted login over HTTP",
-  "lab_description": "This lab simulates an Autnenticationsystem that transmits credentials over plain HTTP, exposing them to network sniffing and interception by attackers.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username && password) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\n// Note: This server runs over HTTP\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "medium"
+  "Lab scenario": "Unencrypted login over HTTP",
+  "Lab Description": "This lab simulates an Autnenticationsystem that transmits credentials over plain HTTP, exposing them to network sniffing and interception by attackers.",
+  "Vulnerability name": "Authentication",
+  "lab level": "medium",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username && password) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\n// Note: This server runs over HTTP\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "CSRF vulnerability in authentication",
-  "lab_description": "This lab simulates a cross-site request forgery vulnerability in the login process where an attacker can force a login action from another site without the user's consent.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\n// Vulnerable: No CSRF protection\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "CSRF vulnerability in authentication",
+  "Lab Description": "This lab simulates a cross-site request forgery vulnerability in the login process where an attacker can force a login action from another site without the user's consent.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\n// Vulnerable: No CSRF protection\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Insecure password change without current password verification",
-  "lab_description": "This lab simulates a password change functionality that does not require the user to input their current password. An attacker who hijacks the session can change the password without knowing the old one.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/changePassword', (req, res) => {\n  if (req.session.user) {\n    res.send('Password changed successfully');\n  } else {\n    res.send('Not authenticated');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "Insecure password change without current password verification",
+  "Lab Description": "This lab simulates a password change functionality that does not require the user to input their current password. An attacker who hijacks the session can change the password without knowing the old one.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/changePassword', (req, res) => {\n  if (req.session.user) {\n    res.send('Password changed successfully');\n  } else {\n    res.send('Not authenticated');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Insecure token refresh mechanism without validation",
-  "lab_description": "This lab simulates a token refresh endpoint that accepts any refresh token and returns a new access token without proper validation, allowing attackers to bypass authentication.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/refreshToken', (req, res) => {\n  const refreshToken = req.body.refreshToken;\n  if (refreshToken) {\n    res.json({ accessToken: 'newAccessToken123' });\n  } else {\n    res.status(400).send('Invalid refresh token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "medium"
+  "Lab scenario": "Insecure token refresh mechanism without validation",
+  "Lab Description": "This lab simulates a token refresh endpoint that accepts any refresh token and returns a new access token without proper validation, allowing attackers to bypass authentication.",
+  "Vulnerability name": "Authentication",
+  "lab level": "medium",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/refreshToken', (req, res) => {\n  const refreshToken = req.body.refreshToken;\n  if (refreshToken) {\n    res.json({ accessToken: 'newAccessToken123' });\n  } else {\n    res.status(400).send('Invalid refresh token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Autnenticationbypass due to insufficient logging",
-  "lab_description": "This lab simulates a scenario where the Autnenticationprocess lacks sufficient logging, making it easier for attackers to perform brute-force attacks undetected.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "easy"
+  "Lab scenario": "Autnenticationbypass due to insufficient logging",
+  "Lab Description": "This lab simulates a scenario where the Autnenticationprocess lacks sufficient logging, making it easier for attackers to perform brute-force attacks undetected.",
+  "Vulnerability name": "Authentication",
+  "lab level": "easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === 'user1' && password === 'pass1') {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Open redirect vulnerability in SSO callback",
-  "lab_description": "This lab simulates an SSO Autnenticationflow where the callback URL is directly taken from user input without validation, allowing attackers to redirect users to malicious sites.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/sso/callback', (req, res) => {\n  const { token, redirectUrl } = req.body;\n  if (token === 'validToken') {\n    res.redirect(redirectUrl);\n  } else {\n    res.send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "Open redirect vulnerability in SSO callback",
+  "Lab Description": "This lab simulates an SSO Autnenticationflow where the callback URL is directly taken from user input without validation, allowing attackers to redirect users to malicious sites.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/sso/callback', (req, res) => {\n  const { token, redirectUrl } = req.body;\n  if (token === 'validToken') {\n    res.redirect(redirectUrl);\n  } else {\n    res.send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Autnenticationvulnerability due to hardcoded default credentials",
-  "lab_description": "This lab simulates a system that uses default credentials for authentication. These default credentials are well-known and allow attackers to gain access easily.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst DEFAULT_USER = 'defaultUser';\nconst DEFAULT_PASS = 'defaultPass';\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === DEFAULT_USER && password === DEFAULT_PASS) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "easy"
+  "Lab scenario": "Autnenticationvulnerability due to hardcoded default credentials",
+  "Lab Description": "This lab simulates a system that uses default credentials for authentication. These default credentials are well-known and allow attackers to gain access easily.",
+  "Vulnerability name": "Authentication",
+  "lab level": "easy",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst DEFAULT_USER = 'defaultUser';\nconst DEFAULT_PASS = 'defaultPass';\n\napp.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  if (username === DEFAULT_USER && password === DEFAULT_PASS) {\n    res.send('Login successful');\n  } else {\n    res.send('Login failed');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Autnenticationvulnerability in misconfigured token refresh",
-  "lab_description": "This lab simulates a token refresh endpoint that fails to validate the refresh token properly, enabling attackers to obtain new access tokens using arbitrary tokens.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/refresh', (req, res) => {\n  const token = req.body.refreshToken;\n  if (token) {\n    res.json({ accessToken: 'refreshedToken123' });\n  } else {\n    res.status(400).send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "medium"
+  "Lab scenario": "Autnenticationvulnerability in misconfigured token refresh",
+  "Lab Description": "This lab simulates a token refresh endpoint that fails to validate the refresh token properly, enabling attackers to obtain new access tokens using arbitrary tokens.",
+  "Vulnerability name": "Authentication",
+  "lab level": "medium",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/refresh', (req, res) => {\n  const token = req.body.refreshToken;\n  if (token) {\n    res.json({ accessToken: 'refreshedToken123' });\n  } else {\n    res.status(400).send('Invalid token');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Autnenticationbypass via insecure password change mechanism",
-  "lab_description": "This lab simulates a password change feature that does not require verification of the current password, allowing attackers with an active session to change the password without knowing the old one.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/changePassword', (req, res) => {\n  if (req.session.user) {\n    res.send('Password changed successfully');\n  } else {\n    res.send('Not authenticated');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "Autnenticationbypass via insecure password change mechanism",
+  "Lab Description": "This lab simulates a password change feature that does not require verification of the current password, allowing attackers with an active session to change the password without knowing the old one.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/changePassword', (req, res) => {\n  if (req.session.user) {\n    res.send('Password changed successfully');\n  } else {\n    res.send('Not authenticated');\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Autnenticationvulnerability due to insecure cookie attributes",
-  "lab_description": "This lab simulates a system that sets session cookies without secure attributes, making them vulnerable to theft via XSS. Attackers can steal these cookies and hijack sessions.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'insecureSecret',\n  resave: false,\n  saveUninitialized: true,\n  cookie: { secure: false, httpOnly: false }\n}));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Not authenticated');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "medium"
+  "Lab scenario": "Autnenticationvulnerability due to insecure cookie attributes",
+  "Lab Description": "This lab simulates a system that sets session cookies without secure attributes, making them vulnerable to theft via XSS. Attackers can steal these cookies and hijack sessions.",
+  "Vulnerability name": "Authentication",
+  "lab level": "medium",
+  "src code": "const express = require('express');\nconst session = require('express-session');\n\nconst app = express();\napp.use(express.json());\n\napp.use(session({\n  secret: 'insecureSecret',\n  resave: false,\n  saveUninitialized: true,\n  cookie: { secure: false, httpOnly: false }\n}));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Not authenticated');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Autnenticationbypass via insecure token exchange",
-  "lab_description": "This lab simulates a token exchange endpoint that returns a new token without proper validation of the provided token, allowing attackers to forge tokens.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/exchange', (req, res) => {\n  const providedToken = req.body.token;\n  if (providedToken === 'validToken') {\n    res.json({ token: 'newToken123' });\n  } else {\n    res.json({ token: providedToken });\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "medium"
+  "Lab scenario": "Autnenticationbypass via insecure token exchange",
+  "Lab Description": "This lab simulates a token exchange endpoint that returns a new token without proper validation of the provided token, allowing attackers to forge tokens.",
+  "Vulnerability name": "Authentication",
+  "lab level": "medium",
+  "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\napp.post('/exchange', (req, res) => {\n  const providedToken = req.body.token;\n  if (providedToken === 'validToken') {\n    res.json({ token: 'newToken123' });\n  } else {\n    res.json({ token: providedToken });\n  }\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
-  "lab_scenario": "Autnenticationvulnerability in session termination on logout",
-  "lab_description": "This lab simulates a logout process where the session is not properly destroyed, allowing attackers to reuse the session ID after logout.",
-  "vulnerability_name": "Authentication",
-  "src_code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\napp.post('/logout', (req, res) => {\n  // Vulnerable: session is not destroyed\n  res.send('Logged out');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Please log in');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));",
-  "lab level": "hard"
+  "Lab scenario": "Autnenticationvulnerability in session termination on logout",
+  "Lab Description": "This lab simulates a logout process where the session is not properly destroyed, allowing attackers to reuse the session ID after logout.",
+  "Vulnerability name": "Authentication",
+  "lab level": "hard",
+  "src code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\napp.post('/logout', (req, res) => {\n  // Vulnerable: session is not destroyed\n  res.send('Logged out');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(Welcome, ${req.session.user});\n  else res.send('Please log in');\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
 },
 {
   "Lab scenario": "Weak Hash-Based AutnenticationTokens",
@@ -4044,8 +4037,5 @@
       "lab level": "hard",
       "src code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\n// Vulnerable: logout does not destroy the session\napp.post('/logout', (req, res) => {\n  res.send('Logged out');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(`Welcome, ${req.session.user}`);\n  else res.send('Please log in');\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
   }
-
-
-
 
 ]

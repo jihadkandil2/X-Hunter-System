@@ -3,656 +3,1635 @@
         "Lab scenario": "Reflected XSS into HTML context with nothing encoded",
         "Lab Description": "This lab contains a simple reflected cross-site scripting vulnerability in the search functionality.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Search Page</h1>\n    <form action=\"/search\" method=\"GET\">\n      <input type=\"text\" name=\"q\" placeholder=\"Search...\">\n      <button type=\"submit\">Search</button>\n    </form>\n  `);\n});\n\napp.get('/search', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<h2>Search results for: ${query}</h2>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "easy"
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Search Page</h1>\n    <form action=\"/search\" method=\"GET\">\n      <input type=\"text\" name=\"q\" placeholder=\"Search...\">\n      <button type=\"submit\">Search</button>\n    </form>\n  `);\n});\n\napp.get('/search', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<h2>Search results for: ${query}</h2>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
       },
       {
         "Lab scenario": "Stored XSS into HTML context with nothing encoded",
         "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.\nTo solve the lab, submit a comment that calls the alert function when the blog post is viewed.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Blog Post</h1>\n    <p>This is a sample blog post. Leave a comment below.</p>\n    <h2>Comments</h2>\n    <ul>${comments.map(c => `<li>${c}</li>`).join('')}</ul>\n    <form action=\"/comment\" method=\"POST\">\n      <input type=\"text\" name=\"comment\" placeholder=\"Write a comment...\">\n      <button type=\"submit\">Submit</button>\n    </form>\n  `);\n});\n\napp.post('/comment', (req, res) => {\n  comments.push(req.body.comment);\n  res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Beginner"
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Blog Post</h1>\n    <p>This is a sample blog post. Leave a comment below.</p>\n    <h2>Comments</h2>\n    <ul>${comments.map(c => `<li>${c}</li>`).join('')}</ul>\n    <form action=\"/comment\" method=\"POST\">\n      <input type=\"text\" name=\"comment\" placeholder=\"Write a comment...\">\n      <button type=\"submit\">Submit</button>\n    </form>\n  `);\n});\n\napp.post('/comment', (req, res) => {\n  comments.push(req.body.comment);\n  res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+        
       },
       {
         "Lab scenario": "DOM XSS in document.write sink using source location.search",
         "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the search query tracking functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search, which you can control using the website URL.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Search Page</h1>\n    <form action=\"/search\">\n      <input type=\"text\" name=\"q\" placeholder=\"Search...\">\n      <button type=\"submit\">Search</button>\n    </form>\n    <script>\n      if (location.search) {\n        document.write(\"<p>Results for: \" + location.search.substring(3) + \"</p>\");\n      }\n    </script>\n  `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Search Page</h1>\n    <form action=\"/search\">\n      <input type=\"text\" name=\"q\" placeholder=\"Search...\">\n      <button type=\"submit\">Search</button>\n    </form>\n    <script>\n      if (location.search) {\n        document.write(\"<p>Results for: \" + location.search.substring(3) + \"</p>\");\n      }\n    </script>\n  `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
       },
       {
         "Lab scenario": "DOM XSS in innerHTML sink using source location.search",
         "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the search blog functionality. It uses an innerHTML assignment, which changes the HTML contents of a div element, using data from location.search.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-          "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/search\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"query\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    '<div id=\"results\"></div>' +\n    '<script>' +\n    '  const query = new URLSearchParams(window.location.search).get(\"query\");' +\n    '  if (query) {' +\n    '    document.getElementById(\"results\").innerHTML = \"You searched for: \" + query;' +\n    '  }' +\n    '</script>'\n  );\n});\n\napp.get('/search', (req, res) => {\n  const query = req.query.query || '';\n  res.redirect(`/?query=${encodeURIComponent(query)}`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-      "lab level": "Intermediate"
+          "lab level": "medium",
+          "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/search\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"query\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    '<div id=\"results\"></div>' +\n    '<script>' +\n    '  const query = new URLSearchParams(window.location.search).get(\"query\");' +\n    '  if (query) {' +\n    '    document.getElementById(\"results\").innerHTML = \"You searched for: \" + query;' +\n    '  }' +\n    '</script>'\n  );\n});\n\napp.get('/search', (req, res) => {\n  const query = req.query.query || '';\n  res.redirect(`/?query=${encodeURIComponent(query)}`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
       },
       {
         "Lab scenario": "DOM XSS in jQuery anchor href attribute sink using location.search source",
         "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the submit feedback page. It uses the jQuery library's $ selector function to find an anchor element, and changes its href attribute using data from location.search.\nTo solve this lab, make the \"back\" link alert document.cookie.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Submit Feedback</h1>' +\n    '<form action=\"/submit\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"feedback\" placeholder=\"Your feedback...\">' +\n    '  <input type=\"submit\" value=\"Submit\">' +\n    '</form>' +\n    '<a id=\"backLink\" href=\"#\">Back</a>' +\n    '<script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script>' +\n    '<script>' +\n    '  const params = new URLSearchParams(window.location.search);' +\n    '  const feedback = params.get(\"feedback\");' +\n    '  if (feedback) {' +\n    '    $(\"#backLink\").attr(\"href\", feedback);' +\n    '  }' +\n    '</script>'\n  );\n});\n\napp.get('/submit', (req, res) => {\n  const feedback = req.query.feedback || '';\n  res.redirect(`/?feedback=${encodeURIComponent(feedback)}`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+         "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Submit Feedback</h1>' +\n    '<form action=\"/submit\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"feedback\" placeholder=\"Your feedback...\">' +\n    '  <input type=\"submit\" value=\"Submit\">' +\n    '</form>' +\n    '<a id=\"backLink\" href=\"#\">Back</a>' +\n    '<script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script>' +\n    '<script>' +\n    '  const params = new URLSearchParams(window.location.search);' +\n    '  const feedback = params.get(\"feedback\");' +\n    '  if (feedback) {' +\n    '    $(\"#backLink\").attr(\"href\", feedback);' +\n    '  }' +\n    '</script>'\n  );\n});\n\napp.get('/submit', (req, res) => {\n  const feedback = req.query.feedback || '';\n  res.redirect(`/?feedback=${encodeURIComponent(feedback)}`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
       },
       {
         "Lab scenario": "DOM XSS in jQuery selector sink using a hashchange event",
         "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability on the home page. It uses jQuery's $() selector function to auto-scroll to a given post, whose title is passed via the location.hash property.\nTo solve the lab, deliver an exploit to the victim that calls the print() function in their browser.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Blog Posts</h1>' +\n    '<div id=\"post1\"><h2>Post 1</h2><p>Content of post 1.</p></div>' +\n    '<div id=\"post2\"><h2>Post 2</h2><p>Content of post 2.</p></div>' +\n    '<script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script>' +\n    '<script>' +\n    '  $(window).on(\"hashchange\", () => {' +\n    '    const post = location.hash.slice(1);' +\n    '    if (post) {' +\n    '      $(`#${post}`).get(0).scrollIntoView();' +\n    '    }' +\n    '  });' +\n    '</script>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Advanced"
+         "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Blog Posts</h1>' +\n    '<div id=\"post1\"><h2>Post 1</h2><p>Content of post 1.</p></div>' +\n    '<div id=\"post2\"><h2>Post 2</h2><p>Content of post 2.</p></div>' +\n    '<script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script>' +\n    '<script>' +\n    '  $(window).on(\"hashchange\", () => {' +\n    '    const post = location.hash.slice(1);' +\n    '    if (post) {' +\n    '      $(`#${post}`).get(0).scrollIntoView();' +\n    '    }' +\n    '  });' +\n    '</script>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
       },
       {
         "Lab scenario": "Reflected XSS into attribute with angle brackets HTML-encoded",
         "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search blog functionality where angle brackets are HTML-encoded. To solve this lab, perform a cross-site scripting attack that injects an attribute and calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  const searchQuery = req.query.search || '';\n  const encodedSearchQuery = searchQuery.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  res.send(\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    `<p>You searched for: <span id=\"searchResult\">${encodedSearchQuery}</span></p>`\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  const searchQuery = req.query.search || '';\n  const encodedSearchQuery = searchQuery.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  res.send(\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    `<p>You searched for: <span id=\"searchResult\">${encodedSearchQuery}</span></p>`\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});" 
       },
       {
         "Lab scenario": "Stored XSS into anchor href attribute with double quotes HTML-encoded",
         "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality. To solve this lab, submit a comment that calls the alert function when the comment author name is clicked.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\nconst bodyParser = require('body-parser');\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Comments</h1>' +\n    '<form action=\"/comment\" method=\"POST\">' +\n    '  Name: <input type=\"text\" name=\"name\"><br>' +\n    '  Comment: <textarea name=\"comment\"></textarea><br>' +\n    '  <input type=\"submit\" value=\"Submit\">' +\n    '</form>' +\n    '<h2>Comments:</h2>' +\n    comments.map(comment => `<p><a href=\"${comment.name}\">${comment.name}</a>: ${comment.comment}</p>`).join('')\n  );\n});\n\napp.post('/comment', (req, res) => {\n  const name = req.body.name || 'Anonymous';\n  const comment = req.body.comment || '';\n  comments.push({ name, comment });\n  res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\nconst bodyParser = require('body-parser');\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Comments</h1>' +\n    '<form action=\"/comment\" method=\"POST\">' +\n    '  Name: <input type=\"text\" name=\"name\"><br>' +\n    '  Comment: <textarea name=\"comment\"></textarea><br>' +\n    '  <input type=\"submit\" value=\"Submit\">' +\n    '</form>' +\n    '<h2>Comments:</h2>' +\n    comments.map(comment => `<p><a href=\"${comment.name}\">${comment.name}</a>: ${comment.comment}</p>`).join('')\n  );\n});\n\napp.post('/comment', (req, res) => {\n  const name = req.body.name || 'Anonymous';\n  const comment = req.body.comment || '';\n  comments.push({ name, comment });\n  res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
       },
       {
         "Lab scenario": "Reflected XSS into a JavaScript string with angle brackets HTML encoded",
         "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality where angle brackets are encoded. The reflection occurs inside a JavaScript string. To solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n  const searchQuery = req.query.search || '';\\n  const encodedSearchQuery = searchQuery.replace(/</g, '&lt;').replace(/>/g, '&gt;');\\n  res.send(\\n    '<h1>Search Blog</h1>' +\\n    '<form action=\"/\" method=\"GET\">' +\\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\\n    '  <input type=\"submit\" value=\"Search\">' +\\n    '</form>' +\\n    '<script>' +\\n    `  var searchTerm = '${encodedSearchQuery}';` +\\n    '  console.log(\"Search term:\", searchTerm);' +\\n    '</script>'\\n  );\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n  console.log(`Lab running on http://localhost:${PORT}`);\\n});",
-        "lab level": "Intermediate"
+          "lab level": "medium",
+        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n  const searchQuery = req.query.search || '';\\n  const encodedSearchQuery = searchQuery.replace(/</g, '&lt;').replace(/>/g, '&gt;');\\n  res.send(\\n    '<h1>Search Blog</h1>' +\\n    '<form action=\"/\" method=\"GET\">' +\\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\\n    '  <input type=\"submit\" value=\"Search\">' +\\n    '</form>' +\\n    '<script>' +\\n    `  var searchTerm = '${encodedSearchQuery}';` +\\n    '  console.log(\"Search term:\", searchTerm);' +\\n    '</script>'\\n  );\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n  console.log(`Lab running on http://localhost:${PORT}`);\\n});"
       },
       {
         "Lab scenario": "DOM XSS in document.write sink using source location.search inside a select element",
         "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the stock checker functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search which you can control using the website URL. The data is enclosed within a select element.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the select element and calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Stock Checker</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"productId\" placeholder=\"Product ID\">' +\n    '  <input type=\"submit\" value=\"Check Stock\">' +\n    '</form>' +\n    '<script>' +\n    '  const params = new URLSearchParams(window.location.search);' +\n    '  const productId = params.get(\"productId\");' +\n    '  if (productId) {' +\n    '    document.write(\"<select>\");' +\n    '    document.write(\"<option>\" + productId + \"</option>\");' +\n    '    document.write(\"</select>\");' +\n    '  }' +\n    '</script>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+          "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Stock Checker</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"productId\" placeholder=\"Product ID\">' +\n    '  <input type=\"submit\" value=\"Check Stock\">' +\n    '</form>' +\n    '<script>' +\n    '  const params = new URLSearchParams(window.location.search);' +\n    '  const productId = params.get(\"productId\");' +\n    '  if (productId) {' +\n    '    document.write(\"<select>\");' +\n    '    document.write(\"<option>\" + productId + \"</option>\");' +\n    '    document.write(\"</select>\");' +\n    '  }' +\n    '</script>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+      
       },
       {
         "Lab scenario": "DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded",
         "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in a AngularJS expression within the search functionality.\nAngularJS is a popular JavaScript library, which scans the contents of HTML nodes containing the ng-app attribute (also known as an AngularJS directive). When a directive is added to the HTML code, you can execute JavaScript expressions within double curly braces. This technique is useful when angle brackets are being encoded.\nTo solve this lab, perform a cross-site scripting attack that executes an AngularJS expression and calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  const searchQuery = req.query.search || '';\n  const encodedSearchQuery = searchQuery.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\n  res.send(\n    '<html ng-app>' +\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    `<p>You searched for: <span ng-bind=\"${encodedSearchQuery}\"></span></p>` +\n    '<script src=\"https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js\"></script>' +\n    '</html>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Advanced"
+          "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  const searchQuery = req.query.search || '';\n  const encodedSearchQuery = searchQuery.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\n  res.send(\n    '<html ng-app>' +\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    `<p>You searched for: <span ng-bind=\"${encodedSearchQuery}\"></span></p>` +\n    '<script src=\"https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js\"></script>' +\n    '</html>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+      
       },
       {
         "Lab scenario": "Reflected DOM XSS",
         "Lab Description": "This lab demonstrates a reflected DOM vulnerability. Reflected DOM vulnerabilities occur when the server-side application processes data from a request and echoes the data in the response. A script on the page then processes the reflected data in an unsafe way, ultimately writing it to a dangerous sink.\nTo solve this lab, create an injection that calls the alert() function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  const searchQuery = req.query.search || '';\n  res.send(\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    '<script>' +\n    '  const params = new URLSearchParams(window.location.search);' +\n    '  const searchTerm = params.get(\"search\");' +\n    '  if (searchTerm) {' +\n    '    document.write(\"<p>You searched for: \" + searchTerm + \"</p>\");' +\n    '  }' +\n    '</script>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+         "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  const searchQuery = req.query.search || '';\n  res.send(\n    '<h1>Search Blog</h1>' +\n    '<form action=\"/\" method=\"GET\">' +\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\n    '  <input type=\"submit\" value=\"Search\">' +\n    '</form>' +\n    '<script>' +\n    '  const params = new URLSearchParams(window.location.search);' +\n    '  const searchTerm = params.get(\"search\");' +\n    '  if (searchTerm) {' +\n    '    document.write(\"<p>You searched for: \" + searchTerm + \"</p>\");' +\n    '  }' +\n    '</script>'\n  );\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+       
       },
       {
         "Lab scenario": "Stored DOM XSS",
         "Lab Description": "This lab demonstrates a stored DOM vulnerability in the blog comment functionality. To solve this lab, exploit this vulnerability to call the alert() function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\nconst bodyParser = require('body-parser');\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Blog Comments</h1>' +\n    '<form action=\"/comment\" method=\"POST\">' +\n    '  Name: <input type=\"text\" name=\"name\"><br>' +\n    '  Comment: <textarea name=\"comment\"></textarea><br>' +\n    '  <input type=\"submit\" value=\"Submit\">' +\n    '</form>' +\n    '<h2>Comments:</h2>' +\n    '<div id=\"comments\">' +\n    comments.map(comment => `<p><strong>${comment.name}</strong>: ${comment.comment}</p>`).join('') +\n    '</div>' +\n    '<script>' +\n    '  const commentDiv = document.getElementById(\"comments\");' +\n    '  commentDiv.innerHTML = commentDiv.innerHTML;' +\n    '</script>'\n  );\n});\n\napp.post('/comment', (req, res) => {\n  const name = req.body.name || 'Anonymous';\n  const comment = req.body.comment || '';\n  comments.push({ name, comment });\n  res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+         "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\nconst bodyParser = require('body-parser');\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n  res.send(\n    '<h1>Blog Comments</h1>' +\n    '<form action=\"/comment\" method=\"POST\">' +\n    '  Name: <input type=\"text\" name=\"name\"><br>' +\n    '  Comment: <textarea name=\"comment\"></textarea><br>' +\n    '  <input type=\"submit\" value=\"Submit\">' +\n    '</form>' +\n    '<h2>Comments:</h2>' +\n    '<div id=\"comments\">' +\n    comments.map(comment => `<p><strong>${comment.name}</strong>: ${comment.comment}</p>`).join('') +\n    '</div>' +\n    '<script>' +\n    '  const commentDiv = document.getElementById(\"comments\");' +\n    '  commentDiv.innerHTML = commentDiv.innerHTML;' +\n    '</script>'\n  );\n});\n\napp.post('/comment', (req, res) => {\n  const name = req.body.name || 'Anonymous';\n  const comment = req.body.comment || '';\n  comments.push({ name, comment });\n  res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+  
       },
       {
         "Lab scenario": "Reflected XSS into HTML context with most tags and attributes blocked",
         "Lab Description": "This lab contains a reflected XSS vulnerability in the search functionality but uses a web application firewall (WAF) to protect against common XSS vectors.\nTo solve the lab, perform a cross-site scripting attack that bypasses the WAF and calls the print() function.",
         "Vulnerability name": "Cross-site scripting",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const query = req.query.q || '';\n    res.send(`<h1>Search Page</h1><p>Results for: ${query}</p>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(\"Lab running on http://localhost:\" + PORT);\n});",
-        "lab level": "Intermediate"
+        "lab level": "medium"
       },
       {
         "Lab scenario": "Reflected XSS into HTML context with all tags blocked except custom ones",
         "Lab Description": "This lab blocks all HTML tags except custom ones.\nTo solve the lab, perform a cross-site scripting attack that injects a custom tag and automatically alerts document.cookie.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    let query = req.query.q || '';\n    query = query.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // Blocks standard HTML tags\n    res.send(`<h1>Search Page</h1><p>Results for: ${query}</p>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(\"Lab running on http://localhost:\" + PORT);\n});",
-        "lab level": "Advanced"
+         "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    let query = req.query.q || '';\n    query = query.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // Blocks standard HTML tags\n    res.send(`<h1>Search Page</h1><p>Results for: ${query}</p>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(\"Lab running on http://localhost:\" + PORT);\n});"
+       
       },
       {
         "Lab scenario": "Reflected XSS with some SVG markup allowed",
         "Lab Description": "This lab has a simple reflected XSS vulnerability. The site is blocking common tags but misses some SVG tags and events.\nTo solve the lab, perform a cross-site scripting attack that calls the alert() function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/search', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<h1>Search Results</h1><p>Results for: ${query}</p>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+            "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/search', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<h1>Search Results</h1><p>Results for: ${query}</p>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+    
       },
       {
         "Lab scenario": "Reflected XSS in canonical link tag",
         "Lab Description": "This lab reflects user input in a canonical link tag and escapes angle brackets.\nTo solve the lab, perform a cross-site scripting attack on the home page that injects an attribute that calls the alert function.\nTo assist with your exploit, you can assume that the simulated user will press the following key combinations:\nPlease note that the intended solution to this lab is only possible in Chrome.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<!DOCTYPE html>\n  <html>\n  <head>\n    <link rel=\"canonical\" href=\"https://example.com/?q=${query}\">\n  </head>\n  <body>\n    <h1>Welcome to the Lab</h1>\n    <p>Search for something...</p>\n  </body>\n  </html>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+          "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<!DOCTYPE html>\n  <html>\n  <head>\n    <link rel=\"canonical\" href=\"https://example.com/?q=${query}\">\n  </head>\n  <body>\n    <h1>Welcome to the Lab</h1>\n    <p>Search for something...</p>\n  </body>\n  </html>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+      
       },
       {
         "Lab scenario": "Reflected XSS into a JavaScript string with single quote and backslash escaped",
         "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality. The reflection occurs inside a JavaScript string with single quotes and backslashes escaped.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n  const searchQuery = req.query.search || '';\\n  const escapedSearchQuery = searchQuery.replace(/'/g, '\\\\\\'').replace(/\\\\/g, '\\\\\\\\');\\n  res.send(\\n    '<h1>Search Blog</h1>' +\\n    '<form action=\"/\" method=\"GET\">' +\\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\\n    '  <input type=\"submit\" value=\"Search\">' +\\n    '</form>' +\\n    '<script>' +\\n    `  var searchTerm = '${escapedSearchQuery}';` +\\n    '  console.log(\"Search term:\", searchTerm);' +\\n    '</script>'\\n  );\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n  console.log(`Lab running on http://localhost:${PORT}`);\\n});",
-      "lab level": "Intermediate"
+         "lab level": "medium",
+        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n  const searchQuery = req.query.search || '';\\n  const escapedSearchQuery = searchQuery.replace(/'/g, '\\\\\\'').replace(/\\\\/g, '\\\\\\\\');\\n  res.send(\\n    '<h1>Search Blog</h1>' +\\n    '<form action=\"/\" method=\"GET\">' +\\n    '  <input type=\"text\" name=\"search\" placeholder=\"Search...\">' +\\n    '  <input type=\"submit\" value=\"Search\">' +\\n    '</form>' +\\n    '<script>' +\\n    `  var searchTerm = '${escapedSearchQuery}';` +\\n    '  console.log(\"Search term:\", searchTerm);' +\\n    '</script>'\\n  );\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n  console.log(`Lab running on http://localhost:${PORT}`);\\n});"
+     
       },
       {
         "Lab scenario": "Reflected XSS into a JavaScript string with angle brackets and double quotes HTML-encoded and single quotes escaped",
         "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality where angle brackets and double are HTML encoded and single quotes are escaped.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
            "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    let searchQuery = req.query.q || \"\";\n    \n    // Vulnerable JavaScript injection (Reflected XSS)\n    res.send(`\n        <script>\n            let userInput = '${searchQuery}';\n            document.write(\"Search results for: \" + userInput);\n        </script>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+             "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    let searchQuery = req.query.q || \"\";\n    \n    // Vulnerable JavaScript injection (Reflected XSS)\n    res.send(`\n        <script>\n            let userInput = '${searchQuery}';\n            document.write(\"Search results for: \" + userInput);\n        </script>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});"
+      
       },
       {
         "Lab scenario": "Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped",
         "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.\nTo solve this lab, submit a comment that calls the alert function when the comment author name is clicked.",
         "Vulnerability name": "Cross-site scripting",
-          "src code": "const express = require('express');\\nconst bodyParser = require('body-parser');\\n\\nconst app = express();\\napp.use(bodyParser.urlencoded({ extended: true }));\\n\\nlet comments = []; // Stores user-submitted comments\\n\\napp.get('/', (req, res) => {\\n    let commentsList = comments.map(comment => \\n        `<p><b onclick='${comment.author}'>${comment.author}</b>: ${comment.text}</p>`\\n    ).join('');\\n    \\n    res.send(`\\n        <h1>Comment Section</h1>\\n        <form action=\"/comment\" method=\"POST\">\\n            <input type=\"text\" name=\"author\" placeholder=\"Your name\" required>\\n            <textarea name=\"text\" placeholder=\"Your comment\" required></textarea>\\n            <button type=\"submit\">Submit</button>\\n        </form>\\n        <h2>Comments:</h2>\\n        ${commentsList}\\n    `);\\n});\\n\\napp.post('/comment', (req, res) => {\\n    let author = req.body.author;\\n    let text = req.body.text;\\n    \\n    // Vulnerable stored XSS (does not sanitize input)\\n    comments.push({ author, text });\\n\\n    res.redirect('/');\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});",
-      "lab level": "Intermediate"
+          "lab level": "medium",
+          "src code": "const express = require('express');\\nconst bodyParser = require('body-parser');\\n\\nconst app = express();\\napp.use(bodyParser.urlencoded({ extended: true }));\\n\\nlet comments = []; // Stores user-submitted comments\\n\\napp.get('/', (req, res) => {\\n    let commentsList = comments.map(comment => \\n        `<p><b onclick='${comment.author}'>${comment.author}</b>: ${comment.text}</p>`\\n    ).join('');\\n    \\n    res.send(`\\n        <h1>Comment Section</h1>\\n        <form action=\"/comment\" method=\"POST\">\\n            <input type=\"text\" name=\"author\" placeholder=\"Your name\" required>\\n            <textarea name=\"text\" placeholder=\"Your comment\" required></textarea>\\n            <button type=\"submit\">Submit</button>\\n        </form>\\n        <h2>Comments:</h2>\\n        ${commentsList}\\n    `);\\n});\\n\\napp.post('/comment', (req, res) => {\\n    let author = req.body.author;\\n    let text = req.body.text;\\n    \\n    // Vulnerable stored XSS (does not sanitize input)\\n    comments.push({ author, text });\\n\\n    res.redirect('/');\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});"
+    
       
       },
       {
         "Lab scenario": "Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped",
         "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search blog functionality. The reflection occurs inside a template string with angle brackets, single, and double quotes HTML encoded, and backticks escaped. To solve this lab, perform a cross-site scripting attack that calls the alert function inside the template string.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const searchQuery = req.query.q || '';\n    res.send(`\n        <script>\n            let userInput = \\`${searchQuery}\\`;\n            document.write('<h1>Results for: ' + userInput + '</h1>');\n        </script>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Advanced"
+         "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const searchQuery = req.query.q || '';\n    res.send(`\n        <script>\n            let userInput = \\`${searchQuery}\\`;\n            document.write('<h1>Results for: ' + userInput + '</h1>');\n        </script>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});"
+       
       },
       {
         "Lab scenario": "Exploiting cross-site scripting to steal cookies",
         "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. A simulated victim user views all comments after they are posted. To solve the lab, exploit the vulnerability to exfiltrate the victim's session cookie, then use this cookie to impersonate the victim.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst cookieParser = require('cookie-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\napp.use(cookieParser());\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n    res.send(`\n        <h1>Blog Post</h1>\n        <p>Leave a comment:</p>\n        <form action='/comment' method='POST'>\n            <input type='text' name='comment' />\n            <button type='submit'>Submit</button>\n        </form>\n        <h2>Comments:</h2>\n        <ul>\n            ${comments.map(c => `<li>${c}</li>`).join('')}\n        </ul>\n    `);\n});\n\napp.post('/comment', (req, res) => {\n    comments.push(req.body.comment);\n    res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Advanced"
+         "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst cookieParser = require('cookie-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\napp.use(cookieParser());\n\nlet comments = [];\n\napp.get('/', (req, res) => {\n    res.send(`\n        <h1>Blog Post</h1>\n        <p>Leave a comment:</p>\n        <form action='/comment' method='POST'>\n            <input type='text' name='comment' />\n            <button type='submit'>Submit</button>\n        </form>\n        <h2>Comments:</h2>\n        <ul>\n            ${comments.map(c => `<li>${c}</li>`).join('')}\n        </ul>\n    `);\n});\n\napp.post('/comment', (req, res) => {\n    comments.push(req.body.comment);\n    res.redirect('/');\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});"
+       
       },
       {
         "Lab scenario": "Exploiting cross-site scripting to capture passwords",
         "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. A simulated victim user views all comments after they are posted. To solve the lab, exploit the vulnerability to exfiltrate the victim's username and password then use these credentials to log in to the victim's account.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\\nconst bodyParser = require('body-parser');\\n\\nconst app = express();\\napp.use(bodyParser.urlencoded({ extended: true }));\\n\\nlet comments = []; // Stores user-submitted comments\\n\\napp.get('/', (req, res) => {\\n    let commentsList = comments.map(comment => \\n        `<p>${comment}</p>`\\n    ).join('');\\n    \\n    res.send(`\\n        <h1>Blog Comments</h1>\\n        <form action=\"/comment\" method=\"POST\">\\n            <textarea name=\"comment\" placeholder=\"Your comment\" required></textarea>\\n            <button type=\"submit\">Submit</button>\\n        </form>\\n        <h2>Comments:</h2>\\n        ${commentsList}\\n    `);\\n});\\n\\napp.post('/comment', (req, res) => {\\n    const comment = req.body.comment || '';\\n    comments.push(comment);\\n    res.redirect('/');\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});",
-        "lab level": "Advanced"
+           "lab level": "hard",
+        "src code": "const express = require('express');\\nconst bodyParser = require('body-parser');\\n\\nconst app = express();\\napp.use(bodyParser.urlencoded({ extended: true }));\\n\\nlet comments = []; // Stores user-submitted comments\\n\\napp.get('/', (req, res) => {\\n    let commentsList = comments.map(comment => \\n        `<p>${comment}</p>`\\n    ).join('');\\n    \\n    res.send(`\\n        <h1>Blog Comments</h1>\\n        <form action=\"/comment\" method=\"POST\">\\n            <textarea name=\"comment\" placeholder=\"Your comment\" required></textarea>\\n            <button type=\"submit\">Submit</button>\\n        </form>\\n        <h2>Comments:</h2>\\n        ${commentsList}\\n    `);\\n});\\n\\napp.post('/comment', (req, res) => {\\n    const comment = req.body.comment || '';\\n    comments.push(comment);\\n    res.redirect('/');\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});"
+     
       },
       {
         "Lab scenario": "Exploiting XSS to bypass CSRF defenses",
         "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. To solve the lab, exploit the vulnerability to steal a CSRF token, which you can then use to change the email address of someone who views the blog post comments.\nYou can log in to your own account using the following credentials: wiener:peter",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\\nconst bodyParser = require('body-parser');\\nconst cookieParser = require('cookie-parser');\\n\\nconst app = express();\\napp.use(bodyParser.urlencoded({ extended: true }));\\napp.use(cookieParser());\\n\\nlet comments = []; // Stores user-submitted comments\\n\\napp.get('/', (req, res) => {\\n    let commentsList = comments.map(comment => \\n        `<p>${comment}</p>`\\n    ).join('');\\n    \\n    res.send(`\\n        <h1>Blog Comments</h1>\\n        <form action=\"/comment\" method=\"POST\">\\n            <textarea name=\"comment\" placeholder=\"Your comment\" required></textarea>\\n            <button type=\"submit\">Submit</button>\\n        </form>\\n        <h2>Comments:</h2>\\n        ${commentsList}\\n    `);\\n});\\n\\napp.post('/comment', (req, res) => {\\n    const comment = req.body.comment || '';\\n    comments.push(comment);\\n    res.redirect('/');\\n});\\n\\napp.get('/change-email', (req, res) => {\\n    const csrfToken = 'random-csrf-token'; // Simulated CSRF token\\n    res.send(`\\n        <h1>Change Email</h1>\\n        <form action=\"/update-email\" method=\"POST\">\\n            <input type=\"hidden\" name=\"csrf\" value=\"${csrfToken}\">\\n            <input type=\"email\" name=\"email\" placeholder=\"New email\" required>\\n            <button type=\"submit\">Update Email</button>\\n        </form>\\n    `);\\n});\\n\\napp.post('/update-email', (req, res) => {\\n    const csrfToken = req.body.csrf;\\n    const email = req.body.email;\\n    \\n    if (csrfToken === 'random-csrf-token') {\\n        res.send(`Email updated to: ${email}`);\\n    } else {\\n        res.status(403).send('Invalid CSRF token');\\n    }\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});",
-        "lab level": "Advanced"
+         "lab level": "hard" ,
+        "src code": "const express = require('express');\\nconst bodyParser = require('body-parser');\\nconst cookieParser = require('cookie-parser');\\n\\nconst app = express();\\napp.use(bodyParser.urlencoded({ extended: true }));\\napp.use(cookieParser());\\n\\nlet comments = []; // Stores user-submitted comments\\n\\napp.get('/', (req, res) => {\\n    let commentsList = comments.map(comment => \\n        `<p>${comment}</p>`\\n    ).join('');\\n    \\n    res.send(`\\n        <h1>Blog Comments</h1>\\n        <form action=\"/comment\" method=\"POST\">\\n            <textarea name=\"comment\" placeholder=\"Your comment\" required></textarea>\\n            <button type=\"submit\">Submit</button>\\n        </form>\\n        <h2>Comments:</h2>\\n        ${commentsList}\\n    `);\\n});\\n\\napp.post('/comment', (req, res) => {\\n    const comment = req.body.comment || '';\\n    comments.push(comment);\\n    res.redirect('/');\\n});\\n\\napp.get('/change-email', (req, res) => {\\n    const csrfToken = 'random-csrf-token'; // Simulated CSRF token\\n    res.send(`\\n        <h1>Change Email</h1>\\n        <form action=\"/update-email\" method=\"POST\">\\n            <input type=\"hidden\" name=\"csrf\" value=\"${csrfToken}\">\\n            <input type=\"email\" name=\"email\" placeholder=\"New email\" required>\\n            <button type=\"submit\">Update Email</button>\\n        </form>\\n    `);\\n});\\n\\napp.post('/update-email', (req, res) => {\\n    const csrfToken = req.body.csrf;\\n    const email = req.body.email;\\n    \\n    if (csrfToken === 'random-csrf-token') {\\n        res.send(`Email updated to: ${email}`);\\n    } else {\\n        res.status(403).send('Invalid CSRF token');\\n    }\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});"
+       
       },
       {
         "Lab scenario": "Reflected XSS with AngularJS sandbox escape without strings",
         "Lab Description": "This lab uses AngularJS in an unusual way where the $eval function is not available and you will be unable to use any strings in AngularJS.\nTo solve the lab, perform a cross-site scripting attack that escapes the sandbox and executes the alert function without using the $eval function.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n    const searchQuery = req.query.search || '';\\n    res.send(`\\n        <h1>Search Blog</h1>\\n        <form action=\"/\" method=\"GET\">\\n            <input type=\"text\" name=\"search\" placeholder=\"Search...\">\\n            <input type=\"submit\" value=\"Search\">\\n        </form>\\n        <div ng-app>\\n            <p>You searched for: {{ ${searchQuery} }}</p>\\n        </div>\\n        <script src=\"https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js\"></script>\\n    `);\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});",
-        "lab level": "Advanced"
+          "lab level": "hard",
+        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n    const searchQuery = req.query.search || '';\\n    res.send(`\\n        <h1>Search Blog</h1>\\n        <form action=\"/\" method=\"GET\">\\n            <input type=\"text\" name=\"search\" placeholder=\"Search...\">\\n            <input type=\"submit\" value=\"Search\">\\n        </form>\\n        <div ng-app>\\n            <p>You searched for: {{ ${searchQuery} }}</p>\\n        </div>\\n        <script src=\"https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js\"></script>\\n    `);\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});"
+      
       },
       {
         "Lab scenario": "Reflected XSS with AngularJS sandbox escape and CSP",
         "Lab Description": "This lab uses CSP and AngularJS.\nTo solve the lab, perform a cross-site scripting attack that bypasses CSP, escapes the AngularJS sandbox, and alerts document.cookie.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n    const searchQuery = req.query.search || '';\\n    res.set('Content-Security-Policy', \"default-src 'self'; script-src 'self' https://ajax.googleapis.com;\");\\n    res.send(`\\n        <h1>Search Blog</h1>\\n        <form action=\"/\" method=\"GET\">\\n            <input type=\"text\" name=\"search\" placeholder=\"Search...\">\\n            <input type=\"submit\" value=\"Search\">\\n        </form>\\n        <div ng-app>\\n            <p>You searched for: {{ ${searchQuery} }}</p>\\n        </div>\\n        <script src=\"https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js\"></script>\\n    `);\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});",
-        "lab level": "Advanced"
+         "lab level": "hard",
+        "src code": "const express = require('express');\\nconst app = express();\\n\\napp.get('/', (req, res) => {\\n    const searchQuery = req.query.search || '';\\n    res.set('Content-Security-Policy', \"default-src 'self'; script-src 'self' https://ajax.googleapis.com;\");\\n    res.send(`\\n        <h1>Search Blog</h1>\\n        <form action=\"/\" method=\"GET\">\\n            <input type=\"text\" name=\"search\" placeholder=\"Search...\">\\n            <input type=\"submit\" value=\"Search\">\\n        </form>\\n        <div ng-app>\\n            <p>You searched for: {{ ${searchQuery} }}</p>\\n        </div>\\n        <script src=\"https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js\"></script>\\n    `);\\n});\\n\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n    console.log(`Lab running on http://localhost:${PORT}`);\\n});"
+       
       },
       {
         "Lab scenario": "Reflected XSS with event handlers and href attributes blocked",
         "Lab Description": "This lab contains a reflected XSS vulnerability with some whitelisted tags, but all events and anchor href attributes are blocked.\nTo solve the lab, perform a cross-site scripting attack that injects a vector that, when clicked, calls the alert function.\nNote that you need to label your vector with the word \"Click\" in order to induce the simulated lab user to click your vector. For example:\n<a href=\"\">Click me</a>",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const searchQuery = req.query.q || '';\n    res.send(`\n        <h1>Search Page</h1>\n        <p>Results for: ${searchQuery}</p>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+           "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const searchQuery = req.query.q || '';\n    res.send(`\n        <h1>Search Page</h1>\n        <p>Results for: ${searchQuery}</p>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});"
+     
       },
       {
         "Lab scenario": "Reflected XSS in a JavaScript URL with some characters blocked",
         "Lab Description": "This lab reflects your input in a JavaScript URL, but all is not as it seems. This initially seems like a trivial challenge; however, the application is blocking some characters in an attempt to prevent XSS attacks.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function with the string 1337 contained somewhere in the alert message.",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n    const userInput = req.query.input || '';\n    res.send(`\n        <h1>Reflected XSS Lab</h1>\n        <p>Your input is reflected in a JavaScript URL:</p>\n        <a href=\"javascript:alert('${userInput}')\">Click here</a>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Intermediate"
+         "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n    const userInput = req.query.input || '';\n    res.send(`\n        <h1>Reflected XSS Lab</h1>\n        <p>Your input is reflected in a JavaScript URL:</p>\n        <a href=\"javascript:alert('${userInput}')\">Click here</a>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});"
+       
       },
       {
         "Lab scenario": "Reflected XSS protected by very strict CSP, with dangling markup attack",
         "Lab Description": "This lab using a strict CSP that blocks outgoing requests to external web sites.\nTo solve the lab, first perform a cross-site scripting attack that bypasses the CSP and exfiltrates a simulated victim user's CSRF token using Burp Collaborator. You then need to change the simulated user's email address to hacker@evil-user.net.\nYou must label your vector with the word \"Click\" in order to induce the simulated user to click it. For example:\n<a href=\"\">Click me</a>\nYou can log in to your own account using the following credentials: wiener:peter",
         "Vulnerability name": "Cross-site scripting",
-        "src code": "const express = require('express');\nconst app = express();\n\napp.use((req, res, next) => {\n    res.set('Content-Security-Policy', \"default-src 'self'; script-src 'self'; connect-src 'self';\");\n    next();\n});\n\napp.get('/', (req, res) => {\n    const userInput = req.query.input || '';\n    res.send(`\n        <h1>Strict CSP Lab</h1>\n        <p>Your input is reflected:</p>\n        <div>${userInput}</div>\n    `);\n});\n\napp.post('/change-email', (req, res) => {\n    const csrfToken = req.headers['x-csrf-token'];\n    if (csrfToken === 'valid-token') {\n        res.send('Email changed to hacker@evil-user.net');\n    } else {\n        res.status(403).send('Invalid CSRF token');\n    }\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});",
-        "lab level": "Hard"
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use((req, res, next) => {\n    res.set('Content-Security-Policy', \"default-src 'self'; script-src 'self'; connect-src 'self';\");\n    next();\n});\n\napp.get('/', (req, res) => {\n    const userInput = req.query.input || '';\n    res.send(`\n        <h1>Strict CSP Lab</h1>\n        <p>Your input is reflected:</p>\n        <div>${userInput}</div>\n    `);\n});\n\napp.post('/change-email', (req, res) => {\n    const csrfToken = req.headers['x-csrf-token'];\n    if (csrfToken === 'valid-token') {\n        res.send('Email changed to hacker@evil-user.net');\n    } else {\n        res.status(403).send('Invalid CSRF token');\n    }\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});"
+        
       },
       {
         "Lab scenario": "Reflected XSS protected by CSP, with CSP bypass",
         "Lab Description": "This lab uses CSP and contains a reflected XSS vulnerability.\nTo solve the lab, perform a cross-site scripting attack that bypasses the CSP and calls the alert function.\nPlease note that the intended solution to this lab is only possible in Chrome.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use((req, res, next) => {\n    res.set('Content-Security-Policy', \"default-src 'self'; script-src 'self' 'unsafe-inline';\");\n    next();\n});\n\napp.get('/', (req, res) => {\n    const userInput = req.query.input || '';\n    res.send(`\n        <h1>Reflected XSS with CSP Bypass</h1>\n        <p>Your input is reflected:</p>\n        <div>${userInput}</div>\n    `);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n    console.log(`Lab running on http://localhost:${PORT}`);\n});"
       },
       
-      {},
+    
 
       {
         "Lab scenario": "Reflected XSS in search query parameter",
         "Lab Description": "This lab contains a reflected XSS vulnerability in the search query parameter. The application directly reflects user input without proper encoding. To solve the lab, craft an XSS payload that triggers an alert box.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const query = req.query.q || '';\n    res.send(<h1>Search Results</h1><p>Results for: ${query}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in user comments section",
         "Lab Description": "This lab allows users to post comments, but it fails to sanitize input before storing it in the database. Attackers can inject malicious JavaScript that executes when other users view the comments.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet comments = [];\n\napp.post('/comment', (req, res) => {\n    comments.push(req.body.comment);\n    res.send('Comment added!');\n});\n\napp.get('/comments', (req, res) => {\n    res.send(comments.map(c => <p>${c}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM-based XSS in URL hash fragment",
         "Lab Description": "The web application dynamically updates the page based on the URL fragment. However, it does not properly sanitize user input, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in error message",
         "Lab Description": "This application reflects user input directly in an error message, making it vulnerable to reflected XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/error', (req, res) => {\n    const msg = req.query.msg || 'No error';\n    res.send(<h1>Error Page</h1><p>Error: ${msg}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "XSS via poorly sanitized input in chat messages",
         "Lab Description": "This lab allows users to send messages in a chat system, but it fails to sanitize input, allowing attackers to send JavaScript payloads.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet messages = [];\n\napp.post('/chat', (req, res) => {\n    messages.push(req.body.message);\n    res.send('Message sent!');\n});\n\napp.get('/messages', (req, res) => {\n    res.send(messages.map(m => <p>${m}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in profile description",
         "Lab Description": "Users can update their profile descriptions, but the application fails to sanitize input, allowing attackers to inject persistent JavaScript code.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet profiles = {};\n\napp.post('/update-profile', (req, res) => {\n    profiles[req.body.username] = req.body.description;\n    res.send('Profile updated!');\n});\n\napp.get('/profile', (req, res) => {\n    const description = profiles[req.query.username] || 'No description';\n    res.send(<h1>Profile</h1><p>Description: ${description}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM XSS in client-side JavaScript",
         "Lab Description": "The application uses JavaScript to directly insert URL parameters into the page without sanitization, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS via URL parameter",
         "Lab Description": "This lab has a reflected XSS vulnerability in a URL parameter. The application reflects user input directly into the page without sanitization.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/welcome', (req, res) => {\n    const name = req.query.name || 'Guest';\n    res.send(<h1>Welcome, ${name}!</h1>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in forum post",
         "Lab Description": "This lab allows users to create forum posts but does not sanitize input, allowing attackers to inject JavaScript that executes when viewed.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet posts = [];\n\napp.post('/post', (req, res) => {\n    posts.push(req.body.content);\n    res.send('Post created!');\n});\n\napp.get('/posts', (req, res) => {\n    res.send(posts.map(p => <p>${p}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM XSS in JavaScript-generated content",
         "Lab Description": "The application dynamically updates the page using JavaScript without proper input sanitization, making it vulnerable to DOM-based XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in login error message",
         "Lab Description": "An error message reflects user input without sanitization, making it vulnerable to reflected XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/login', (req, res) => {\n    const error = req.query.error || '';\n    res.send(<h1>Login Page</h1><p>Error: ${error}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in search results page",
         "Lab Description": "This lab has a reflected XSS vulnerability in the search functionality. The input is displayed in search results without proper sanitization.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const searchQuery = req.query.q || 'Nothing';\n    res.send(<h1>Search Results</h1><p>You searched for: ${searchQuery}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in guestbook comments",
         "Lab Description": "Users can leave comments in a guestbook, but inputs are stored without sanitization, leading to stored XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet guestbook = [];\n\napp.post('/guestbook', (req, res) => {\n    guestbook.push(req.body.comment);\n    res.send('Comment added!');\n});\n\napp.get('/guestbook', (req, res) => {\n    res.send(guestbook.map(c => <p>${c}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM-based XSS in URL hash",
         "Lab Description": "The application reads data from the URL hash and inserts it into the page without sanitization, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "XSS in profile update form",
         "Lab Description": "Users can update their profile information, but input is not sanitized properly, allowing for stored XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet users = {};\n\napp.post('/update-profile', (req, res) => {\n    users[req.body.username] = req.body.bio;\n    res.send('Profile updated!');\n});\n\napp.get('/profile', (req, res) => {\n    const bio = users[req.query.username] || 'No bio available';\n    res.send(<h1>Profile</h1><p>Bio: ${bio}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in contact form",
         "Lab Description": "The contact form includes user input in the response without sanitization, leading to a reflected XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.post('/contact', (req, res) => {\n    const name = req.body.name || 'Guest';\n    res.send(<h1>Thank you, ${name}!</h1>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in user bio",
         "Lab Description": "Users can set a bio, which is stored and displayed on their profile without sanitization, leading to stored XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet bios = {};\n\napp.post('/set-bio', (req, res) => {\n    bios[req.body.username] = req.body.bio;\n    res.send('Bio updated!');\n});\n\napp.get('/get-bio', (req, res) => {\n    const bio = bios[req.query.username] || 'No bio available';\n    res.send(<h1>User Bio</h1><p>${bio}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM-based XSS in chat widget",
         "Lab Description": "The application updates the chat box using JavaScript but does not escape user input, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in feedback form",
         "Lab Description": "The feedback page reflects user input without sanitization, making it vulnerable to reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.post('/feedback', (req, res) => {\n    const message = req.body.message || 'No message';\n    res.send(<h1>Your feedback: ${message}</h1>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in event descriptions",
         "Lab Description": "Event descriptions are stored in the database and displayed without sanitization, allowing for stored XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet events = [];\n\napp.post('/create-event', (req, res) => {\n    events.push(req.body.description);\n    res.send('Event created!');\n});\n\napp.get('/events', (req, res) => {\n    res.send(events.map(e => <p>${e}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in email validation",
         "Lab Description": "The email validation form reflects user input in an error message, making it vulnerable to reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/validate-email', (req, res) => {\n    const email = req.query.email || 'Invalid email';\n    res.send(<h1>Email Validation</h1><p>Error: ${email}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in support ticket messages",
         "Lab Description": "Support ticket messages are stored without sanitization, allowing attackers to inject JavaScript that executes when viewed.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet tickets = [];\n\napp.post('/submit-ticket', (req, res) => {\n    tickets.push(req.body.message);\n    res.send('Ticket submitted!');\n});\n\napp.get('/view-tickets', (req, res) => {\n    res.send(tickets.map(t => <p>${t}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM XSS in notification system",
         "Lab Description": "The notification system updates the page dynamically but does not escape input, leading to DOM-based XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in password reset error message",
         "Lab Description": "The password reset page reflects user input in an error message without sanitization, allowing for reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/reset-password', (req, res) => {\n    const error = req.query.error || 'Unknown error';\n    res.send(<h1>Password Reset</h1><p>Error: ${error}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in product reviews",
         "Lab Description": "Product reviews are stored in the database and displayed without sanitization, allowing attackers to inject JavaScript.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet reviews = [];\n\napp.post('/submit-review', (req, res) => {\n    reviews.push(req.body.review);\n    res.send('Review submitted!');\n});\n\napp.get('/reviews', (req, res) => {\n    res.send(reviews.map(r => <p>${r}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in search field",
         "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search field. To solve the lab, inject a payload that executes JavaScript when reflected back on the page.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\napp.get('/search', (req, res) => {\n    const query = req.query.q || '';\n    res.send(<h1>Search Results</h1><p>You searched for: ${query}</p>);\n});\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in user profile",
         "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the user profile page. Inject a payload in the profile description and trigger execution when another user views the profile.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\nlet profiles = {};\napp.use(bodyParser.urlencoded({ extended: true }));\napp.post('/profile', (req, res) => {\n    profiles[req.body.username] = req.body.bio;\n    res.send('Profile updated!');\n});\napp.get('/profile/:user', (req, res) => {\n    res.send(<h1>${req.params.user}'s Profile</h1><p>${profiles[req.params.user] || ''}</p>);\n});\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in login form",
         "Lab Description": "This lab contains a reflected XSS vulnerability in the login form. The application directly reflects user input without proper encoding. To solve the lab, craft an XSS payload that triggers an alert box.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\napp.post('/login', (req, res) => {\n    const username = req.body.username || '';\n    res.send(<h1>Welcome ${username}</h1>);\n});\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in password reset field",
         "Lab Description": "The password reset page contains an XSS vulnerability by reflecting user input. Find a way to inject JavaScript through the email parameter.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\napp.get('/reset-password', (req, res) => {\n    const email = req.query.email || '';\n    res.send(<h1>Reset Password</h1><p>Email: ${email}</p>);\n});\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM-based XSS in profile page",
         "Lab Description": "The web application dynamically updates the profile page based on the URL fragment. However, it does not properly sanitize user input, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\napp.use(express.static('public'));\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "XSS in file upload preview",
         "Lab Description": "This lab allows users to upload and preview images, but it does not sanitize SVG files properly. Craft an SVG file containing JavaScript to trigger XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst multer = require('multer');\nconst app = express();\nconst upload = multer({ dest: 'uploads/' });\napp.post('/upload', upload.single('file'), (req, res) => {\n    res.send(<img src='/uploads/${req.file.filename}'>);\n});\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in admin logs",
         "Lab Description": "This lab allows users to report bugs. However, the input is stored and later displayed to an admin without sanitization. Exploit the stored XSS by injecting a script that executes when an admin reviews the logs.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\nlet reports = [];\napp.post('/report', (req, res) => {\n    reports.push(req.body.issue);\n    res.send('Bug reported!');\n});\napp.get('/admin/logs', (req, res) => {\n    res.send(reports.map(r => <p>${r}</p>).join(''));\n});\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS bypassing regex filters",
         "Lab Description": "This application attempts to block XSS using a regex filter. However, the filter is incomplete. Inject a payload that bypasses it and executes JavaScript.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\napp.post('/submit', (req, res) => {\n    let input = req.body.text.replace(/<script>/gi, '');\n    res.send(<div>${input}</div>);\n});\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in error message",
         "Lab Description": "The application displays user input in error messages without proper escaping, leading to a reflected XSS attack.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/error', (req, res) => {\n    const errorMsg = req.query.msg || 'No error';\n    res.send(<h1>Error Page</h1><p>${errorMsg}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in user bios",
         "Lab Description": "Users can set a bio on their profile, but the application does not sanitize input, leading to stored XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet bios = [];\n\napp.post('/bio', (req, res) => {\n    bios.push(req.body.bio);\n    res.send('Bio updated!');\n});\n\napp.get('/bios', (req, res) => {\n    res.send(bios.map(b => <p>${b}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM XSS in notifications",
         "Lab Description": "User notifications are displayed dynamically in JavaScript without proper sanitization, leading to DOM-based XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in feedback form",
         "Lab Description": "The feedback form echoes back user input in the response page without escaping, allowing reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/feedback', (req, res) => {\n    const feedback = req.query.feedback || 'No feedback';\n    res.send(<h1>Feedback Page</h1><p>${feedback}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in private messages",
         "Lab Description": "Private messages are stored and displayed without sanitization, leading to stored XSS vulnerabilities.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet messages = [];\n\napp.post('/message', (req, res) => {\n    messages.push(req.body.message);\n    res.send('Message sent!');\n});\n\napp.get('/messages', (req, res) => {\n    res.send(messages.map(m => <p>${m}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in login error",
         "Lab Description": "The login page displays error messages that include unsanitized user input, allowing reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/login', (req, res) => {\n    const error = req.query.error || '';\n    res.send(<h1>Login Page</h1><p>${error}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in event descriptions",
         "Lab Description": "Event descriptions are stored and displayed without escaping, allowing attackers to inject scripts.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet events = [];\n\napp.post('/event', (req, res) => {\n    events.push(req.body.description);\n    res.send('Event added!');\n});\n\napp.get('/events', (req, res) => {\n    res.send(events.map(e => <p>${e}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in social media post preview",
         "Lab Description": "The social media post preview feature displays user input without sanitization, leading to reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/preview', (req, res) => {\n    const content = req.query.content || '';\n    res.send(<h1>Post Preview</h1><p>${content}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in admin dashboard logs",
         "Lab Description": "The admin dashboard logs display unsanitized user-generated input, allowing stored XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet logs = [];\n\napp.post('/log', (req, res) => {\n    logs.push(req.body.logEntry);\n    res.send('Log added!');\n});\n\napp.get('/logs', (req, res) => {\n    res.send(logs.map(l => <p>${l}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in API documentation search",
         "Lab Description": "The API documentation search feature reflects user queries without sanitization, leading to reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/api-docs', (req, res) => {\n    const search = req.query.q || '';\n    res.send(<h1>API Docs</h1><p>Results for: ${search}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in login error message",
         "Lab Description": "The login page reflects invalid credentials in an error message without sanitization, allowing for reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/login', (req, res) => {\n    const error = req.query.error || '';\n    res.send(<h1>Login</h1><p>${error}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in forum posts",
         "Lab Description": "Users can create forum posts, but the input is stored and displayed without sanitization, leading to stored XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet posts = [];\n\napp.post('/post', (req, res) => {\n    posts.push(req.body.content);\n    res.send('Post submitted!');\n});\n\napp.get('/posts', (req, res) => {\n    res.send(posts.map(p => <p>${p}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM-based XSS in search bar",
         "Lab Description": "The application updates the search results dynamically using JavaScript, but does not escape user input, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in user profile preview",
         "Lab Description": "User input in the profile preview is not sanitized before being rendered, allowing for a reflected XSS attack.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/profile-preview', (req, res) => {\n    const name = req.query.name || 'Guest';\n    res.send(<h1>Profile Preview</h1><p>Name: ${name}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in private messages",
         "Lab Description": "Private messages are stored in the database and displayed without sanitization, allowing for stored XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet messages = [];\n\napp.post('/send-message', (req, res) => {\n    messages.push(req.body.message);\n    res.send('Message sent!');\n});\n\napp.get('/messages', (req, res) => {\n    res.send(messages.map(m => <p>${m}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM XSS in notification panel",
         "Lab Description": "The notification panel updates dynamically using JavaScript without escaping input, allowing for a DOM-based XSS attack.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in search autocomplete",
         "Lab Description": "The search autocomplete feature reflects user input without sanitization, making it vulnerable to reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/autocomplete', (req, res) => {\n    const query = req.query.q || '';\n    res.send(<h1>Search Autocomplete</h1><p>${query}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in comment replies",
         "Lab Description": "Replies to comments are stored and displayed without sanitization, allowing for stored XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet replies = [];\n\napp.post('/reply', (req, res) => {\n    replies.push(req.body.reply);\n    res.send('Reply submitted!');\n});\n\napp.get('/replies', (req, res) => {\n    res.send(replies.map(r => <p>${r}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in password recovery hint",
         "Lab Description": "The password recovery page displays user input in an error message without sanitization, allowing for reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/recover-password', (req, res) => {\n    const hint = req.query.hint || 'No hint available';\n    res.send(<h1>Password Recovery</h1><p>Hint: ${hint}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in blog post titles",
         "Lab Description": "Blog post titles are stored and displayed without sanitization, allowing for stored XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet posts = [];\n\napp.post('/create-post', (req, res) => {\n    posts.push(req.body.title);\n    res.send('Post created!');\n});\n\napp.get('/posts', (req, res) => {\n    res.send(posts.map(p => <h2>${p}</h2>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in product search",
         "Lab Description": "The product search page reflects user input in the results page without sanitization, leading to a reflected XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const query = req.query.q || '';\n    res.send(<h1>Search Results</h1><p>You searched for: ${query}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in guestbook comments",
         "Lab Description": "Users can leave comments in the guestbook, but they are stored and displayed without sanitization, allowing for stored XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet comments = [];\n\napp.post('/comment', (req, res) => {\n    comments.push(req.body.comment);\n    res.send('Comment added!');\n});\n\napp.get('/guestbook', (req, res) => {\n    res.send(comments.map(c => <p>${c}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM XSS in user dashboard",
         "Lab Description": "The user dashboard updates the UI dynamically using JavaScript, but fails to properly escape user-generated input, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in contact form error message",
         "Lab Description": "The contact form displays error messages that include user input without sanitization, allowing for a reflected XSS attack.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/contact', (req, res) => {\n    const error = req.query.error || '';\n    res.send(<h1>Contact Form</h1><p>${error}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in user avatars",
         "Lab Description": "Users can upload custom avatars, but the image URL is stored and displayed without sanitization, allowing for stored XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet avatars = [];\n\napp.post('/upload-avatar', (req, res) => {\n    avatars.push(req.body.avatarUrl);\n    res.send('Avatar uploaded!');\n});\n\napp.get('/avatars', (req, res) => {\n    res.send(avatars.map(a => <img src=\"${a}\" />).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "DOM XSS in chat messages",
         "Lab Description": "Chat messages are displayed dynamically using JavaScript without proper escaping, leading to a DOM-based XSS vulnerability.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in help desk ticketing system",
         "Lab Description": "The ticketing system reflects error messages without sanitization, allowing for reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/helpdesk', (req, res) => {\n    const error = req.query.error || 'No issues detected';\n    res.send(<h1>Help Desk</h1><p>${error}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in product reviews",
         "Lab Description": "Product reviews are stored and displayed without proper sanitization, allowing for stored XSS attacks.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Medium",
+        "lab level": "medium",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet reviews = [];\n\napp.post('/review', (req, res) => {\n    reviews.push(req.body.review);\n    res.send('Review submitted!');\n});\n\napp.get('/reviews', (req, res) => {\n    res.send(reviews.map(r => <p>${r}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Reflected XSS in search suggestions",
         "Lab Description": "The search suggestions page displays user input without sanitization, leading to reflected XSS.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Easy",
+        "lab level": "easy",
         "src code": "const express = require('express');\nconst app = express();\n\napp.get('/suggestions', (req, res) => {\n    const query = req.query.q || '';\n    res.send(<h1>Search Suggestions</h1><p>${query}</p>);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     },
     {
         "Lab scenario": "Stored XSS in forum signatures",
         "Lab Description": "Forum signatures are stored and displayed without proper sanitization, allowing attackers to inject malicious scripts.",
         "Vulnerability name": "Cross-site scripting",
-        "lab level": "Hard",
+        "lab level": "hard",
         "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet signatures = [];\n\napp.post('/signature', (req, res) => {\n    signatures.push(req.body.signature);\n    res.send('Signature updated!');\n});\n\napp.get('/signatures', (req, res) => {\n    res.send(signatures.map(s => <p>${s}</p>).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in admin panel search",
+        "Lab Description": "The admin panel search function reflects user input in the response without escaping, allowing reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/admin-search', (req, res) => {\n    const query = req.query.q || 'No query';\n    res.send(`<h1>Admin Search</h1><p>Results for: ${query}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in profile picture URL",
+        "Lab Description": "Users can set profile picture URLs, but input is not validated, allowing stored XSS by injecting a JavaScript URL.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet profiles = {};\n\napp.post('/set-avatar', (req, res) => {\n    profiles[req.body.username] = req.body.avatar;\n    res.send('Avatar updated!');\n});\n\napp.get('/avatar', (req, res) => {\n    const avatar = profiles[req.query.username] || 'default.jpg';\n    res.send(`<img src=\"${avatar}\" />`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in search results",
+        "Lab Description": "The search results page reflects user queries without escaping, allowing for reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const query = req.query.q || 'No query provided';\n    res.send(`<h1>Search Results</h1><p>You searched for: ${query}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in guestbook messages",
+        "Lab Description": "The guestbook allows users to leave messages, but input is not sanitized, leading to stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet messages = [];\n\napp.post('/guestbook', (req, res) => {\n    messages.push(req.body.message);\n    res.send('Message added!');\n});\n\napp.get('/guestbook', (req, res) => {\n    res.send(messages.map(m => `<p>${m}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in chat system",
+        "Lab Description": "The chat system dynamically updates messages using JavaScript but does not escape user input, leading to DOM-based XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in signup error message",
+        "Lab Description": "The signup form returns error messages that include unsanitized user input, allowing for reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/signup', (req, res) => {\n    const error = req.query.error || '';\n    res.send(`<h1>Signup Page</h1><p>${error}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in forum threads",
+        "Lab Description": "Users can create forum threads, but their input is stored and displayed without sanitization, leading to stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet threads = [];\n\napp.post('/forum', (req, res) => {\n    threads.push(req.body.thread);\n    res.send('Thread created!');\n});\n\napp.get('/threads', (req, res) => {\n    res.send(threads.map(t => `<p>${t}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in profile preview",
+        "Lab Description": "The profile preview feature reflects user input in the page without sanitization, allowing for reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/profile-preview', (req, res) => {\n    const name = req.query.name || 'Guest';\n    res.send(`<h1>Profile Preview</h1><p>Name: ${name}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in event registration",
+        "Lab Description": "Users can register for events, but input is stored and displayed without sanitization, leading to stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet registrations = [];\n\napp.post('/register', (req, res) => {\n    registrations.push(req.body.name);\n    res.send('Registered successfully!');\n});\n\napp.get('/registrations', (req, res) => {\n    res.send(registrations.map(r => `<p>${r}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in search suggestions",
+        "Lab Description": "Search suggestions are updated dynamically using JavaScript but do not escape user input, allowing for DOM-based XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in file upload preview",
+        "Lab Description": "The file upload preview page displays filenames without sanitization, allowing for reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/upload-preview', (req, res) => {\n    const filename = req.query.file || 'No file uploaded';\n    res.send(`<h1>Upload Preview</h1><p>Filename: ${filename}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in admin announcements",
+        "Lab Description": "Admin announcements are stored and displayed without sanitization, leading to stored XSS vulnerabilities.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet announcements = [];\n\napp.post('/announcement', (req, res) => {\n    announcements.push(req.body.announcement);\n    res.send('Announcement posted!');\n});\n\napp.get('/announcements', (req, res) => {\n    res.send(announcements.map(a => `<p>${a}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in help desk ticket submission",
+        "Lab Description": "The help desk system displays user input from the ticket form in the response without escaping, leading to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/helpdesk', (req, res) => {\n    const issue = req.query.issue || 'No issue provided';\n    res.send(`<h1>Help Desk</h1><p>Issue: ${issue}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in shopping cart comments",
+        "Lab Description": "Users can leave comments on items in their shopping cart, but the application does not sanitize input, allowing stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet cartComments = [];\n\napp.post('/cart-comment', (req, res) => {\n    cartComments.push(req.body.comment);\n    res.send('Comment added!');\n});\n\napp.get('/cart-comments', (req, res) => {\n    res.send(cartComments.map(c => `<p>${c}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in notification system",
+        "Lab Description": "The notification panel updates dynamically using JavaScript without escaping user input, leading to DOM-based XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in password recovery hint",
+        "Lab Description": "The password recovery page displays user input in a hint message without escaping, allowing reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/recover-password', (req, res) => {\n    const hint = req.query.hint || 'No hint available';\n    res.send(`<h1>Password Recovery</h1><p>Hint: ${hint}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in leaderboard names",
+        "Lab Description": "Users can set their leaderboard name, but input is stored without sanitization, allowing stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet leaderboard = [];\n\napp.post('/leaderboard', (req, res) => {\n    leaderboard.push(req.body.name);\n    res.send('Name added to leaderboard!');\n});\n\napp.get('/leaderboard', (req, res) => {\n    res.send(leaderboard.map(n => `<p>${n}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in newsletter subscription form",
+        "Lab Description": "The newsletter subscription page displays user-provided emails in a confirmation message without escaping, leading to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/subscribe', (req, res) => {\n    const email = req.query.email || 'No email provided';\n    res.send(`<h1>Newsletter Subscription</h1><p>Subscribed with: ${email}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in online polls",
+        "Lab Description": "Users can create poll options, but input is stored and displayed without sanitization, allowing stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet polls = [];\n\napp.post('/poll', (req, res) => {\n    polls.push(req.body.option);\n    res.send('Poll option added!');\n});\n\napp.get('/polls', (req, res) => {\n    res.send(polls.map(p => `<p>${p}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in event registration form",
+        "Lab Description": "The event registration page displays user-provided names in a confirmation message without escaping, leading to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/register', (req, res) => {\n    const name = req.query.name || 'No name provided';\n    res.send(`<h1>Event Registration</h1><p>Registered as: ${name}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in customer support chat",
+        "Lab Description": "Chat messages sent to customer support are stored without escaping, allowing stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet supportMessages = [];\n\napp.post('/support-chat', (req, res) => {\n    supportMessages.push(req.body.message);\n    res.send('Message sent!');\n});\n\napp.get('/support-messages', (req, res) => {\n    res.send(supportMessages.map(m => `<p>${m}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in API error messages",
+        "Lab Description": "The API error response includes user-provided input without escaping, making it vulnerable to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/api-error', (req, res) => {\n    const error = req.query.msg || 'Unknown error';\n    res.send(`<h1>API Error</h1><p>${error}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in support ticket subject",
+        "Lab Description": "The support ticket submission page reflects user input in the subject line without escaping, allowing reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/support', (req, res) => {\n    const subject = req.query.subject || 'No subject provided';\n    res.send(`<h1>Support Ticket</h1><p>Subject: ${subject}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in social media posts",
+        "Lab Description": "Users can post updates on a social media page, but the application does not sanitize input, allowing stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet posts = [];\n\napp.post('/post', (req, res) => {\n    posts.push(req.body.content);\n    res.send('Post created!');\n});\n\napp.get('/posts', (req, res) => {\n    res.send(posts.map(p => `<p>${p}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in notifications panel",
+        "Lab Description": "The notifications panel updates dynamically using JavaScript but does not sanitize input, leading to DOM-based XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in booking confirmation",
+        "Lab Description": "The booking confirmation page displays user input without escaping, leading to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/booking', (req, res) => {\n    const bookingName = req.query.name || 'No name provided';\n    res.send(`<h1>Booking Confirmation</h1><p>Booked under: ${bookingName}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in game chat messages",
+        "Lab Description": "Players can send chat messages in an online game, but input is stored without escaping, allowing stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet chatMessages = [];\n\napp.post('/game-chat', (req, res) => {\n    chatMessages.push(req.body.message);\n    res.send('Message sent!');\n});\n\napp.get('/chat-messages', (req, res) => {\n    res.send(chatMessages.map(m => `<p>${m}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in user dashboard",
+        "Lab Description": "User input displayed in the dashboard without escaping can lead to reflected XSS attacks.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/dashboard', (req, res) => {\n    const username = req.query.username || 'Guest';\n    res.send(`<h1>Dashboard</h1><p>Welcome, ${username}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in public comments",
+        "Lab Description": "Users can leave public comments, but the application does not sanitize input, leading to stored XSS vulnerabilities.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet comments = [];\n\napp.post('/public-comment', (req, res) => {\n    comments.push(req.body.comment);\n    res.send('Comment added!');\n});\n\napp.get('/comments', (req, res) => {\n    res.send(comments.map(c => `<p>${c}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in event registration system",
+        "Lab Description": "The event registration system dynamically updates content without escaping, leading to DOM-based XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in API error responses",
+        "Lab Description": "The API error messages reflect user input without escaping, making it vulnerable to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/api-error', (req, res) => {\n    const errorMsg = req.query.msg || 'Unknown error';\n    res.send(`<h1>API Error</h1><p>${errorMsg}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in online surveys",
+        "Lab Description": "Users can submit responses to surveys, but the responses are stored without escaping, leading to stored XSS vulnerabilities.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet surveyResponses = [];\n\napp.post('/survey', (req, res) => {\n    surveyResponses.push(req.body.response);\n    res.send('Response recorded!');\n});\n\napp.get('/responses', (req, res) => {\n    res.send(surveyResponses.map(r => `<p>${r}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in chat support system",
+        "Lab Description": "The chat support system reflects user input in messages without sanitization, leading to a reflected XSS vulnerability.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/chat-support', (req, res) => {\n    const message = req.query.message || 'Hello!';\n    res.send(`<h1>Chat Support</h1><p>${message}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM-based XSS in search autocomplete",
+        "Lab Description": "The search autocomplete feature updates suggestions dynamically without sanitizing user input, leading to a DOM-based XSS vulnerability.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in admin dashboard notifications",
+        "Lab Description": "The admin dashboard displays user-generated notifications without escaping input, leading to stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\nlet notifications = [];\n\napp.post('/notify', (req, res) => {\n    notifications.push(req.body.notification);\n    res.send('Notification sent!');\n});\n\napp.get('/dashboard', (req, res) => {\n    res.send(notifications.map(n => `<p>${n}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in order tracking page",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in order tracking page.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in user-generated FAQ responses",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in user-generated faq responses.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in helpdesk chat widget",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in dom xss in helpdesk chat widget.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in coupon code validation",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in coupon code validation.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in event comments section",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in stored xss in event comments section.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in AJAX-based profile updates",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in dom xss in ajax-based profile updates.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in email confirmation page",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in email confirmation page.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in feedback ratings",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in feedback ratings.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in user profile display",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in dom xss in user profile display.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in appointment booking system",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in reflected xss in appointment booking system.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in shopping cart notes",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in stored xss in shopping cart notes.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in customer reviews",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in dom xss in customer reviews.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in ticket booking system",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in ticket booking system.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in live support messages",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in live support messages.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in admin panel logs",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in admin panel logs.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in order cancellation page",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in reflected xss in order cancellation page.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in collaborative document editor",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in stored xss in collaborative document editor.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in file preview feature",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in file preview feature.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in invoice generation",
+        "Lab Description": "The invoice generation page displays user input without sanitization, making it vulnerable to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/invoice', (req, res) => {\n    const client = req.query.client || 'Anonymous';\n    res.send(`<h1>Invoice for ${client}</h1>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in blog comment section",
+        "Lab Description": "Users can comment on blog posts, but their input is stored and displayed without proper escaping, leading to stored XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet comments = [];\n\napp.post('/comment', (req, res) => {\n    comments.push(req.body.comment);\n    res.send('Comment added!');\n});\n\napp.get('/comments', (req, res) => {\n    res.send(comments.map(c => `<p>${c}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in notification banner",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in notification banner.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in ticket refund system",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in ticket refund system.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in event registration details",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in event registration details.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in interactive dashboard",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in interactive dashboard.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in real-time stock price search",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in real-time stock price search.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in leaderboard messages",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in stored xss in leaderboard messages.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in user feedback preview",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in dom xss in user feedback preview.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in live chat messages",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in live chat messages.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in account recovery questions",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in account recovery questions.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in QR code generator preview",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in dom xss in qr code generator preview.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in discount code verification",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in discount code verification.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in auction item descriptions",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in stored xss in auction item descriptions.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in collaborative whiteboard app",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in dom xss in collaborative whiteboard app.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in password strength meter",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in password strength meter.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in customer support tickets",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in customer support tickets.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in interactive maps",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in interactive maps.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in product review page",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in product review page.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in personalized homepage widgets",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in stored xss in personalized homepage widgets.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in e-commerce product search",
+        "Lab Description": "The product search page reflects user input in search results without sanitization, leading to a reflected XSS vulnerability.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n    const query = req.query.q || 'No results';\n    res.send(`<h1>Search Results</h1><p>Results for: ${query}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in user-generated playlists",
+        "Lab Description": "Users can create playlists and name them, but input is stored without escaping, leading to stored XSS attacks.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet playlists = [];\n\napp.post('/create-playlist', (req, res) => {\n    playlists.push(req.body.name);\n    res.send('Playlist created!');\n});\n\napp.get('/playlists', (req, res) => {\n    res.send(playlists.map(p => `<p>${p}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in interactive calendar",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in interactive calendar.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in tax calculation tool",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in reflected xss in tax calculation tool.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in video streaming subtitles",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in dom xss in video streaming subtitles.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in online banking transfer notes",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in online banking transfer notes.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in survey comment responses",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in stored xss in survey comment responses.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in stock market dashboard",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in dom xss in stock market dashboard.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in package tracking system",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in reflected xss in package tracking system.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in internal HR messages",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in stored xss in internal hr messages.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in gaming leaderboard display",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in dom xss in gaming leaderboard display.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in invoice PDF preview",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in reflected xss in invoice pdf preview.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in webinar Q&A section",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in stored xss in webinar q&a section.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in email subject autofill",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in dom xss in email subject autofill.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in online hotel booking",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in online hotel booking.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in educational course reviews",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in stored xss in educational course reviews.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in customizable dashboard widgets",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in dom xss in customizable dashboard widgets.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in appointment scheduling notes",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in reflected xss in appointment scheduling notes.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in health records messaging system",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in stored xss in health records messaging system.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in live weather updates",
+        "Lab Description": "The live weather update page reflects user input without sanitization, making it vulnerable to reflected XSS.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/weather', (req, res) => {\n    const location = req.query.location || 'Unknown';\n    res.send(`<h1>Weather for ${location}</h1>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in user-generated polls",
+        "Lab Description": "Users can create polls with custom options, but input is stored without escaping, leading to stored XSS attacks.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet polls = [];\n\napp.post('/create-poll', (req, res) => {\n    polls.push(req.body.option);\n    res.send('Poll option added!');\n});\n\napp.get('/polls', (req, res) => {\n    res.send(polls.map(p => `<p>${p}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in real-time chat widget",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in real-time chat widget.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in movie ticket booking",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in movie ticket booking.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in restaurant reviews",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in restaurant reviews.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in cryptocurrency price tracker",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in cryptocurrency price tracker.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in e-learning quiz system",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in e-learning quiz system.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in healthcare appointment notes",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in healthcare appointment notes.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in online whiteboard application",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in dom xss in online whiteboard application.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in customer complaint portal",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in reflected xss in customer complaint portal.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in personal finance notes",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability in stored xss in personal finance notes.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in IoT dashboard logs",
+        "Lab Description": "This lab demonstrates a stored XSS vulnerability in dom xss in iot dashboard logs.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in job application form",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in reflected xss in job application form.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in university online grading system",
+        "Lab Description": "This lab demonstrates a reflected XSS vulnerability in stored xss in university online grading system.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in gaming community chat",
+        "Lab Description": "The gaming community chat feature dynamically updates messages using JavaScript. However, user input is directly inserted into the DOM without proper sanitization, making it vulnerable to DOM-based XSS. Attackers can inject malicious scripts into chat messages that execute when another user opens the chat window.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in digital signature preview",
+        "Lab Description": "The digital signature preview system displays user-provided text as a signature image. However, it reflects user input without escaping special characters, making it vulnerable to reflected XSS. Attackers can craft a malicious URL that executes JavaScript when victims open the preview link.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in online course comments",
+        "Lab Description": "The online course platform allows students to comment on lessons, but it fails to sanitize stored input. An attacker can inject a malicious script in a comment, which will execute whenever a student or instructor views the discussion section.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in social media live updates",
+        "Lab Description": "The social media platform fetches live updates using JavaScript and directly injects them into the DOM without sanitization. Attackers can exploit this to inject scripts that execute automatically when users scroll through their feed.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in two-factor authentication prompt",
+        "Lab Description": "The two-factor authentication (2FA) system displays error messages containing user input when an invalid code is entered. However, the input is not sanitized, allowing an attacker to execute malicious JavaScript by crafting a specially crafted login URL.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in travel itinerary notes",
+        "Lab Description": "Users can add notes to their travel itinerary, but the application stores and displays this input without sanitization. An attacker could insert JavaScript into their itinerary notes, which will execute when viewed by the user or shared with others.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in AI chatbot interactions",
+        "Lab Description": "The AI chatbot processes and displays user input in real-time without sanitization. Attackers can craft malicious messages that inject scripts into the chat window, leading to DOM-based XSS attacks when the chatbot responds.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in food delivery order summary",
+        "Lab Description": "The food delivery service reflects user-provided data in the order summary without sanitization. Attackers can manipulate the order summary page to execute JavaScript by tricking users into opening a malicious order confirmation link.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in virtual conference Q&A section",
+        "Lab Description": "The virtual conference platform allows attendees to submit questions during live sessions. However, it does not sanitize stored input, allowing an attacker to submit a JavaScript payload that executes when the speaker or other attendees view the Q&A panel.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in airline booking search",
+        "Lab Description": "The airline booking system allows users to search for flights, but it fails to properly sanitize the search query, making it vulnerable to reflected XSS attacks. Attackers can craft a malicious URL to inject a script that executes in the victim's browser.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.get('/search-flights', (req, res) => {\n    const query = req.query.q || 'No results';\n    res.send(`<h1>Flight Search Results</h1><p>Results for: ${query}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in online banking transaction history",
+        "Lab Description": "Users can add transaction descriptions in their online banking history. The system does not properly escape user input, allowing an attacker to store a malicious JavaScript payload that executes whenever the transaction history is viewed.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet transactions = [];\n\napp.post('/add-transaction', (req, res) => {\n    transactions.push(req.body.description);\n    res.send('Transaction added!');\n});\n\napp.get('/transactions', (req, res) => {\n    res.send(transactions.map(t => `<p>${t}</p>`).join(''));\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in e-commerce checkout page",
+        "Lab Description": "The checkout page dynamically updates user input fields without sanitization, allowing an attacker to inject malicious scripts that execute when the page loads.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in hotel reservation system",
+        "Lab Description": "The hotel booking platform displays user-provided reservation details without escaping special characters, making it susceptible to reflected XSS when a malicious link is clicked.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in medical appointment notes",
+        "Lab Description": "Doctors and patients can add notes to appointments, but the system fails to sanitize input, allowing attackers to store scripts that execute when the notes are viewed.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in online document editor",
+        "Lab Description": "The web-based document editor processes user input dynamically and inserts it into the DOM without proper escaping, leading to a potential XSS attack when an attacker crafts a malicious payload.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in cryptocurrency wallet transactions",
+        "Lab Description": "The wallet application updates transaction history dynamically using JavaScript, failing to escape user input, leading to an XSS vulnerability when processing data from an attacker-controlled source.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in insurance claim submission",
+        "Lab Description": "The insurance claim form reflects user input in error messages without escaping special characters, allowing attackers to inject JavaScript into the response.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in online food delivery reviews",
+        "Lab Description": "Customers can leave reviews for food deliveries, but the platform does not sanitize input, enabling an attacker to store JavaScript that executes when another user reads the review.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in real-time stock market dashboard",
+        "Lab Description": "The stock market dashboard updates stock prices dynamically, but fails to sanitize data sources, allowing attackers to manipulate the DOM with malicious scripts.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in digital signature generator",
+        "Lab Description": "The signature generator accepts user input for customizing signatures, but improperly reflects input back to users, allowing reflected XSS attacks.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in online gaming profiles",
+        "Lab Description": "Gamers can update their profile bios, but the system does not sanitize input, enabling attackers to inject JavaScript that executes when other players view the profile.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in online course video player",
+        "Lab Description": "The online learning platform loads video descriptions dynamically without escaping user-generated content, making it vulnerable to DOM-based XSS attacks.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in online event registration",
+        "Lab Description": "The event registration confirmation page reflects user input without sanitization, making it vulnerable to reflected XSS through crafted URLs.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in job recruitment system",
+        "Lab Description": "Recruiters can add comments to job applications, but the system does not escape input, allowing attackers to inject JavaScript that executes when recruiters review applications.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in AI-powered chatbot responses",
+        "Lab Description": "The chatbot dynamically processes user input and updates the webpage, but fails to sanitize the input, leading to a DOM-based XSS vulnerability.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in airline check-in system",
+        "Lab Description": "The check-in page displays user-provided information without proper escaping, making it vulnerable to reflected XSS if an attacker crafts a malicious URL.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in online forum discussions",
+        "Lab Description": "Users can post discussions and replies, but input is stored without escaping, enabling attackers to inject JavaScript that executes when other users read the discussion.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "DOM XSS in music streaming search results",
+        "Lab Description": "The search results for music streaming services update dynamically, failing to escape user input, leading to a DOM-based XSS vulnerability.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in real estate property listings",
+        "Lab Description": "The property listing search function reflects user input directly into the page without sanitization, allowing for reflected XSS attacks through crafted URLs.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "hard",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in customer support chat logs",
+        "Lab Description": "Customer support agents can review chat logs, but the system does not sanitize stored messages, allowing attackers to inject scripts that execute when agents view past conversations.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "easy",
+        "src code": "const express = require('express');\nconst app = express();\n\napp.use(express.static('public'));\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
+    },
+    {
+        "Lab scenario": "Stored XSS in user profile bio",
+        "Lab Description": "The web application allows users to set a bio in their profile. However, the bio input is stored and displayed on the profile page without proper sanitization. An attacker can inject a JavaScript payload into their bio, which will execute whenever another user visits their profile. This vulnerability can be used to steal session cookies, deface profiles, or launch phishing attacks.",
+        "Vulnerability name": "Cross-site scripting",
+        "lab level": "medium",
+        "src code": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\napp.use(bodyParser.urlencoded({ extended: true }));\nlet profiles = {};\n\napp.post('/set-bio', (req, res) => {\n    profiles[req.body.username] = req.body.bio;\n    res.send('Bio updated!');\n});\n\napp.get('/profile', (req, res) => {\n    const bio = profiles[req.query.username] || 'No bio available';\n    res.send(`<h1>User Profile</h1><p>${bio}</p>`);\n});\n\napp.listen(3000, () => console.log('Lab running on http://localhost:3000'));"
     }
 
 ]

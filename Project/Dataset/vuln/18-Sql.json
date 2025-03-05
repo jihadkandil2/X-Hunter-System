@@ -1082,5 +1082,201 @@
     "Vulnerability name": "SQL Injection",
     "lab level": "Hard",
     "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE votes (id INTEGER PRIMARY KEY, candidateId TEXT, voteCount INTEGER)\");\n  db.run(\"INSERT INTO votes (candidateId, voteCount) VALUES ('cand01', 100)\");\n});\n\napp.post('/vote', (req, res) => {\n  const candidateId = req.body.candidateId;\n  const query = `UPDATE votes SET voteCount = voteCount + 1 WHERE candidateId = '${candidateId}'`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Vote recorded');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Unsanitized profile bio update",
+  "Lab Description": "A user profile update endpoint accepts a 'bio' field without sanitization. An attacker can inject SQL into the bio field to retrieve or modify other user data.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE profiles (id INTEGER PRIMARY KEY, username TEXT, bio TEXT)\");\n  db.run(\"INSERT INTO profiles (username, bio) VALUES ('alice', 'Hello world')\");\n});\n\napp.post('/updateBio', (req, res) => {\n  const username = req.body.username;\n  const bio = req.body.bio; // Vulnerable: unsanitized input\n  const query = `UPDATE profiles SET bio = '${bio}' WHERE username = '${username}'`;\n  console.log('Executing query:', query);\n  db.run(query, function(err) {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Profile updated');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Product price update with unsanitized value",
+  "Lab Description": "A product management endpoint allows updating the price using unsanitized input. An attacker can inject SQL to change prices for multiple products.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, price REAL)\");\n  db.run(\"INSERT INTO products (name, price) VALUES ('Laptop', 999.99)\");\n});\n\napp.post('/updatePrice', (req, res) => {\n  const product = req.body.product;\n  const newPrice = req.body.newPrice; // Vulnerable: unsanitized\n  const query = `UPDATE products SET price = ${newPrice} WHERE name = '${product}'`;\n  console.log('Executing query:', query);\n  db.run(query, function(err) {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Price updated');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Blog post retrieval with error-based injection",
+  "Lab Description": "A blog platform retrieves posts based on a title provided by the user. Poor error handling reveals SQL errors that an attacker can use to deduce the schema.",
+  "Vulnerability name": "SQL Injection (Error-based)",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: false }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE posts (id INTEGER PRIMARY KEY, title TEXT, content TEXT)\");\n  db.run(\"INSERT INTO posts (title, content) VALUES ('Hello', 'Welcome to my blog')\");\n});\n\napp.get('/getPost', (req, res) => {\n  const title = req.query.title;\n  const query = `SELECT * FROM posts WHERE title = '${title}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send(err.message);\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Feedback submission vulnerability in comment field",
+  "Lab Description": "A feedback form accepts comments without sanitization. An attacker can inject SQL code in the comment field to manipulate feedback records.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE feedback (id INTEGER PRIMARY KEY, comment TEXT)\");\n});\n\napp.post('/submitFeedback', (req, res) => {\n  const comment = req.body.comment;\n  const query = `INSERT INTO feedback (comment) VALUES ('${comment}')`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Feedback submitted');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Document file search vulnerability in management system",
+  "Lab Description": "A document management system allows searching for files by name. The search query is constructed using unsanitized input, enabling an attacker to inject SQL to view other files.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\n\nconst app = express();\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE documents (id INTEGER PRIMARY KEY, filename TEXT, content TEXT)\");\n  db.run(\"INSERT INTO documents (filename, content) VALUES ('report.pdf', 'Annual Report')\");\n});\n\napp.get('/searchFile', (req, res) => {\n  const filename = req.query.filename;\n  const query = `SELECT * FROM documents WHERE filename = '${filename}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Customer support ticket creation with injection",
+  "Lab Description": "A customer support system allows users to submit tickets. Unsanitized input in the ticket description allows attackers to inject SQL to alter or extract ticket details.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE tickets (id INTEGER PRIMARY KEY, subject TEXT, description TEXT)\");\n});\n\napp.post('/createTicket', (req, res) => {\n  const subject = req.body.subject;\n  const description = req.body.description;\n  const query = `INSERT INTO tickets (subject, description) VALUES ('${subject}', '${description}')`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Ticket created');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Dynamic report generation with concatenated parameters",
+  "Lab Description": "A reporting system dynamically constructs SQL queries from multiple parameters provided by the user. The lack of proper sanitization allows an attacker to inject SQL commands that modify the report results.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE reports (id INTEGER PRIMARY KEY, category TEXT, data TEXT)\");\n  db.run(\"INSERT INTO reports (category, data) VALUES ('sales', 'Q1 Report')\");\n});\n\napp.post('/generateReport', (req, res) => {\n  const category = req.body.category;\n  const filter = req.body.filter;\n  const query = `SELECT * FROM reports WHERE category = '${category}' AND data LIKE '%${filter}%'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Survey response collection vulnerability",
+  "Lab Description": "A survey system collects responses using unsanitized input, enabling attackers to inject SQL commands that can leak or modify survey data.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE survey (id INTEGER PRIMARY KEY, question TEXT, response TEXT)\");\n  db.run(\"INSERT INTO survey (question, response) VALUES ('Satisfaction', 'Good')\");\n});\n\napp.post('/submitSurvey', (req, res) => {\n  const question = req.body.question;\n  const response = req.body.response;\n  const query = `INSERT INTO survey (question, response) VALUES ('${question}', '${response}')`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Survey submitted');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Social network friend search injection",
+  "Lab Description": "A social network search feature for friends uses unsanitized input, allowing an attacker to inject SQL and retrieve the complete user list including hidden friends.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\n\nconst app = express();\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, hidden INTEGER)\");\n  db.run(\"INSERT INTO users (name, hidden) VALUES ('Bob', 0)\");\n  db.run(\"INSERT INTO users (name, hidden) VALUES ('Eve', 1)\");\n});\n\napp.get('/searchFriends', (req, res) => {\n  const keyword = req.query.keyword;\n  const query = `SELECT * FROM users WHERE name LIKE '%${keyword}%'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "E-commerce product filtering injection",
+  "Lab Description": "An e-commerce site uses unsanitized filters for product search. An attacker can inject SQL to bypass filtering and retrieve all product data.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, price REAL)\");\n  db.run(\"INSERT INTO products (name, price) VALUES ('Camera', 299)\");\n});\n\napp.get('/filterProducts', (req, res) => {\n  const filter = req.query.filter;\n  const query = `SELECT * FROM products WHERE name LIKE '%${filter}%'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Admin dashboard modification via injection",
+  "Lab Description": "An admin dashboard allows modifications to site settings. Unsanitized inputs in the SQL query enable attackers to inject SQL and alter configuration data.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE settings (id INTEGER PRIMARY KEY, key TEXT, value TEXT)\");\n  db.run(\"INSERT INTO settings (key, value) VALUES ('site_mode', 'production')\");\n});\n\napp.post('/updateSettings', (req, res) => {\n  const key = req.body.key;\n  const value = req.body.value;\n  const query = `UPDATE settings SET value = '${value}' WHERE key = '${key}'`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Settings updated');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Hotel booking reservation unsanitized room type",
+  "Lab Description": "A hotel booking system allows users to select a room type. The unsanitized room type parameter lets attackers inject SQL to book any room regardless of availability.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE bookings (id INTEGER PRIMARY KEY, room_type TEXT, booked INTEGER)\");\n  db.run(\"INSERT INTO bookings (room_type, booked) VALUES ('Deluxe', 0)\");\n});\n\napp.post('/bookRoom', (req, res) => {\n  const roomType = req.body.roomType;\n  const query = `UPDATE bookings SET booked = 1 WHERE room_type = '${roomType}'`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Room booked');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Login tracking vulnerability with unsanitized logging",
+  "Lab Description": "A system that logs every login attempt concatenates user input directly into SQL logs. Attackers can inject SQL to alter log entries and hide their activity.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE login_logs (id INTEGER PRIMARY KEY, username TEXT, status TEXT)\");\n});\n\napp.post('/loginLog', (req, res) => {\n  const username = req.body.username;\n  const status = req.body.status; // Unsanitized\n  const query = `INSERT INTO login_logs (username, status) VALUES ('${username}', '${status}')`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Log entry created');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Analytics endpoint vulnerability exposing sensitive data",
+  "Lab Description": "An analytics endpoint constructs SQL queries based on unsanitized parameters. Attackers can inject SQL to retrieve all analytic data, including confidential metrics.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE analytics (id INTEGER PRIMARY KEY, metric TEXT, value REAL)\");\n  db.run(\"INSERT INTO analytics (metric, value) VALUES ('Revenue', 5000)\");\n});\n\napp.post('/analytics', (req, res) => {\n  const metric = req.body.metric;\n  const query = `SELECT * FROM analytics WHERE metric = '${metric}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "News article management injection for unauthorized edits",
+  "Lab Description": "A news CMS allows editors to update articles. Unsanitized input in the update query enables attackers to modify articles not assigned to them.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE articles (id INTEGER PRIMARY KEY, title TEXT, content TEXT)\");\n  db.run(\"INSERT INTO articles (title, content) VALUES ('Breaking News', 'Details here')\");\n});\n\napp.post('/updateArticle', (req, res) => {\n  const title = req.body.title;\n  const content = req.body.content;\n  const query = `UPDATE articles SET content = '${content}' WHERE title = '${title}'`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Article updated');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "User comments moderation tool injection",
+  "Lab Description": "A moderation tool for user comments fails to sanitize input, enabling attackers to inject SQL and manipulate the comments displayed.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE comments (id INTEGER PRIMARY KEY, comment TEXT)\");\n  db.run(\"INSERT INTO comments (comment) VALUES ('Great article!')\");\n});\n\napp.post('/moderate', (req, res) => {\n  const comment = req.body.comment;\n  const query = `UPDATE comments SET comment = '${comment}' WHERE id = 1`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Comment updated');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Bulk user import vulnerability via CSV injection",
+  "Lab Description": "This lab simulates a bulk user import process where CSV data is processed without sanitization, allowing an attacker to inject additional SQL commands during the import process.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.text());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)\");\n});\n\napp.post('/importCSV', (req, res) => {\n  const lines = req.body.split('\\n');\n  lines.forEach(line => {\n    const [name, email] = line.split(\",\");\n    const query = `INSERT INTO users (name, email) VALUES ('${name}', '${email}')`;\n    console.log('Executing query:', query);\n    db.run(query);\n  });\n  res.send('Bulk import completed');\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Payment processing order cancellation injection",
+  "Lab Description": "A payment processing system allows cancellation of orders using an unsanitized order ID. Attackers can inject SQL to cancel orders they should not be able to cancel.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE orders (id INTEGER PRIMARY KEY, status TEXT)\");\n  db.run(\"INSERT INTO orders (status) VALUES ('active')\");\n});\n\napp.post('/cancelOrder', (req, res) => {\n  const orderId = req.body.orderId;\n  const query = `UPDATE orders SET status = 'cancelled' WHERE id = '${orderId}'`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Order cancelled');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Library database search injection",
+  "Lab Description": "A library database search system constructs SQL queries from user-provided keywords. Attackers can inject SQL to retrieve all book records, including restricted ones.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst app = express();\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, author TEXT)\");\n  db.run(\"INSERT INTO books (title, author) VALUES ('Secret Book', 'Unknown')\");\n});\n\napp.get('/searchBooks', (req, res) => {\n  const keyword = req.query.keyword;\n  const query = `SELECT * FROM books WHERE title LIKE '%${keyword}%'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Real-time chat message retrieval injection",
+  "Lab Description": "A chat application retrieves messages based on a conversation ID passed via query parameters. Unsanitized input enables attackers to inject SQL to retrieve messages from other conversations.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst app = express();\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE messages (id INTEGER PRIMARY KEY, conversationId TEXT, message TEXT)\");\n  db.run(\"INSERT INTO messages (conversationId, message) VALUES ('conv1', 'Hello')\");\n});\n\napp.get('/getMessages', (req, res) => {\n  const convId = req.query.convId;\n  const query = `SELECT * FROM messages WHERE conversationId = '${convId}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Vendor details retrieval with unsanitized input",
+  "Lab Description": "A vendor management system retrieves vendor details based on an ID provided via POST data. The unsanitized input allows attackers to inject SQL and retrieve details of all vendors.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE vendors (id INTEGER PRIMARY KEY, name TEXT, email TEXT)\");\n  db.run(\"INSERT INTO vendors (name, email) VALUES ('VendorA', 'contact@vendora.com')\");\n});\n\napp.post('/getVendor', (req, res) => {\n  const vendorId = req.body.vendorId;\n  const query = `SELECT * FROM vendors WHERE id = '${vendorId}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "IoT device configuration retrieval injection",
+  "Lab Description": "This lab simulates an IoT backend where device configuration data is retrieved based on an unsanitized device ID. An attacker can inject SQL to access configurations of other devices.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE devices (id INTEGER PRIMARY KEY, config TEXT)\");\n  db.run(\"INSERT INTO devices (config) VALUES ('Device1Config')\");\n});\n\napp.post('/getConfig', (req, res) => {\n  const deviceId = req.body.deviceId;\n  const query = `SELECT config FROM devices WHERE id = '${deviceId}'`;\n  console.log('Executing query:', query);\n  db.get(query, [], (err, row) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send(row ? row.config : 'No config found');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Academic portal grade retrieval injection",
+  "Lab Description": "This lab simulates an academic portal that retrieves student grades based on user input. Unsanitized input allows attackers to inject SQL to view grades for all students.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE grades (id INTEGER PRIMARY KEY, student TEXT, grade TEXT)\");\n  db.run(\"INSERT INTO grades (student, grade) VALUES ('John Doe', 'A')\");\n});\n\napp.post('/getGrades', (req, res) => {\n  const student = req.body.student;\n  const query = `SELECT * FROM grades WHERE student = '${student}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Event feedback injection for vote manipulation",
+  "Lab Description": "This lab simulates an event feedback system where users submit votes via a feedback form. Unsanitized input allows attackers to inject SQL to manipulate vote counts.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE feedback (id INTEGER PRIMARY KEY, event TEXT, votes INTEGER)\");\n  db.run(\"INSERT INTO feedback (event, votes) VALUES ('Conference', 10)\");\n});\n\napp.post('/submitFeedback', (req, res) => {\n  const event = req.body.event;\n  const votes = req.body.votes;\n  const query = `UPDATE feedback SET votes = votes + ${votes} WHERE event = '${event}'`;\n  console.log('Executing query:', query);\n  db.run(query, (err) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send('Feedback updated');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "SMS gateway message log retrieval injection",
+  "Lab Description": "This lab simulates an SMS gateway where message logs are stored in a database. Unsanitized input in the log retrieval query allows attackers to extract all SMS logs.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE sms_logs (id INTEGER PRIMARY KEY, sender TEXT, message TEXT)\");\n  db.run(\"INSERT INTO sms_logs (sender, message) VALUES ('12345', 'Hello World')\");\n});\n\napp.post('/getSMSLogs', (req, res) => {\n  const sender = req.body.sender;\n  const query = `SELECT * FROM sms_logs WHERE sender = '${sender}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Banking app account balance inquiry injection",
+  "Lab Description": "This lab simulates a banking application where the account balance is retrieved based on user-provided account numbers. Unsanitized input allows attackers to inject SQL and retrieve balances of any account.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Hard",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE accounts (id INTEGER PRIMARY KEY, accountNumber TEXT, balance REAL)\");\n  db.run(\"INSERT INTO accounts (accountNumber, balance) VALUES ('ACC123', 2500.00)\");\n});\n\napp.post('/getBalance', (req, res) => {\n  const account = req.body.accountNumber;\n  const query = `SELECT balance FROM accounts WHERE accountNumber = '${account}'`;\n  console.log('Executing query:', query);\n  db.get(query, [], (err, row) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.send(row ? row.balance.toString() : 'No account found');\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Retail store inventory lookup injection",
+  "Lab Description": "This lab simulates a retail store inventory lookup where product information is retrieved via a GET request. Unsanitized product input allows attackers to inject SQL and view inventory for all products.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Medium",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\n\nconst app = express();\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE inventory (id INTEGER PRIMARY KEY, product TEXT, stock INTEGER)\");\n  db.run(\"INSERT INTO inventory (product, stock) VALUES ('Printer', 10)\");\n});\n\napp.get('/inventory', (req, res) => {\n  const product = req.query.product;\n  const query = `SELECT * FROM inventory WHERE product = '${product}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
+},
+{
+  "Lab scenario": "Customer loyalty program authentication injection",
+  "Lab Description": "This lab simulates an authentication system for a customer loyalty program that uses unsanitized input in the SQL query. Attackers can inject SQL to bypass authentication and view loyalty points.",
+  "Vulnerability name": "SQL Injection",
+  "lab level": "Easy",
+  "src code": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.json());\n\nconst db = new sqlite3.Database(':memory:');\n\ndb.serialize(() => {\n  db.run(\"CREATE TABLE loyalty (id INTEGER PRIMARY KEY, username TEXT, points INTEGER)\");\n  db.run(\"INSERT INTO loyalty (username, points) VALUES ('user1', 100)\");\n});\n\napp.post('/checkLoyalty', (req, res) => {\n  const username = req.body.username;\n  const query = `SELECT * FROM loyalty WHERE username = '${username}'`;\n  console.log('Executing query:', query);\n  db.all(query, [], (err, rows) => {\n    if (err) res.status(500).send('Error occurred');\n    else res.json(rows);\n  });\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
 }
 ]

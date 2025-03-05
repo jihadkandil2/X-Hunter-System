@@ -1000,7 +1000,7 @@
       "lab level": "medium",
       "src code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\n// Vulnerable: logout does not destroy session data\napp.post('/logout', (req, res) => {\n  // Missing req.session.destroy()\n  res.send('Logged out');\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
   },
-  [
+  
       {
           "Lab scenario": "Password update without current password verification",
           "Lab Description": "The password update endpoint allows users to change their password without verifying the current password. An attacker with access to an active session can update the password without knowing the existing one.",
@@ -1106,5 +1106,5 @@
           "lab level": "hard",
           "src code": "const express = require('express');\nconst session = require('express-session');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.json());\napp.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));\n\napp.post('/login', (req, res) => {\n  req.session.user = req.body.username;\n  res.send('Login successful');\n});\n\n// Vulnerable: logout does not destroy the session\napp.post('/logout', (req, res) => {\n  res.send('Logged out');\n});\n\napp.get('/dashboard', (req, res) => {\n  if (req.session.user) res.send(`Welcome, ${req.session.user}`);\n  else res.send('Please log in');\n});\n\napp.listen(3000, () => console.log('Server running on http://localhost:3000'));"
       }
-  ]
+  
 ]

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-
+import axios from 'axios'
 const connectDB= async()=>{
-    await mongoose.connect('mongodb+srv://hana:1288567227@cluster0.iyeqh.mongodb.net/XHunters').then(res=>{
+    await mongoose.connect(process.env.DB_URI).then(res=>{
         console.log(`DB connected`);
         
     }).catch(err=>{

@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body{
+  background-color:#000820;
+  backdrop-filter: blur(3px);
+
+ margin-top:0 ;
+}
+

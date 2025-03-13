@@ -1,0 +1,108 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .register-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: url("/images/img3.jpeg") no-repeat center center/cover; /* Update path if needed */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .register-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  .register-form {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(3px);
+    border-radius: 12px;
+    padding: 50px 60px;  /* Adjusted for a balanced look */
+    max-width: 420px;   /* Reduced from 450px to make it a bit narrower */
+    width: 90%;
+    text-align: center;
+  }
+  
+  .register-form h2 {
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    text-align: left;
+    margin-bottom: 15px;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #fff;
+  }
+  
+  .form-group input::placeholder {
+    color: #ccc;
+  }
+  
+  .register-btn {
+    width: 100%;
+    background: #32cd32;
+    color: black;
+    border: none;
+    padding: 14px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    transition: background 0.3s ease;
+  }
+  
+  .register-btn:hover {
+    background: #2ab02a;
+  }
+  
+  .signup-text {
+    color: #999;
+    margin-bottom: 15px;
+  }
+  
+  .signup-text a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .signup-text a:hover {
+    color: #999;
+  }
+  
+  .links-footer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .links-footer a {
+    color: #999;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .error-message {
+    color: #fff;
+  }
+  
+  

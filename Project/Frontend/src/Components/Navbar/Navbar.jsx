@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaBars, FaTimes } from "react-icons/fa";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -12,6 +13,12 @@ function Navbar() {
 
   const toggleProfileMenu = () => {
     setIsProfileOpen(!isProfileOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    // Optionally remove any other keys as needed.
+    navigate("/");
   };
 
   return (
@@ -30,24 +37,18 @@ function Navbar() {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-4">
-          <Link to="/home" className="hover:text-gray-300">
-            Home
-          </Link>
-          <Link to="/labs/opened" className="hover:text-gray-300">
-            Opened labs
-          </Link>
-          <Link to="/dashboard" className="hover:text-gray-300">
-            Dashboard
-          </Link>
-          <Link to="/about" className="hover:text-gray-300">
-            About us
-          </Link>
-          <Link
-            to="/logout"
+          <Link to="/home" className="hover:text-gray-300">Home</Link>
+          <Link to="/labs/opened" className="hover:text-gray-300">Opened labs</Link>
+          <Link to="/dashboard" className="hover:text-gray-300">Dashboard</Link>
+          <Link to="/about" className="hover:text-gray-300">About us</Link>
+          
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
             className="bg-[#5DB717] text-white font-semibold px-2 py-1 rounded-md hover:bg-green-600 flex items-center"
           >
             Log out
-          </Link>
+          </button>
 
           {/* Profile Dropdown */}
           <div className="relative">
@@ -82,24 +83,18 @@ function Navbar() {
       {/* Mobile Menu (Dropdown) */}
       {isMenuOpen && (
         <div className="md:hidden bg-[#0F2839] p-4">
-          <Link to="/home" className="block py-2 hover:text-gray-300">
-            Home
-          </Link>
-          <Link to="/labs/opened" className="block py-2 hover:text-gray-300">
-            Opened labs
-          </Link>
-          <Link to="/dashboard" className="block py-2 hover:text-gray-300">
-            Dashboard
-          </Link>
-          <Link to="/about" className="block py-2 hover:text-gray-300">
-            About us
-          </Link>
-          <Link
-            to="/logout"
-            className="block py-2 bg-green-500 text-white font-semibold px-2 rounded-md hover:bg-green-600"
+          <Link to="/home" className="block py-2 hover:text-gray-300">Home</Link>
+          <Link to="/labs/opened" className="block py-2 hover:text-gray-300">Opened labs</Link>
+          <Link to="/dashboard" className="block py-2 hover:text-gray-300">Dashboard</Link>
+          <Link to="/about" className="block py-2 hover:text-gray-300">About us</Link>
+          
+          {/* Mobile Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="block py-2 bg-green-500 text-white font-semibold px-2 rounded-md hover:bg-green-600 w-full text-left"
           >
             Log out
-          </Link>
+          </button>
 
           {/* Profile links (Mobile) */}
           <p className="mt-3 text-gray-300">Profile</p>

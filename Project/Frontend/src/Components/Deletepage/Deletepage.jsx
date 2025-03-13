@@ -47,6 +47,7 @@ function DeleteAccount() {
         title: "Account Deleted!",
         text: "Your account has been successfully deleted.",
         confirmButtonText: "OK",
+        confirmButtonColor: "#1D3044",
       }).then((result) => {
         if (result.isConfirmed || result.isDismissed) {
           // Clear stored credentials
@@ -62,6 +63,7 @@ function DeleteAccount() {
         title: "Delete Failed",
         text: "Failed to delete account. Please try again.",
         confirmButtonText: "OK",
+        confirmButtonColor: "#1D3044",
       });
     }
   };

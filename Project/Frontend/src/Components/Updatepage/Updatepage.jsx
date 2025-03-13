@@ -16,8 +16,8 @@ function UpdateAccount() {
       try {
         const response = await axios.get("http://localhost:3000/auth/user");
         setUserData({
-          name: response.data.name,
-          email: response.data.email,
+          name: response.name,
+          email: response.email,
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -73,6 +73,7 @@ function UpdateAccount() {
         icon: "success",
         title: `Account Updated`,
         text: "Your account information has been successfully updated.",
+        confirmButtonColor: "#1D3044",
       });
     } catch (error) {
       console.error("Update error:", error);
@@ -80,6 +81,7 @@ function UpdateAccount() {
         icon: "error",
         title: "Update Failed",
         text: "An error occurred while updating. Please try again.",
+        confirmButtonColor: "#1D3044",
       });
     }
   };

@@ -1,9 +1,10 @@
 import Users from '../../../DB/model/User.model.js'
 import bcrypt from 'bcrypt'
 import cryptoJs from 'crypto-js'
+import jwt from 'jsonwebtoken'
 export const signup=async(req,res,next)=>{
 try{
-    const {name , email, password , confirmationPassword , phone} = req.body;
+    const {name , email, password , confirmationPassword } = req.body;
     if(password !== confirmationPassword){
         return res.status(400).json({message: 'password mismatch confirmation Password!!'})
     }
@@ -15,10 +16,10 @@ try{
     }
 
     //we will hash the password first 
-    const hashPassword=bcrypt.hashSync(password , 8)
-    const encryptphone=cryptoJs.AES.encrypt(phone , 'xHunters').toString();
+    const hashPassword=bcrypt.hashSync(password , parseInt(process.env.SALT))
+    // const encryptphone=cryptoJs.AES.encrypt(phone , 'xHunters').toString();
     // now we wil ad user to the database
-    const user = await Users.create({name , email , password:hashPassword , phone:encryptphone})
+    const user = await Users.create({name , email , password:hashPassword})
 
     return res.status(201).json({
         message:'Done',
@@ -46,10 +47,10 @@ export const login=async(req,res,next)=>{
         if(!match){
             return res.status(404).json({message: 'In-valid login data'})
         }
-        user.phone=cryptoJs.AES.decrypt(user.phone , 'xHunters').toString(cryptoJs.enc.Utf8)
+       const token =jwt.sign({id:user._id , isloggedIn:true} ,process.env.TOKEN_SIGNATURE ,{expiresIn:'1h'})
         return res.status(200).json({
             message:'Done',
-            user
+            token
         })
         
     }catch(error){

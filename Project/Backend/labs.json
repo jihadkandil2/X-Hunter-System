@@ -1,0 +1,17 @@
+{
+  "name": "HTTP request",
+  "labs": [
+    {
+      "labScenario": "Description for Union-based SQLi",
+      "labDescription": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.To solve the lab, submit a comment that calls the alert function when the blog post is viewed.",
+      "vulnerabilityName": "SQL Injection",
+      "labLevel": "Beginner"
+    },
+    {
+      "labScenario": "Description for Union-based SQLi",
+      "labDescription": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.To solve the lab, submit a comment that calls the alert function when the blog post is viewed.",
+      "vulnerabilityName": "SQL Injection",
+      "labLevel": "Intermediate"
+    }
+  ]
+}

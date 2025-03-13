@@ -10,14 +10,14 @@ function Register() {
   const navigate = useNavigate();
 
   const initialValues = {
-    username: "",
+    name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    confirmationPassword: "",
   };
 
   const validationSchema = Yup.object({
-    username: Yup.string()
+    name: Yup.string()
       .matches(/^[A-Za-z].*/, "Username must start with a letter")
       .required("Username is required"),
     email: Yup.string()
@@ -26,31 +26,33 @@ function Register() {
     password: Yup.string()
       .min(6, "Password must be at least 6 characters")
       .required("Password is required"),
-    confirmPassword: Yup.string()
+      confirmationPassword: Yup.string()
       .oneOf([Yup.ref("password"), null], "Passwords must match")
       .required("Confirm Password is required"),
   });
 
   const onSubmit = async (values) => {
     try {
-      const { username, email, password } = values;
-      const response = await axios.post("http://localhost:5173/api/user/register", {
-        username,
+      const { name, email, password,confirmationPassword } = values;
+      const response = await axios.post("http://localhost:3000/auth/signup", {
+        name,
         email,
         password,
+        confirmationPassword
       });
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("isAdmin", response.data.isAdmin);
+      localStorage.setItem("token", response.token);
+       /*  localStorage.setItem("isAdmin", response.data.isAdmin);
       
       if (response.data.isAdmin) {
         navigate("/admin");
       } else {
         navigate("/home");
-      }
-      
+      } */
+
+        navigate("/home");
       swal.fire({
         icon: "success",
-        title: `Welcome, ${username.charAt(0).toUpperCase() + username.slice(1)}!`,
+        title: `Welcome, ${name.charAt(0).toUpperCase() + name.slice(1)}!`,
         text: "You have successfully registered.",
       });
     } catch (error) {
@@ -73,12 +75,12 @@ function Register() {
             <div className="form-group">
               <Field
                 type="text"
-                name="username"
+                name="name"
                 placeholder="Username"
                 className="register-input"
                 required
               />
-              <ErrorMessage name="username" component="div" className="error-message" />
+              <ErrorMessage name="name" component="div" className="error-message" />
             </div>
             <div className="form-group">
               <Field
@@ -103,12 +105,12 @@ function Register() {
             <div className="form-group">
               <Field
                 type="password"
-                name="confirmPassword"
+                name="confirmationPassword"
                 placeholder="Confirm Password"
                 className="register-input"
                 required
               />
-              <ErrorMessage name="confirmPassword" component="div" className="error-message" />
+              <ErrorMessage name="confirmationPassword" component="div" className="error-message" />
             </div>
             <button type="submit" className="register-btn">
               Register

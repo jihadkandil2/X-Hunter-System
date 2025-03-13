@@ -23,8 +23,9 @@ function Login() {
 
   const onSubmit = async (values) => {
     try {
-      const response = await axios.post("http://localhost:5173/api/user/login", values);
-      localStorage.setItem("token", response.data.token);
+      const response = await axios.post("http://localhost:3000/auth/login", values);
+      console.log(response);
+      localStorage.setItem("token", response.token);
       navigate("/home");
       swal.fire({
         icon: "success",

@@ -4,19 +4,18 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import swal from "sweetalert2";
-import "../Register/Register.css"; // Reuse the same design
-
+import "../Register/Register.css"; // تأكد من أن المسار صحيح
 function UpdateAccount() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({ name: "", email: "" });
 
-  // Fetch current user data (adjust the endpoint as needed)
+  // جلب بيانات المستخدم الحالية
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await axios.get("http://localhost:3000/auth/user");
         setUserData({
-          name: response.name,
+          name: response.name, // تأكد من أن البيانات تأتي من response.data
           email: response.email,
         });
       } catch (error) {
@@ -98,7 +97,7 @@ function UpdateAccount() {
           onSubmit={onSubmit}
         >
           <Form>
-            {/* Name Field */}
+            {/* حقل الاسم */}
             <div className="form-group">
               <Field
                 type="text"
@@ -107,10 +106,10 @@ function UpdateAccount() {
                 className="register-input"
                 required
               />
-              <ErrorMessage name="name" component="div" className="error-message" />
+              <ErrorMessage name="name" component="div" className=" error-message " />
             </div>
 
-            {/* Email Field */}
+            {/* حقل البريد الإلكتروني */}
             <div className="form-group">
               <Field
                 type="email"
@@ -122,7 +121,7 @@ function UpdateAccount() {
               <ErrorMessage name="email" component="div" className="error-message" />
             </div>
 
-            {/* Old Password Field */}
+            {/* حقل كلمة المرور القديمة */}
             <div className="form-group">
               <Field
                 type="password"
@@ -134,7 +133,7 @@ function UpdateAccount() {
               <ErrorMessage name="oldpassword" component="div" className="error-message" />
             </div>
 
-            {/* New Password Field */}
+            {/* حقل كلمة المرور الجديدة */}
             <div className="form-group">
               <Field
                 type="password"
@@ -146,7 +145,7 @@ function UpdateAccount() {
               <ErrorMessage name="newpassword" component="div" className="error-message" />
             </div>
 
-            {/* Confirm New Password Field */}
+            {/* حقل تأكيد كلمة المرور الجديدة */}
             <div className="form-group">
               <Field
                 type="password"

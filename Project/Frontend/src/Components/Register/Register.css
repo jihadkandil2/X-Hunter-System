@@ -1,3 +1,4 @@
+
 * {
     margin: 0;
     padding: 0;
@@ -82,7 +83,7 @@
   
   .signup-text a {
     color: white;
-    text-decoration: none;
+    text-decoration: underline;
     font-weight: bold;
   }
   
@@ -102,7 +103,7 @@
     font-size: 0.9rem;
   }
   .error-message {
-    color: #fff;
+    color:red;
   }
   
   

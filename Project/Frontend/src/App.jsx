@@ -8,6 +8,7 @@ import Register from "./Components/Register/Register";
 import FullLabPage from "./Components/FullLabPage/Fulllabpage";
 import UpdateAccount from "./Components/Updatepage/Updatepage";
 import DeleteAccount from "./Components/Deletepage/Deletepage";
+import AboutUs from "./Components/Aboutus/Aboutus";
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path="/fullLab" element={<FullLabPage />} />
         <Route path="/update-account" element={<UpdateAccount />} />
         <Route path="/delete-account" element={<DeleteAccount />} />
+        <Route path="/about" element={<AboutUs />} />
       </Routes>
     </>
   );

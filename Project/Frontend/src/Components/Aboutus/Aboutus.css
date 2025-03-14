@@ -1,0 +1,100 @@
+/* السماح بالتمرير على مستوى الصفحة */
+html, body {
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* ضبط الحاوية الرئيسية */
+.aboutus-container {
+    min-height: 100vh; /* السماح بالتمدد عند الحاجة */
+    overflow-y: auto; /* تمكين التمرير */
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+/* ضبط الهيدر */
+.aboutus-header {
+    position: relative;
+    width: 100%;
+    height: 90vh; /* تصغير الارتفاع قليلاً لضمان ظهور المحتوى السفلي */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* إضافة طبقة شفافة فوق الصورة */
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+/* ضبط صورة الهيدر */
+.header-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* ضمان امتداد الصورة بالكامل */
+    z-index: -1;
+}
+
+/* تحسين تنسيق النص في الهيدر */
+.header-content {
+    position: relative;
+    text-align: center;
+    z-index: 2;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.header-content .highlight {
+    color: #00ff00;
+}
+
+/* تحسين تنسيق المحتوى */
+.aboutus-content {
+    padding: 40px 10%;
+    display: flex;
+    flex-direction: column; /* العناصر تحت بعضها */
+    gap: 80px;
+}
+
+/* ضبط كل جزء في رو منفصل */
+.content-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* ضبط المربعات بحيث يكون كل واحد في رو لوحده */
+.content-box {
+    background: rgba(1, 1, 44, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    width: 35%;
+    text-align: center;
+}
+
+/* جعل المحتوى يمين ويسار بالتناوب */
+.left {
+    align-self: flex-start;
+}
+
+.right {
+    align-self: flex-end;
+}
+
+/* تحسين تنسيق العناوين */
+.content-box h2 {
+    color: #00ff00;
+    margin-bottom: 10px;
+}
+
+.content-box .highlight {
+    color: #00ff00;
+}

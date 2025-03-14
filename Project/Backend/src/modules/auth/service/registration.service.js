@@ -2,9 +2,10 @@ import Users from '../../../DB/model/User.model.js'
 import bcrypt from 'bcrypt'
 import cryptoJs from 'crypto-js'
 import jwt from 'jsonwebtoken'
+import { userRoles } from '../../../middleWare/auth.middleware.js'
 export const signup=async(req,res,next)=>{
 try{
-    const {name , email, password , confirmationPassword } = req.body;
+    const {name , email, password , confirmationPassword , role } = req.body;
     if(password !== confirmationPassword){
         return res.status(400).json({message: 'password mismatch confirmation Password!!'})
     }
@@ -19,7 +20,7 @@ try{
     const hashPassword=bcrypt.hashSync(password , parseInt(process.env.SALT))
     // const encryptphone=cryptoJs.AES.encrypt(phone , 'xHunters').toString();
     // now we wil ad user to the database
-    const user = await Users.create({name , email , password:hashPassword})
+    const user = await Users.create({name , email , password:hashPassword , role})
 
     return res.status(201).json({
         message:'Done',
@@ -47,7 +48,9 @@ export const login=async(req,res,next)=>{
         if(!match){
             return res.status(404).json({message: 'In-valid login data'})
         }
-       const token =jwt.sign({id:user._id , isloggedIn:true} ,process.env.TOKEN_SIGNATURE ,{expiresIn:'1h'})
+       const token =jwt.sign({id:user._id , isloggedIn:true} ,
+        user.role==userRoles.admin?process.env.TOKEN_SIGNATURE_ADMIN :process.env.TOKEN_SIGNATURE ,
+        {expiresIn:"1h"})
         return res.status(200).json({
             message:'Done',
             token

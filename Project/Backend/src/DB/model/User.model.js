@@ -1,4 +1,5 @@
 import mongoose, {Schema , model} from 'mongoose';
+import { userRoles } from '../../middleWare/auth.middleware.js';
 
 
 const userSchema = new Schema(
@@ -28,11 +29,15 @@ const userSchema = new Schema(
         default:'male'
       },
       DOB:Date,
-      phone:String,
       image:String,
       confirmEmail:{
         type:Boolean,
         default:false
+      },
+      role:{
+        type: String,
+        enum:Object.values(userRoles),
+        default:userRoles.user
       }
     },
     { timestamps: true } 

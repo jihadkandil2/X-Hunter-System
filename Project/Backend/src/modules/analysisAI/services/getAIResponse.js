@@ -20,3 +20,23 @@ export const analyze=async(req,res,next)=>{
 
     res.json(aiResult);
 }
+
+
+async function getAIResponse2(text) {
+    try{
+        const response= await axios.post('http://127.0.0.1:5000/generate',{text:text});
+        return response.data
+    }catch (error){
+        console.error('Error calling AI API:' , error);
+        return {error:"AI service unavailable"};
+    }
+}
+
+export const generate=async(req,res,next)=>{
+    const {text}=req.body;
+    const aiResult= await getAIResponse(text);
+    const analysis= new Analysis({text , result:aiResult});
+    await analysis.save();
+
+    res.json(aiResult);
+}

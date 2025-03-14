@@ -8,7 +8,7 @@ dotenv.config();
 const connectDB = async () => {
     try {
         //for depugging:
-        console.log("🔍 MONGODB_URI inside connectDB:", process.env.MONGODB_URI);
+        // console.log("🔍 MONGODB_URI inside connectDB:", process.env.MONGODB_URI);
         const uri = process.env.MONGODB_URI;
 
       if (!uri) {

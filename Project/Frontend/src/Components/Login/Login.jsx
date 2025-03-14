@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -8,6 +8,7 @@ import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const initialValues = {
     email: "",
@@ -22,8 +23,10 @@ function Login() {
   });
 
   const onSubmit = async (values) => {
+    setIsLoading(true);
     try {
-      const response = await axios.post("http://localhost:5173/api/user/login", values);
+      const response = await axios.post("http://localhost:3000/auth/login", values);
+      console.log(response);
       localStorage.setItem("token", response.data.token);
       navigate("/home");
       swal.fire({
@@ -33,6 +36,7 @@ function Login() {
           .charAt(0)
           .toUpperCase() + values.email.split("@")[0].slice(1)}!`,
         text: "You have successfully logged in.",
+        confirmButtonColor: "#1D3044",
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -40,7 +44,10 @@ function Login() {
         icon: "error",
         title: "Login Failed",
         text: "Invalid email or password",
+        confirmButtonColor: "#1D3044",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -93,8 +100,8 @@ function Login() {
               </div>
             </div>
 
-            <button className="login-btn" type="submit">
-              Login
+            <button className="login-btn" type="submit" disabled={isLoading}>
+              {isLoading ? "Loading..." : "Login"}
             </button>
           </Form>
         </Formik>
@@ -105,7 +112,9 @@ function Login() {
 
         <p className="signup-text">
           Don’t have an account?{" "}
-          <Link to="/register">Signup</Link>
+          <Link to="/register" className="text-decoration-none text-warning">
+            Signup
+          </Link>
         </p>
 
         <div className="links-footer">

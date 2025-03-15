@@ -5,18 +5,20 @@ import * as Yup from "yup";
 import axios from "axios";
 import swal from "sweetalert2";
 import "../Register/Register.css";
+
 function UpdateAccount() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({ name: "", email: "" });
   const userId = localStorage.getItem("userId");
+
   // جلب بيانات المستخدم الحالية
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/auth/user");
+        const response = await axios.get(`http://localhost:3000/user/profile/${userId}`);
         setUserData({
-          name: response.name, 
-          email: response.email,
+          name: response.data.name, 
+          email: response.data.email,
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -24,7 +26,7 @@ function UpdateAccount() {
     };
 
     fetchUserData();
-  }, []);
+  }, [userId]);
 
   const initialValues = {
     name: userData.name,
@@ -55,7 +57,7 @@ function UpdateAccount() {
       const { name, email, oldpassword, newpassword, confirmpassword } = values;
       const token = localStorage.getItem("token");
       await axios.put(
-        "http://localhost:3000/auth/update",
+        `http://localhost:3000/user/profile/update/${userId}`,
         {
           name,
           email,
@@ -106,7 +108,7 @@ function UpdateAccount() {
                 className="register-input"
                 required
               />
-              <ErrorMessage name="name" component="div" className=" error-message " />
+              <ErrorMessage name="name" component="div" className="error-message" />
             </div>
 
             {/* حقل البريد الإلكتروني */}

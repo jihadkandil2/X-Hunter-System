@@ -55,6 +55,7 @@ export const login=async(req,res,next)=>{
         {expiresIn:"1h"})
         return res.status(200).json({
             message:'Done',
+            id:user._id,
             token
         })
         

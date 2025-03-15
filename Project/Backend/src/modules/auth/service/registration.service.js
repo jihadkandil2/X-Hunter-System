@@ -41,13 +41,15 @@ export const login=async(req,res,next)=>{
         // check if user exist
         const user=await Users.findOne({email})
         if(!user){
-            return res.status(404).json({message: 'In-valid login data'})
+            return res.status(404).json({message: 'user not found'})
         }
         //we will hash the password of this user and compare the similarity
         const match=bcrypt.compareSync(password , user.password)
         if(!match){
             return res.status(404).json({message: 'In-valid login data'})
         }
+        
+        
        const token =jwt.sign({id:user._id , isloggedIn:true} ,
         user.role==userRoles.admin?process.env.TOKEN_SIGNATURE_ADMIN :process.env.TOKEN_SIGNATURE ,
         {expiresIn:"1h"})

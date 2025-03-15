@@ -19,20 +19,18 @@ function DeleteAccount() {
 
   const initialValues = {
     oldPassword: "",
-    confirmPassword: "",
+   
   };
 
   const validationSchema = Yup.object({
     oldPassword: Yup.string().required("Old Password is required"),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref("oldPassword"), null], "Passwords must match")
-      .required("Confirm Password is required"),
+
   });
 
   const onSubmit = async (values) => {
     try {
-      // Using DELETE with a request body (supported by axios)
-      const response = await axios.delete(`http://localhost:3000/api/user/${userId}`, {
+ 
+      const response = await axios.delete(`http://localhost:3000/user/profile/delete/${userId}`, {
         data: {
           oldPassword: values.oldPassword,
         },
@@ -84,22 +82,13 @@ function DeleteAccount() {
               <Field
                 type="password"
                 name="oldPassword"
-                placeholder="Old Password"
+                placeholder="Password"
                 className="register-input"
                 required
               />
               <ErrorMessage name="oldPassword" component="div" className="error-message" />
             </div>
-            <div className="form-group">
-              <Field
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Old Password"
-                className="register-input"
-                required
-              />
-              <ErrorMessage name="confirmPassword" component="div" className="error-message" />
-            </div>
+
             <button type="submit" className="register-btn">
               Delete 
             </button>

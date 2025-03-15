@@ -4,18 +4,18 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import swal from "sweetalert2";
-import "../Register/Register.css"; // تأكد من أن المسار صحيح
+import "../Register/Register.css";
 function UpdateAccount() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({ name: "", email: "" });
-
+  const userId = localStorage.getItem("userId");
   // جلب بيانات المستخدم الحالية
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await axios.get("http://localhost:3000/auth/user");
         setUserData({
-          name: response.name, // تأكد من أن البيانات تأتي من response.data
+          name: response.name, 
           email: response.email,
         });
       } catch (error) {

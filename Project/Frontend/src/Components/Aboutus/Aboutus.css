@@ -71,7 +71,6 @@ html, body {
     width: 100%;
 }
 
-/* ضبط المربعات بحيث يكون كل واحد في رو لوحده */
 .content-box {
     background: rgba(1, 1, 44, 0.1);
     padding: 20px;

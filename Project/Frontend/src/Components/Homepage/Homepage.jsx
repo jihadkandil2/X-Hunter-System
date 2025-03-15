@@ -13,8 +13,10 @@ function Homepage() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3000/vulns")
+      .get("http://localhost:3000/labs/all")
       .then((res) => {
+        console.log(res);
+        
         if (res.data.vulns && res.data.vulns.length > 0) {
           setVulns(res.data.vulns);
           setSelectedVuln(res.data.vulns[0]);
@@ -56,7 +58,8 @@ function Homepage() {
                     <Labitem
                       key={lab._id}
                       labLevel={lab.labLevel}
-                      scenario={lab.labScenario}
+                      labScenario={lab.labScenario}
+                      labDescription={lab.labDescription}
                       solved={lab.solved || false}
                     />
                   ))

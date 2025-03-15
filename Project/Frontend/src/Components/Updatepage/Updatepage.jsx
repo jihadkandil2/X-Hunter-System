@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -9,15 +9,21 @@ import "../Register/Register.css";
 function UpdateAccount() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({ name: "", email: "" });
-  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
-  // جلب بيانات المستخدم الحالية
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/user/profile/${userId}`);
+        const response = await axios.get(
+          "http://localhost:3000/user/profile", 
+          {
+            headers: { authorization: `Bearer ${token}` }, 
+          }
+        );
+        console.log(response);
+        
         setUserData({
-          name: response.data.name, 
+          name: response.data.name,
           email: response.data.email,
         });
       } catch (error) {
@@ -26,7 +32,7 @@ function UpdateAccount() {
     };
 
     fetchUserData();
-  }, [userId]);
+  }, [token]);
 
   const initialValues = {
     name: userData.name,
@@ -54,8 +60,9 @@ function UpdateAccount() {
 
   const onSubmit = async (values) => {
     try {
-      const { name, email, oldpassword, newpassword, confirmpassword } = values;
       const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+      const { name, email, oldpassword, newpassword, confirmpassword } = values;
       await axios.put(
         `http://localhost:3000/user/profile/update/${userId}`,
         {
@@ -99,7 +106,6 @@ function UpdateAccount() {
           onSubmit={onSubmit}
         >
           <Form>
-            {/* حقل الاسم */}
             <div className="form-group">
               <Field
                 type="text"
@@ -111,7 +117,6 @@ function UpdateAccount() {
               <ErrorMessage name="name" component="div" className="error-message" />
             </div>
 
-            {/* حقل البريد الإلكتروني */}
             <div className="form-group">
               <Field
                 type="email"
@@ -123,7 +128,6 @@ function UpdateAccount() {
               <ErrorMessage name="email" component="div" className="error-message" />
             </div>
 
-            {/* حقل كلمة المرور القديمة */}
             <div className="form-group">
               <Field
                 type="password"
@@ -135,7 +139,6 @@ function UpdateAccount() {
               <ErrorMessage name="oldpassword" component="div" className="error-message" />
             </div>
 
-            {/* حقل كلمة المرور الجديدة */}
             <div className="form-group">
               <Field
                 type="password"
@@ -147,7 +150,6 @@ function UpdateAccount() {
               <ErrorMessage name="newpassword" component="div" className="error-message" />
             </div>
 
-            {/* حقل تأكيد كلمة المرور الجديدة */}
             <div className="form-group">
               <Field
                 type="password"

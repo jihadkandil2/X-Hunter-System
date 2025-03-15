@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -16,7 +16,8 @@ function DeleteAccount() {
   // Retrieve token and userId from localStorage (adjust keys as needed)
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
-
+  console.log(userId);
+  
   const initialValues = {
     oldPassword: "",
    

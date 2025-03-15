@@ -27,7 +27,10 @@ function Login() {
     try {
       const response = await axios.post("http://localhost:3000/auth/login", values);
       console.log(response);
+     
+      
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userId", response.data.id);
       navigate("/home");
       swal.fire({
         icon: "success",

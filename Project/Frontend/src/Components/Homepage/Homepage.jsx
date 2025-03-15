@@ -15,8 +15,8 @@ function Homepage() {
     axios
       .get("http://localhost:3000/vulns")
       .then((res) => {
-        setVulns(res.data.vulns);
         if (res.data.vulns && res.data.vulns.length > 0) {
+          setVulns(res.data.vulns);
           setSelectedVuln(res.data.vulns[0]);
         }
       })
@@ -25,7 +25,7 @@ function Homepage() {
 
   const handleVulnClick = (vuln) => {
     setSelectedVuln(vuln);
-    const el = document.getElementById(`vuln-${vuln.name}`);
+    const el = document.getElementById(`vuln-${vuln._id}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -49,17 +49,20 @@ function Homepage() {
         <div className="flex-1 p-4 overflow-y-auto bg-[#000820]">
           {vulns.length > 0 ? (
             vulns.map((vuln) => (
-              <div key={vuln.name} id={`vuln-${vuln.name}`} className="mb-8">
+              <div key={vuln._id} id={`vuln-${vuln._id}`} className="mb-8">
                 <h3 className="text-white text-2xl mb-4">{vuln.name}</h3>
-                {vuln.labs &&
+                {vuln.labs && vuln.labs.length > 0 ? (
                   vuln.labs.map((lab, idx) => (
                     <Labitem
-                      key={idx}
+                      key={lab._id}
                       labLevel={lab.labLevel}
-                      scenario={lab.scenario}
-                      solved={lab.solved}
+                      scenario={lab.labScenario}
+                      solved={lab.solved || false}
                     />
-                  ))}
+                  ))
+                ) : (
+                  <p className="text-white">No labs available for this vulnerability.</p>
+                )}
               </div>
             ))
           ) : (

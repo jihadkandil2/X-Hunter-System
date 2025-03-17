@@ -10,6 +10,7 @@ import UpdateAccount from "./Components/Updatepage/Updatepage";
 import DeleteAccount from "./Components/Deletepage/Deletepage";
 import AboutUs from "./Components/Aboutus/Aboutus";
 import AdminChat from "./Components/Adminchat/Adminchat";
+import ManageLabs from "./Components/Mangelabs/Managelabs";
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
         <Route path="/delete-account" element={<DeleteAccount />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/generate-labs" element={<AdminChat />} />
+        <Route path="/manage-labs" element={<ManageLabs />} />
       </Routes>
     </>
   );

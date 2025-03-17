@@ -9,20 +9,26 @@ function Homepage() {
   const [selectedVuln, setSelectedVuln] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3000/labs/all")
-      .then((res) => {
-        console.log(res);
-        
-        if (res.data.vulns && res.data.vulns.length > 0) {
-          setVulns(res.data.vulns);
-          setSelectedVuln(res.data.vulns[0]);
-        }
-      })
-      .catch((err) => console.error("Error fetching vulnerabilities:", err));
+    const storedVulns = localStorage.getItem("vulns");
+    if (storedVulns) {
+      setVulns(JSON.parse(storedVulns));
+      setSelectedVuln(JSON.parse(storedVulns)[0]);
+    } else {
+      axios
+        .get("http://localhost:3000/labs/all")
+        .then((res) => {
+          console.log(res);
+          if (res.data.vulns && res.data.vulns.length > 0) {
+            setVulns(res.data.vulns);
+            setSelectedVuln(res.data.vulns[0]);
+            localStorage.setItem("vulns", JSON.stringify(res.data.vulns));
+          }
+        })
+        .catch((err) => console.error("Error fetching vulnerabilities:", err));
+    }
   }, []);
 
   const handleVulnClick = (vuln) => {
@@ -36,9 +42,13 @@ function Homepage() {
   return (
     <div className="bg-[#000820] min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 relative"> {/* Ensuring dropdowns are visible */}
         {/* Sidebar */}
-        <div className={`${isSidebarOpen ? "w-1/5" : "w-16"} bg-[#0b132b]`}>
+        <div
+          className={`${
+            isSidebarOpen ? "w-1/5" : "w-16"
+          } bg-[#0b132b] sticky top-0 h-screen overflow-y-auto transition-all duration-300`} 
+        >
           <Sidebar
             isOpen={isSidebarOpen}
             toggleSidebar={toggleSidebar}
@@ -48,11 +58,19 @@ function Homepage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 overflow-y-auto bg-[#000820]">
+        <div className="flex-1 p-4 overflow-visible bg-[#000820]">
           {vulns.length > 0 ? (
             vulns.map((vuln) => (
-              <div key={vuln._id} id={`vuln-${vuln._id}`} className="mb-8">
-                <h3 className="text-white text-2xl mb-4">{vuln.name}</h3>
+              <div key={vuln._id} id={`vuln-${vuln._id}`} className="mb-8 relative">
+                <h3
+                  className={`text-white text-2xl mb-4 ${
+                    selectedVuln && selectedVuln._id === vuln._id
+                      ? "sticky top-0 bg-[#000820] py-4 z-20"
+                      : ""
+                  }`}
+                >
+                  {vuln.name}
+                </h3>
                 {vuln.labs && vuln.labs.length > 0 ? (
                   vuln.labs.map((lab, idx) => (
                     <Labitem

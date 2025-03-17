@@ -1,0 +1,138 @@
+/* ======== الأساسيات ======== */
+.navbar {
+    background-color: #051527;
+    color: white;
+    padding: 10px 20px;
+    position: relative;
+    z-index: 50; /* تأكد أن النافبار فوق كل شيء */
+  }
+  
+  .navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* ======== روابط سطح المكتب ======== */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .nav-links a {
+    color: white;
+    text-decoration: none;
+    transition: 0.3s;
+  }
+  
+  .nav-links a:hover {
+    color: gray;
+  }
+  
+  /* زر تسجيل الخروج */
+  .logout-btn {
+    background-color: #5db717;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: 0.3s;
+  }
+  
+  .logout-btn:hover {
+    background-color: #4aa314;
+  }
+  
+  /* ======== القائمة المنسدلة ======== */
+  .profile-menu {
+    position: relative;
+  }
+  
+  .profile-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .icon {
+    color: gray;
+    transition: 0.3s;
+  }
+  
+  .icon:hover {
+    color: white;
+  }
+  
+  .dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    width: 180px;
+    background-color: white;
+    color: black;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+  }
+  
+  .dropdown-menu a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: black;
+    transition: 0.3s;
+  }
+  
+  .dropdown-menu a:hover {
+    background-color: gray;
+    color: white;
+  }
+  
+  /* ======== قائمة الموبايل ======== */
+  .mobile-menu {
+    display: flex;
+  }
+  
+  .menu-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+  }
+  
+  .mobile-dropdown {
+    background-color: #0f2839;
+    padding: 15px;
+  }
+  
+  .mobile-dropdown a {
+    display: block;
+    padding: 10px;
+    color: white;
+    text-decoration: none;
+  }
+  
+  .mobile-dropdown a:hover {
+    color: gray;
+  }
+  
+  .mobile-logout {
+    background-color: #5db717;
+    padding: 5px 10px;
+    border-radius: 5px;
+    width: 100%;
+  }
+  
+  .profile-title {
+    color: gray;
+    margin-top: 10px;
+  }
+  
+  /* ======== إصلاح مشكلة الاختفاء ======== */
+  .navbar, .profile-menu {
+    overflow: visible !important;
+  }
+  
+  .dropdown-menu {
+    transform: translateY(0);
+  }
+  

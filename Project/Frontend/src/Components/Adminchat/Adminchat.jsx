@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import { FaPaperPlane, FaSave } from "react-icons/fa";
-import axios from "axios"; // استيراد axios
+import axios from "axios";
 import Navbar from "../Navbar/Navbar";
 
 function AdminChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
-  const [labs, setLabs] = useState([]); // لتخزين اللابات التي يعيدها الباك إند
-  const [selectedLabs, setSelectedLabs] = useState([]); // لتخزين اللابات المحددة للإضافة
-  const [response, setResponse] = useState(null);
+  const [labs, setLabs] = useState([]); // Store labs from backend
+  const [selectedLabs, setSelectedLabs] = useState([]); // Store selected labs for adding
 
-  // إرسال اسم الثغرة إلى الباك إند باستخدام axios
+  // ✅ Send vulnerability name to backend
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -19,40 +18,52 @@ function AdminChat() {
     setInput("");
 
     try {
-      const res = await axios.post("YOUR_API_ENDPOINT_SEARCH", {
-        prompt: input,
+      const res = await axios.get("http://localhost:3000/labs/getByVulnName", {
+        params: { vuln: input, limit: 5 },
       });
-      const data = res.data;
-      setMessages((prev) => [...prev, { type: "bot", text: "Here are the labs found:" }]);
-      setLabs(data); // تخزين اللابات التي يعيدها الباك إند
+      
+      
+
+      const data = res.data.extractedLabs;
+      console.log(data);
+      
+      if (data.length === 0) {
+        setMessages((prev) => [...prev, { type: "bot", text: "No labs found for this vulnerability." }]);
+      } else {
+        setMessages((prev) => [...prev, { type: "bot", text: "Here are the labs found:" }]);
+        setLabs(data);
+      }
     } catch (error) {
-      setMessages((prev) => [...prev, { type: "bot", text: `{ "error": "Failed to fetch response." }` }]);
+      console.error("Error fetching labs:", error);
+      setMessages((prev) => [...prev, { type: "bot", text: `{ "error": "Failed to fetch labs." }` }]);
     }
   };
 
-  // تحديد أو إلغاء تحديد لاب
-  const handleLabSelection = (labId) => {
-    if (selectedLabs.includes(labId)) {
-      setSelectedLabs(selectedLabs.filter((id) => id !== labId));
+  // ✅ Handle lab selection
+  const handleLabSelection = (lab) => {
+    const isSelected = selectedLabs.some((selected) => selected.labScenario === lab.labScenario);
+    if (isSelected) {
+      setSelectedLabs(selectedLabs.filter((selected) => selected.labScenario !== lab.labScenario));
     } else {
-      setSelectedLabs([...selectedLabs, labId]);
+      setSelectedLabs([...selectedLabs, lab]);
     }
   };
 
-  // إضافة اللابات المحددة باستخدام axios
+  // ✅ Add selected labs
   const addLabs = async () => {
     if (selectedLabs.length === 0) return;
 
     try {
-      const res = await axios.post("YOUR_API_ENDPOINT_ADD", {
+      const res = await axios.post("http://localhost:5000/api/add-labs", {
         labs: selectedLabs,
       });
-      const data = res.data;
-      if (data.success) {
+
+      if (res.data.success) {
         setMessages((prev) => [...prev, { type: "bot", text: "Labs added successfully!" }]);
-        setSelectedLabs([]); // إفراغ القائمة بعد الإضافة
+        setSelectedLabs([]);
       }
     } catch (error) {
+      console.error("Error adding labs:", error);
       setMessages((prev) => [...prev, { type: "bot", text: `{ "error": "Failed to add labs." }` }]);
     }
   };
@@ -92,14 +103,19 @@ function AdminChat() {
               <div className="mt-4">
                 <p className="text-sm font-semibold">Select labs to add:</p>
                 {labs.map((lab) => (
-                  <div key={lab.id} className="flex items-center mt-2">
+                  <div key={lab._id} className=" items-center mt-2">
                     <input
                       type="checkbox"
-                      checked={selectedLabs.includes(lab.id)}
-                      onChange={() => handleLabSelection(lab.id)}
+                      checked={selectedLabs.includes(lab._id)}
+                      onChange={() => handleLabSelection(lab._id)}
                       className="mr-2"
                     />
-                    <span>{lab.name}</span>
+                    <h5>{`{`}</h5>
+                    <h5>{`"vulnerability Name": "${lab.vulnerabilityName}"`}</h5>
+                    <h5>{`"lab Scenario": "${lab.labScenario}"`}</h5>
+                    <h5>{`"labDescription": "${lab.labDescription}"`}</h5>
+                    <h5>{`"labLevel": "${lab.labLevel}"`}</h5>
+                    <h5>{`}`}</h5>
                   </div>
                 ))}
               </div>

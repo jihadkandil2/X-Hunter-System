@@ -11,6 +11,7 @@ import DeleteAccount from "./Components/Deletepage/Deletepage";
 import AboutUs from "./Components/Aboutus/Aboutus";
 import AdminChat from "./Components/Adminchat/Adminchat";
 import ManageLabs from "./Components/Mangelabs/Managelabs";
+import EditLabs from "./Components/Editlabs/Editlabs";
 
 
 function App() {
@@ -30,6 +31,9 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/generate-labs" element={<AdminChat />} />
         <Route path="/manage-labs" element={<ManageLabs />} />
+        <Route path="/edit-lab/:id" element={<EditLabs />} />
+  
+
       </Routes>
     </>
   );

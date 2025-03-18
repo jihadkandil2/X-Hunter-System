@@ -1,43 +1,30 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // ⬅️ استيراد useNavigate
 import axios from "axios";
 import Navbar from "../Navbar/Navbar";
 import "./Managelabs.css";
 
 const ManageLabs = () => {
   const [labs, setLabs] = useState([]);
-    const [vulns, setVulns] = useState([]);
-
-  // useEffect(() => {
-  //   // axios.get("http://localhost:3000/labs/all")
-  //   //   .then(response => setLabs(response.data))
-  //   //   .catch(error => console.error("Error fetching labs:", error));
-  //   axios
-  //       .get("http://localhost:3000/labs/all")
-  //       .then((res) => {
-  //         console.log(res);
-  //         if (res.data.vulns && res.data.vulns.length > 0) {
-  //           localStorage.setItem("vulns", JSON.stringify(res.data.vulns));
-  //         }
-  //       })
-  //       .catch((err) => console.error("Error fetching vulnerabilities:", err));
-  // }, []);
+  const navigate = useNavigate(); // ⬅️ تعريف useNavigate
 
   useEffect(() => {
-  
-      axios
-        .get("http://localhost:3000/labs/all")
-        .then(response => setLabs(response.data.labs))
-        .catch((err) => console.error("Error fetching vulnerabilities:", err));
-    
+    axios
+      .get("http://localhost:3000/labs/all")
+      .then(response => setLabs(response.data.labs))
+      .catch((err) => console.error("Error fetching vulnerabilities:", err));
   }, []);
 
-  console.log(labs);
-  
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this lab?")) {
+      axios.delete(`http://localhost:3000/labs/${id}`)
+        .then(() => setLabs(labs.filter(lab => lab._id !== id)))
+        .catch(error => console.error("Error deleting lab:", error));
+    }
+  };
 
-  const handleDelete = (_id) => {
-    axios.delete(`https://api.example.com/labs/${_id}`)
-      .then(() => setLabs(labs.filter(lab => lab._id !== _id)))
-      .catch(error => console.error("Error deleting lab:", error));
+  const handleEdit = (id) => {
+    navigate(`/edit-lab/${id}`); 
   };
 
   return (
@@ -50,8 +37,7 @@ const ManageLabs = () => {
         <table className="labs-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Vulnerability</th>
+              <th>Vulnerability Name</th>
               <th>Description</th>
               <th>Scenario</th>
               <th>Level</th>
@@ -61,14 +47,19 @@ const ManageLabs = () => {
           <tbody>
             {labs.map((lab) => (
               <tr key={lab._id}>
-                <td>{lab._id}</td>
                 <td>{lab.vulnerabilityName}</td>
                 <td>{lab.labDescription}</td>
                 <td>{lab.labScenario}</td>
                 <td>{lab.labLevel}</td>
                 <td>
-                  <button className="edit-btn" onClick={() => console.log("Edit", lab.id)}>Edit</button>
-                  <button className="delete-btn" onClick={() => handleDelete(lab._id)}>Delete</button>
+                  <div className="button-group">
+                    <button className="edit-btn" onClick={() => handleEdit(lab._id)}>
+                      Edit
+                    </button>
+                    <button className="delete-btn" onClick={() => handleDelete(lab._id)}>
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

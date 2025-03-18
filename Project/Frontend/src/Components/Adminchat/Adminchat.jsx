@@ -47,7 +47,7 @@ function AdminChat() {
     if (selectedLabs.length === 0) return;
 
     try {
-      const res = await axios.post("http://localhost:5000/api/add-labs", {
+      const res = await axios.post("http://localhost:3000/labs/add", {
         labIds: selectedLabs,
       });
 

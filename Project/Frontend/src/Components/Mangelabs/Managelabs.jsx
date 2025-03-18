@@ -5,12 +5,34 @@ import "./Managelabs.css";
 
 const ManageLabs = () => {
   const [labs, setLabs] = useState([]);
+    const [vulns, setVulns] = useState([]);
+
+  // useEffect(() => {
+  //   // axios.get("http://localhost:3000/labs/all")
+  //   //   .then(response => setLabs(response.data))
+  //   //   .catch(error => console.error("Error fetching labs:", error));
+  //   axios
+  //       .get("http://localhost:3000/labs/all")
+  //       .then((res) => {
+  //         console.log(res);
+  //         if (res.data.vulns && res.data.vulns.length > 0) {
+  //           localStorage.setItem("vulns", JSON.stringify(res.data.vulns));
+  //         }
+  //       })
+  //       .catch((err) => console.error("Error fetching vulnerabilities:", err));
+  // }, []);
 
   useEffect(() => {
-    axios.get("http://localhost:3000/labs/getByVulnName")
-      .then(response => setLabs(response.data))
-      .catch(error => console.error("Error fetching labs:", error));
+  
+      axios
+        .get("http://localhost:3000/labs/all")
+        .then(response => setLabs(response.data.labs))
+        .catch((err) => console.error("Error fetching vulnerabilities:", err));
+    
   }, []);
+
+  console.log(labs);
+  
 
   const handleDelete = (_id) => {
     axios.delete(`https://api.example.com/labs/${_id}`)

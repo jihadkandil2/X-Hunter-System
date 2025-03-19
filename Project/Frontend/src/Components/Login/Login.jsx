@@ -31,7 +31,7 @@ function Login() {
       
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.id);
-      navigate("/home");
+      navigate("/generate-labs");
       swal.fire({
         icon: "success",
         title: `Welcome back, ${values.email

@@ -9,12 +9,8 @@ import "../Register/Register.css";
 function EditLabs() {
   const { id } = useParams(); 
   const navigate = useNavigate();
-  const [labData, setLabData] = useState({
-    vulnerabilityName: "",
-    labDescription: "",
-    labScenario: "",
-    labLevel: "",
-  });
+  const [labData, setLabData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchLabData = async () => {
@@ -22,9 +18,10 @@ function EditLabs() {
         const response = await axios.get(`http://localhost:3000/labs/getById/${id}`);
         console.log(response.data);
         setLabData(response.data.lab);
-        console.log(labData);
       } catch (error) {
         console.error("Error fetching lab data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -38,7 +35,7 @@ function EditLabs() {
     labLevel: Yup.string().required("Level is required"),
   });
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (values, { setSubmitting }) => {
     try {
       await axios.put(`http://localhost:3000/labs/${id}`, values);
       swal.fire({
@@ -47,7 +44,7 @@ function EditLabs() {
         text: "The lab has been successfully updated.",
         confirmButtonColor: "#1D3044",
       });
-      navigate("/manage-labs"); 
+      navigate("/manage-labs");
     } catch (error) {
       console.error("Update error:", error);
       swal.fire({
@@ -56,6 +53,8 @@ function EditLabs() {
         text: "An error occurred while updating. Please try again.",
         confirmButtonColor: "#1D3044",
       });
+    } finally {
+      setSubmitting(false); // إيقاف تحميل الزر بعد انتهاء العملية
     }
   };
 
@@ -64,59 +63,50 @@ function EditLabs() {
       <div className="register-overlay"></div>
       <div className="register-form">
         <h2>Edit Lab</h2>
-        <Formik
-          enableReinitialize
-          initialValues={labData}
-          validationSchema={validationSchema}
-          onSubmit={onSubmit}
-        >
-          <Form>
-            <div className="form-group">
-              <Field
-                type="text"
-                name="vulnerabilityName"
-                placeholder="Vulnerability Name"
-                className="register-input"
-              />
-              <ErrorMessage name="vulnerabilityName" component="div" className="error-message" />
-            </div>
 
-            <div className="form-group">
-              <Field
-                type="text"
-                name="labDescription"
-                placeholder="Description"
-                className="register-input"
-              />
-              <ErrorMessage name="labDescription" component="div" className="error-message" />
-            </div>
+        {isLoading ? (
+          <p className="loading-message">Loading lab data...</p>
+        ) : (
+          <Formik
+            enableReinitialize
+            initialValues={labData || {
+              vulnerabilityName: "",
+              labDescription: "",
+              labScenario: "",
+              labLevel: "",
+            }}
+            validationSchema={validationSchema}
+            onSubmit={onSubmit}
+          >
+            {({ isSubmitting }) => ( // ✅ التقاط حالة الزر أثناء الإرسال
+              <Form>
+                <div className="form-group">
+                  <Field type="text" name="vulnerabilityName" placeholder="Vulnerability Name" className="register-input" />
+                  <ErrorMessage name="vulnerabilityName" component="div" className="error-message" />
+                </div>
 
-            <div className="form-group">
-              <Field
-                type="text"
-                name="labScenario"
-                placeholder="Scenario"
-                className="register-input"
-              />
-              <ErrorMessage name="labScenario" component="div" className="error-message" />
-            </div>
+                <div className="form-group">
+                  <Field type="text" name="labDescription" placeholder="Description" className="register-input" />
+                  <ErrorMessage name="labDescription" component="div" className="error-message" />
+                </div>
 
-            <div className="form-group">
-              <Field
-                type="text"
-                name="labLevel"
-                placeholder="Level"
-                className="register-input"
-              />
-              <ErrorMessage name="labLevel" component="div" className="error-message" />
-            </div>
+                <div className="form-group">
+                  <Field type="text" name="labScenario" placeholder="Scenario" className="register-input" />
+                  <ErrorMessage name="labScenario" component="div" className="error-message" />
+                </div>
 
-            <button type="submit" className="register-btn">
-              Update Lab
-            </button>
-          </Form>
-        </Formik>
-   
+                <div className="form-group">
+                  <Field type="text" name="labLevel" placeholder="Level" className="register-input" />
+                  <ErrorMessage name="labLevel" component="div" className="error-message" />
+                </div>
+
+                <button type="submit" className="register-btn" disabled={isSubmitting}>
+                  {isSubmitting ? "Loading..." : "Update Lab"} {/* ✅ تغيير النص عند الضغط */}
+                </button>
+              </Form>
+            )}
+          </Formik>
+        )}
       </div>
     </div>
   );

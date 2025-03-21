@@ -40,8 +40,8 @@ function Navbar() {
             </button>
             {isProfileOpen && (
               <div className="dropdown-menu">
-                <Link to="/manage-labs" onClick={() => setIsProfileOpen(false)}>Manage Labs</Link>
-                <Link to="/generate-labs" onClick={() => setIsProfileOpen(false)}>Generate Labs</Link>
+                {/* <Link to="/manage-labs" onClick={() => setIsProfileOpen(false)}>Manage Labs</Link>
+                <Link to="/generate-labs" onClick={() => setIsProfileOpen(false)}>Generate Labs</Link> */}
                 <Link to="/update-account" onClick={() => setIsProfileOpen(false)}>Update Account</Link>
                 <Link to="/delete-account" onClick={() => setIsProfileOpen(false)}>Delete Account</Link>
               </div>

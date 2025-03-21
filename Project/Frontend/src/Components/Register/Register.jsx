@@ -43,7 +43,7 @@ function Register() {
         confirmationPassword,
       });
       localStorage.setItem("token", response.data.token);
-      navigate("/generate-labs");
+      navigate("/home");
       swal.fire({
         icon: "success",
         title: `Welcome, ${name.charAt(0).toUpperCase() + name.slice(1)}!`,

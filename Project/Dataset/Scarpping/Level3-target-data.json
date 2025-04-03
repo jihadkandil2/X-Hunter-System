@@ -405,7 +405,8 @@
       "2.<script>alert(1)</script>",
       "3.Click \"Search\"."
     ],
-    "Vulnerability name": "Cross-site scripting"
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\n\nconst app = express();\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/', (req, res) => {\n  res.send(`\n    <h1>Search Page</h1>\n    <form action=\"/search\" method=\"GET\">\n      <input type=\"text\" name=\"q\" placeholder=\"Search...\">\n      <button type=\"submit\">Search</button>\n    </form>\n  `);\n});\n\napp.get('/search', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`<h2>Search results for: ${query}</h2>`);\n});\n\nconst PORT = 3000;\napp.listen(PORT, () => {\n  console.log(`Lab running on http://localhost:${PORT}`);\n});"
   },
   {
     "Lab scenario": "Stored XSS into HTML context with nothing encoded",

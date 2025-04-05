@@ -1,18 +1,19 @@
-"Generate [number] unique cybersecurity lab entries in JSON format following this exact structure. Focus on creating diverse solution paths that match specific vulnerability exploitation contexts:
+Generate 3000 unique cybersecurity lab entries in JSON format following this exact structure. Focus on creating diverse solution paths that match specific vulnerability exploitation contexts:
 
 {
-    \"Lab scenario\": \"[Application Context] [Vulnerability Type] in [Vulnerability Location]\",
-    \"Lab Description\": \"[Detailed technical explanation of vulnerable component and exploitation constraints] The application [specific vulnerable behavior]. To solve: [clear exploitation goal requiring multi-step analysis(successfull criteria)].\",
-    \"Difficulty Level\": \"[Appropriate Difficulty of that lab]\",
-    \"Solution Steps\": [
-        \"[Tool-Assisted Reconnaissance Step]\",
-        \"[Vulnerability Validation Technique]\",
-        \"[Payload Crafting/Injection Method]\", 
-        \"[Exploitation Refinement Process]\",
-        \"[Verification/Post-Exploitation Action]\"
+    "Lab scenario": "[Application Context] [Vulnerability Type] in [Vulnerability Location]",
+    "Lab Description": "[Detailed technical explanation of vulnerable component and exploitation constraints] The application [specific vulnerable behavior]. To solve: [clear exploitation goal requiring multi-step analysis].",
+    "Difficulty Level": "[Appropriate Difficulty]",
+    "Solution Steps": [
+        "[Tool-Assisted Reconnaissance Step]",
+        "[Vulnerability Validation Technique]",
+        "[Payload Crafting/Injection Method]", 
+        "[Exploitation Refinement Process]",
+        "[Verification/Post-Exploitation Action]"
     ],
-    \"Vulnerability name\": \"[SQL injection|Cross-site scripting|Authentication]\",
-    \"srcCode\": \"[Language-specific vulnerable code snippet]\" 
+    "Vulnerability name": "[SQL injection|Cross-site scripting|Authentication]",
+    "srcCode": "[Language-specific vulnerable code snippet]",
+    "payloads": [should include all possible payloads that could solve the lab, provided as an array of strings.]
 }
 
 Key Requirements:
@@ -30,15 +31,14 @@ Key Requirements:
      5. Cleanup/obfuscation
 
 2. Contextual Alignment:
-   - Application Types: Variations of (E-commerce, Social Media, Banking, Healthcare, Blog, Banking portal, IoT dashboard, CMS, API gateway) 
+   - Application Types: Banking portal, IoT dashboard, CMS, API gateway
    - Vulnerability Locations:
      • SQLi: ORDER BY clauses, GROUP BY, HAVING conditions
      • XSS: PDF generators, HTTP headers, WebSocket messages
      • Auth: MFA bypass, session fixation, JWT tampering
 
 3. Code Snippet Guidelines:
-   - Include vulnerable patterns in Node.js, Python Flask, PHP Laravel
-   - Show secure code commented out as contrast
+   - Include vulnerable patterns in Node.js
    - Add vulnerable debugging features (error leakage, verbose logging)
 
 4. Difficulty Scaling:
@@ -48,18 +48,22 @@ Key Requirements:
 
 Example Authentication Flaw Entry:
 {
-    \"Lab scenario\": \"Banking portal session fixation vulnerability\",
-    \"Lab Description\": \"The application assigns session cookies during unauthenticated visits and maintains them post-login. Attackers can pre-set session IDs to hijack authenticated sessions.\nTo solve: Fixate a session cookie and capture user credentials.\",
-    \"Difficulty Level\": \"Hard\",
-    \"Solution Steps\": [
-        \"1. Intercept anonymous GET /banking/login request",
-        \"2. Inject Set-Cookie: sessionid=ATTACKER_SESSION via Repeater\",
-        \"3. Generate phishing link with fixed session parameter\",
-        \"4. Monitor server logs for sessionid=ATTACKER_SESSION usage\",
-        \"5. Replay authenticated requests with captured session\" 
+    "Lab scenario": "Banking portal session fixation vulnerability",
+    "Lab Description": "The application assigns session cookies during unauthenticated visits and maintains them post-login. Attackers can pre-set session IDs to hijack authenticated sessions.\nTo solve: Fixate a session cookie and capture user credentials.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+        "1. Intercept anonymous GET /banking/login request",
+        "2. Inject Set-Cookie: sessionid=ATTACKER_SESSION via Repeater",
+        "3. Generate phishing link with fixed session parameter",
+        "4. Monitor server logs for sessionid=ATTACKER_SESSION usage",
+        "5. Replay authenticated requests with captured session" 
     ],
-    \"Vulnerability name\": \"Authentication\",
-    \"srcCode\": \"// Vulnerable session initiation (Python Flask)\n@app.route('/login')\ndef login():\n    resp = make_response(render_template('login.html'))\n    if not request.cookies.get('sessionid'):\n        resp.set_cookie('sessionid', generate_weak_id()) # Fixed value\n    return resp\" 
+    "Vulnerability name": "Authentication",
+    "srcCode": "// Vulnerable session initiation (Python Flask)\n@app.route('/login')\ndef login():\n    resp = make_response(render_template('login.html'))\n    if not request.cookies.get('sessionid'):\n        resp.set_cookie('sessionid', generate_weak_id()) # Fixed value\n    return resp",
+    "payloads": [
+        "<script>alert('XSS')</script>",
+        "... another e.g "
+    ]
 }
 
 Generate entries with:
@@ -68,4 +72,5 @@ Generate entries with:
 - 25% Auth (split: 60% session management, 30% JWT, 10% OAuth)
 - Progressive difficulty chains within vulnerability types
 - Real-world bypass techniques (e.g., polyglot XSS, SQLi filter evasion)
-- Mixed HTTP methods/API formats (GraphQL, REST, SOAP)"
+- Mixed HTTP methods/API formats (GraphQL, REST, SOAP)
+

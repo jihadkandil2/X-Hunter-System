@@ -37,6 +37,6 @@ def extract_scenarios_to_file(source_file, target_file="all_scenarios.json"):
 
 # Example usage
 extract_scenarios_to_file(
-    source_file='your_source_data.json',
-    target_file='all_scenarios.json'
+    source_file='jihad350.json',
+    target_file='all_Xss_scenarios.json'
 )

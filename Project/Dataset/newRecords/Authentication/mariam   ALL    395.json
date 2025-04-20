@@ -1,4 +1,5 @@
-[{
+[
+  {
   "Lab scenario": "Session fixation via cookie injection",
   "Lab Description": "This lab demonstrates session fixation in the authentication process. The application assigns session IDs before authentication and fails to invalidate them post-login. The application reuses existing session cookies instead of issuing new ones after login. To solve: Fixate a valid session ID before login and hijack Carlos's authenticated session.",
   "Difficulty Level": "Medium",

@@ -11,4 +11,4 @@ def count_labs(json_file_path):
             print("JSON format not supported. Expected a list at the top level.")
 
 # Example usage:
-count_labs('jihad.json')  # Replace with your actual file name
+count_labs('D:\\Graduation Project\\X-Hunter-System\\Project\\Dataset\\newRecords\\FineTune1.json')  # Replace with your actual file name

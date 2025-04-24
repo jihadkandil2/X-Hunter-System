@@ -73,8 +73,8 @@ npm start
 
 ## Demo Images
 ![1-Main](https://github.com/user-attachments/assets/ccf9c028-d840-40d3-9ce9-2a71768b7aa7)
-![1-login](https://github.com/user-attachments/assets/ccf9c028-d840-40d3-9ce9-2a71768b7aa7)
-![2-regisster](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/61349655-dfd5-4ca9-98c3-72f643029900)
+![1-login](https://github.com/user-attachments/assets/6ad14d59-f40b-47b2-90e0-76c7337e11b9)
+![2-regisster](https://github.com/user-attachments/assets/97e169f9-5be9-4f6c-83d3-05969b6849a9)
 ![3-home](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/a6f6d803-1f71-43f9-b53d-3228fdbddbd9)
 ![4-movies](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/0036beeb-999d-453e-bcaf-8b768d8d7419)
 ![5-detailspage](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/f661e6b8-0550-4f3b-bd6f-4fc21b7d6f78)

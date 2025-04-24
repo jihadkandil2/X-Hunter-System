@@ -72,8 +72,8 @@ npm start
 - Access dashboard to manage items and view user data.
 
 ## Demo Images
-![1-Main](https://github.com/user-attachments/assets/ccf9c028-d840-40d3-9ce9-2a71768b7aa7)
-![1-login](https://github.com/user-attachments/assets/6ad14d59-f40b-47b2-90e0-76c7337e11b9)
+![1-Main]()
+![1-login](https://github.com/user-attachments/assets/63c3bb5b-c2f5-4f13-83cb-f8433a7eccfc)
 ![2-regisster](https://github.com/user-attachments/assets/97e169f9-5be9-4f6c-83d3-05969b6849a9)
 ![3-home](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/a6f6d803-1f71-43f9-b53d-3228fdbddbd9)
 ![4-movies](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/0036beeb-999d-453e-bcaf-8b768d8d7419)

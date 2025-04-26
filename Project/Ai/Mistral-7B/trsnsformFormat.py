@@ -3,8 +3,8 @@ import json
 # Specify file names:
 # input_filename: original dataset file (e.g., JSON file containing an array of lab objects)
 # output_filename: output file with input-output pairs for fine-tuning (JSONL format)
-input_filename = "finetuningSet1.json"  # change this to your original file name
-output_filename = "finetuning_data.jsonl"   # the file that will contain the transformed data
+input_filename = "FineTune1.json"  # change this to your original file name
+output_filename = "input-outputPair.jsonl"   # the file that will contain the transformed data
 
 # Load the original dataset
 with open(input_filename, "r", encoding="utf-8") as f:

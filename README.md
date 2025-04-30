@@ -72,10 +72,17 @@ npm start
 - Access dashboard to manage items and view user data.
 
 ## Demo Images
-![1-Main](https://github.com/user-attachments/assets/63c3bb5b-c2f5-4f13-83cb-f8433a7eccfc)
+![main](https://github.com/user-attachments/assets/816e8681-ca86-41eb-a4f5-080a79947ca6)
 ![1-login](https://github.com/user-attachments/assets/6ad14d59-f40b-47b2-90e0-76c7337e11b9)
 ![2-regisster](https://github.com/user-attachments/assets/97e169f9-5be9-4f6c-83d3-05969b6849a9)
-![3-home](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/a6f6d803-1f71-43f9-b53d-3228fdbddbd9)
+![3-home](https://github.com/user-attachments/assets/db90dc1b-5274-44e8-b27e-ae5ed9953a72)
+![3-Lab-page](https://github.com/user-attachments/assets/71d1d0c9-8bc6-46ff-a472-2829c0360220)
+![3-userDashboard](https://github.com/user-attachments/assets/ce95d585-fcd4-42c3-ae83-326e5509153b)
+![admin tab1](https://github.com/user-attachments/assets/6e7d130b-32e2-4241-b100-f4ce098d5b87)
+![admin tab 2](https://github.com/user-attachments/assets/f4f5a29e-4246-4194-97f9-fdc3e9949e98)
+![admin tab 3](https://github.com/user-attachments/assets/565f0dc0-97bb-418a-8fb5-217df4468e63)
+
+
 ![4-movies](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/0036beeb-999d-453e-bcaf-8b768d8d7419)
 ![5-detailspage](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/f661e6b8-0550-4f3b-bd6f-4fc21b7d6f78)
 ![6-about](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/60dc784e-26d0-420f-a934-dc2716259fda)

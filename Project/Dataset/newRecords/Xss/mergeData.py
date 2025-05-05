@@ -44,5 +44,5 @@ def append_batch_to_main(main_filename, batch_filename):
 # Example usage
 append_batch_to_main(
     'D:\\Graduation Project\\X-Hunter-System\\Project\\Dataset\\newRecords\\Xss\\jihad.json',
-    'D:\\Graduation Project\\X-Hunter-System\\Project\\Dataset\\newRecords\\Xss\\week 2 (J)\\Jihad-18.json'
+    'D:\\Graduation Project\\X-Hunter-System\\Project\\Dataset\\newRecords\\Xss\\week 4 (J)\\Jihad-1.json'
 )

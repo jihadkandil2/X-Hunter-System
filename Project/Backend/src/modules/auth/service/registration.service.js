@@ -48,11 +48,18 @@ export const login=async(req,res,next)=>{
         if(!match){
             return res.status(404).json({message: 'In-valid login data'})
         }
-        
-        
-       const token =jwt.sign({id:user._id , isloggedIn:true} ,
+        let role='';
+        if(email!=process.env.ADMIN_EMAIL || password!=process.env.ADMIN_PASSWORD){
+            role='user'
+        }
+        else{
+            role='admin'
+        }
+       const token =jwt.sign({id:user._id , isloggedIn:true , role} ,
         user.role==userRoles.admin?process.env.TOKEN_SIGNATURE_ADMIN :process.env.TOKEN_SIGNATURE ,
         {expiresIn:"1h"})
+        console.log('token' , token);
+        
         return res.status(200).json({
             message:'Done',
             id:user._id,

@@ -58,7 +58,10 @@ export const login=async(req,res,next)=>{
        const token =jwt.sign({id:user._id , isloggedIn:true , role} ,
         user.role==userRoles.admin?process.env.TOKEN_SIGNATURE_ADMIN :process.env.TOKEN_SIGNATURE ,
         {expiresIn:"1h"})
-        console.log('token' , token);
+        user.lastLogin = new Date();
+        user.isOnline = true;
+        await user.save();
+        
         
         return res.status(200).json({
             message:'Done',

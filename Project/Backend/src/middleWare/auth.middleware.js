@@ -141,3 +141,10 @@ export const authorization = (accessRoles = []) => {
     }
   };
 };
+
+export const updateActivity = async (req, res, next) => {
+    if (req.user) {
+      await User.findByIdAndUpdate(req.user.id, { lastLogin: new Date(), isOnline: true });
+    }
+    next();
+  };

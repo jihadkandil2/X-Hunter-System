@@ -38,7 +38,9 @@ const userSchema = new Schema(
         type: String,
         enum:Object.values(userRoles),
         default:userRoles.user
-      }
+      },
+      lastLogin: { type: Date, default: null },
+      isOnline: { type: Boolean, default: false }
     },
     { timestamps: true } 
   );

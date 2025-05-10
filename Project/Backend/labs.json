@@ -1,38 +1,24 @@
 
 {
-  "name": "Cross-site scripting",
+  "name": "SQL",
   "labs": [
-   
-    {
-        "labScenario": "Reflected XSS into HTML context with nothing encoded",
-        "labDescription": "This lab contains a simple reflected cross-site scripting vulnerability in the search functionality.\nTo solve the lab, perform a cross-site scripting attack that calls the alert function.",
-        "vulnerabilityName": "Cross-site scripting",
-        "labLevel": "easy"
-    },
-    {
-        "labScenario": "Stored XSS into HTML context with nothing encoded",
-        "labDescription": "This lab contains a stored cross-site scripting vulnerability in the comment functionality.\nTo solve the lab, submit a comment that calls the alert function when the blog post is viewed.",
-        "vulnerabilityName": "Cross-site scripting",
-        "labLevel": "easy"
-    },
-    {
-        "labScenario": "DOM XSS in document.write sink using source location.search",
-        "labDescription": "This lab contains a DOM-based cross-site scripting vulnerability in the search query tracking functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search, which you can control using the website URL.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
-        "vulnerabilityName": "Cross-site scripting",
-        "labLevel": "medium"
-    },
-    {
-        "labScenario": "DOM XSS in innerHTML sink using source location.search",
-        "labDescription": "This lab contains a DOM-based cross-site scripting vulnerability in the search blog functionality. It uses an innerHTML assignment, which changes the HTML contents of a div element, using data from location.search.\nTo solve this lab, perform a cross-site scripting attack that calls the alert function.",
-        "vulnerabilityName": "Cross-site scripting",
-        "labLevel": "medium"
-    },
-    {
-        "labScenario": "DOM XSS in jQuery anchor href attribute sink using location.search source",
-        "labDescription": "This lab contains a DOM-based cross-site scripting vulnerability in the submit feedback page. It uses the jQuery library's $ selector function to find an anchor element, and changes its href attribute using data from location.search.\nTo solve this lab, make the \"back\" link alert document.cookie.",
-        "vulnerabilityName": "Cross-site scripting",
-        "labLevel": "medium"
+   {
+        "labScenario": "Session fixation via predictable session ID in URL",
+        "labDescription": "This application uses a custom session ID passed via the URL as a GET parameter. The backend sets the session without validating ownership, enabling an attacker to force a session ID on a victim before login. To solve: fix a session for Carlos, trick him into logging in, then reuse the session ID to hijack his account.",
+        "labLevel": "Hard",
+        "SolutionSteps": [
+            "Use Burp Suite to generate a new session by visiting /login?session_id=attacker123.",
+            "Copy the generated login URL and craft a phishing link targeting Carlos with the fixed session_id.",
+            "Assume Carlos logs in with the provided session ID, which remains active.",
+            "After login, reuse the same session_id=attacker123 from a different browser using Postman to access /my-account.",
+            "Confirm session hijack by accessing Carlos’s account page or seeing personalized information."
+        ],
+        "vulnerabilityName": "Authentication",
+        "srcCode": "const express = require('express'); const app = express(); const bodyParser = require('body-parser'); app.use(bodyParser.urlencoded({ extended: false })); const sessions = {}; const users = [{ username: 'carlos', password: 'letmein' }]; app.get('/login', (req, res) => { const sid = req.query.session_id; if (!sid) return res.send('No session ID provided'); sessions[sid] = null; res.send('<form action=\"/auth?session_id=' + sid + '\" method=\"POST\"><input name=\"username\"><input name=\"password\"><button>Login</button></form>'); }); app.post('/auth', (req, res) => { const { username, password } = req.body; const sid = req.query.session_id; const user = users.find(u => u.username === username && u.password === password); if (user && sid) { sessions[sid] = user.username; res.redirect('/my-account?session_id=' + sid); } else { res.send('Invalid'); } }); app.get('/my-account', (req, res) => { const sid = req.query.session_id; if (sessions[sid]) { res.send('Welcome back, ' + sessions[sid]); } else { res.send('Access denied'); } }); app.listen(4000, () => console.log('Session Fixation Lab running'));",
+        "payloads": [
+            "http://victim-site.com/login?session_id=attacker123",
+            "http://victim-site.com/my-account?session_id=attacker123"
+        ]
     }
-
    ]
 }

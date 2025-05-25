@@ -1,7 +1,7 @@
 import json
 
 # Read the original data
-with open('FineTune1.json', 'r', encoding='utf-8') as f:
+with open('FineTune2.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 # Remove 'srcCode' and 'Solution Steps' from each entry
@@ -11,5 +11,5 @@ filtered_data = [
 ]
 
 # Write filtered data to a new file
-with open('filtered_data.json', 'w', encoding='utf-8') as f:
+with open('targetData2.json', 'w', encoding='utf-8') as f:
     json.dump(filtered_data, f, indent=4)

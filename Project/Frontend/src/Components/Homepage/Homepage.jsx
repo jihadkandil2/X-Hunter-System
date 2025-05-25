@@ -3,6 +3,7 @@ import axios from "axios";
 import Navbar from "../Navbar/Navbar";
 import Sidebar from "../Sidebar/Sidebar";
 import Labitem from "../Labitem/labitem";
+import "./Homepage.css";
 
 function Homepage() {
   const [vulns, setVulns] = useState([]);
@@ -12,23 +13,33 @@ function Homepage() {
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   useEffect(() => {
-    const storedVulns = localStorage.getItem("vulns");
-    if (storedVulns) {
-      setVulns(JSON.parse(storedVulns));
-      setSelectedVuln(JSON.parse(storedVulns)[0]);
-    } else {
-      axios
-        .get("http://localhost:3000/labs/all")
-        .then((res) => {
-          console.log(res);
-          if (res.data.vulns && res.data.vulns.length > 0) {
-            setVulns(res.data.vulns);
-            setSelectedVuln(res.data.vulns[0]);
-            localStorage.setItem("vulns", JSON.stringify(res.data.vulns));
+    axios
+      .get("http://localhost:3000/labs/all")
+      .then((res) => {
+        const newData = res.data.vulns;
+console.log(res);
+        if (newData && newData.length > 0) {
+          const stored = localStorage.getItem("vulns");
+          const parsedStored = stored ? JSON.parse(stored) : [];
+
+          const isDifferent =
+            parsedStored.length !== newData.length ||
+            JSON.stringify(parsedStored) !== JSON.stringify(newData);
+
+          if (isDifferent) {
+            localStorage.setItem("vulns", JSON.stringify(newData));
+            console.log("✅ LocalStorage updated with new data");
+          } else {
+            console.log("⚠️ No changes detected. LocalStorage remains the same.");
           }
-        })
-        .catch((err) => console.error("Error fetching vulnerabilities:", err));
-    }
+
+          setVulns(newData);
+          setSelectedVuln(newData[0]);
+        }
+      })
+      .catch((err) =>
+        console.error("❌ Error fetching vulnerabilities:", err)
+      );
   }, []);
 
   const handleVulnClick = (vuln) => {
@@ -40,14 +51,14 @@ function Homepage() {
   };
 
   return (
-    <div className="bg-[#000820] min-h-screen flex flex-col">
+    <div className="homepage-background min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1 relative"> {/* Ensuring dropdowns are visible */}
+      <div className="flex flex-1 relative">
         {/* Sidebar */}
         <div
           className={`${
             isSidebarOpen ? "w-1/5" : "w-16"
-          } bg-[#0b132b] sticky top-0 h-screen overflow-y-auto transition-all duration-300`} 
+          } bg-[#0C1317] sticky top-0 h-screen overflow-y-auto transition-all duration-300`}
         >
           <Sidebar
             isOpen={isSidebarOpen}
@@ -58,31 +69,43 @@ function Homepage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 overflow-visible bg-[#000820]">
+        <div
+          className="flex-1 p-3 overflow-visible"
+          style={{ position: "relative", zIndex: 1 }}
+        >
           {vulns.length > 0 ? (
             vulns.map((vuln) => (
-              <div key={vuln._id} id={`vuln-${vuln._id}`} className="mb-8 relative">
+              <div
+                key={vuln._id}
+                id={`vuln-${vuln._id}`}
+                className="mb-10 relative"
+              >
                 <h3
                   className={`text-white text-2xl mb-4 ${
-                    selectedVuln && selectedVuln._id === vuln._id
-                      ? "sticky top-0 bg-[#000820] py-4 z-20"
+                    selectedVuln?._id === vuln._id
+                      ? "sticky top-0 py-4 z-[5]"
                       : ""
                   }`}
                 >
                   {vuln.name}
                 </h3>
-                {vuln.labs && vuln.labs.length > 0 ? (
-                  vuln.labs.map((lab, idx) => (
+                {vuln.labs?.length > 0 ? (
+                  vuln.labs.map((lab) => (
                     <Labitem
                       key={lab._id}
                       labLevel={lab.labLevel}
                       labScenario={lab.labScenario}
                       labDescription={lab.labDescription}
                       solved={lab.solved || false}
+                      srcCode={lab.srcCode}
+                      SolutionSteps={lab.SolutionSteps}
+                      vulnerabilityName={lab.vulnerabilityName}
                     />
                   ))
                 ) : (
-                  <p className="text-white">No labs available for this vulnerability.</p>
+                  <p className="text-white">
+                    No labs available for this vulnerability.
+                  </p>
                 )}
               </div>
             ))

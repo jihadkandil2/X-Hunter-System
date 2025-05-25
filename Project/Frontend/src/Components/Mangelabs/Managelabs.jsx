@@ -4,7 +4,8 @@ import axios from "axios";
 import Swal from "sweetalert2"; // ✅ استيراد SweetAlert2
 import Navbar from "../Navbar/Navbar";
 import "./Managelabs.css";
-
+import "../Homepage/Homepage.css"
+import Adminside from "../Adminside/Adminside";
 const ManageLabs = () => {
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,8 +56,8 @@ const ManageLabs = () => {
   };
 
   return (
-    <div className="page-container">
-      <Navbar />
+    <div className=" homepage-background page-container ">
+      <Adminside />
       
       <div className="centered-container">
         <h2 className="main-title">Manage All Labs</h2>

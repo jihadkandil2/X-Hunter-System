@@ -6,10 +6,10 @@ import Navbar from "../Navbar/Navbar";
 function Landpage() {
  
   const backgrounds = [
-    "/images/img2.jpeg",
+    "/images/img1.jpeg",
     "/images/img3.jpeg",
   
-    "/images/img1.jpeg"
+    "/images/img2.jpeg"
   ];
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
 

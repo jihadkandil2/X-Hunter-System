@@ -54,7 +54,7 @@ function EditLabs() {
         confirmButtonColor: "#1D3044",
       });
     } finally {
-      setSubmitting(false); // إيقاف تحميل الزر بعد انتهاء العملية
+      setSubmitting(false); 
     }
   };
 
@@ -78,7 +78,7 @@ function EditLabs() {
             validationSchema={validationSchema}
             onSubmit={onSubmit}
           >
-            {({ isSubmitting }) => ( // ✅ التقاط حالة الزر أثناء الإرسال
+            {({ isSubmitting }) => ( 
               <Form>
                 <div className="form-group">
                   <Field type="text" name="vulnerabilityName" placeholder="Vulnerability Name" className="register-input" />
@@ -101,7 +101,7 @@ function EditLabs() {
                 </div>
 
                 <button type="submit" className="register-btn" disabled={isSubmitting}>
-                  {isSubmitting ? "Loading..." : "Update Lab"} {/* ✅ تغيير النص عند الضغط */}
+                  {isSubmitting ? "Loading..." : "Update Lab"} 
                 </button>
               </Form>
             )}

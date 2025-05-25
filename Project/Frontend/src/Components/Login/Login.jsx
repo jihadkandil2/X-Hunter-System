@@ -27,19 +27,28 @@ function Login() {
     try {
       const response = await axios.post("http://localhost:3000/auth/login", values);
       console.log(response);
-     
-      
+
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.id);
-      navigate("/home");
+
+      const isAdmin = values.email === "admin@gmail.com";
+      localStorage.setItem("role", isAdmin ? "admin" : "user");
+
       swal.fire({
         icon: "success",
-        title: `Welcome back, ${values.email
-          .split("@")[0]
-          .charAt(0)
-          .toUpperCase() + values.email.split("@")[0].slice(1)}!`,
+        title: `Welcome back, ${
+          values.email.split("@")[0].charAt(0).toUpperCase() +
+          values.email.split("@")[0].slice(1)
+        }!`,
         text: "You have successfully logged in.",
         confirmButtonColor: "#1D3044",
+      }).then(() => {
+        // ✅ استخدم window.location.href بدل navigate فقط لتعمل reset كامل للـ state
+        if (isAdmin) {
+          window.location.href = "/dashboard";
+        } else {
+          window.location.href = "/home";
+        }
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -74,11 +83,7 @@ function Login() {
                 placeholder="Email"
                 required
               />
-              <ErrorMessage
-                name="email"
-                component="div"
-                className="error-message"
-              />
+              <ErrorMessage name="email" component="div" className="error-message" />
             </div>
 
             <div className="form-group">
@@ -89,11 +94,7 @@ function Login() {
                 placeholder="Password"
                 required
               />
-              <ErrorMessage
-                name="password"
-                component="div"
-                className="error-message"
-              />
+              <ErrorMessage name="password" component="div" className="error-message" />
             </div>
 
             <div className="remember-forgot">

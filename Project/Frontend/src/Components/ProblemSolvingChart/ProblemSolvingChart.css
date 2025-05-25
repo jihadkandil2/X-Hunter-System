@@ -1,0 +1,44 @@
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 200px;
+    background-color: rgba(0, 0, 0, 0.6);
+    margin: 50px auto;
+    flex-wrap: wrap;
+    max-width: 80%;
+  }
+  
+  .chart-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 20px;
+    position: relative;
+  }
+  
+  .chart-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .chart-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .chart-title {
+    margin-top: 10px;
+    font-size: 16px;
+    color: white;
+  }
+  

@@ -1,138 +1,118 @@
-/* ======== الأساسيات ======== */
 .navbar {
-    background-color: #051527;
-    color: white;
-    padding: 10px 20px;
-    position: relative;
-    z-index: 50; /* تأكد أن النافبار فوق كل شيء */
+  background-color: #03090c;
+  color: white;
+  padding: 10px 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  z-index: 1001;
+  overflow: visible !important;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.nav-links a:hover {
+  color: gray;
+}
+
+.logout-btn {
+  background-color: #5db717;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #4aa314;
+}
+
+.profile-menu {
+  position: relative;
+}
+
+.dropdown-container {
+  position: relative !important;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 200px;
+  background-color: white;
+  color: black;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 9999 !important;
+  opacity: 1 !important;
+  transform: none !important;
+  overflow: visible !important;
+  transition: opacity 0.3s ease;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: black;
+  transition: 0.3s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dropdown-menu a:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.dropdown-trigger {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px 15px;
+}
+
+@media (max-width: 768px) {
+  .dropdown-menu {
+      position: static !important;
+      width: 100%;
+      box-shadow: none;
   }
-  
-  .navbar-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  /* ======== روابط سطح المكتب ======== */
+
   .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+      flex-direction: column;
+      gap: 10px;
   }
-  
-  .nav-links a {
-    color: white;
-    text-decoration: none;
-    transition: 0.3s;
-  }
-  
-  .nav-links a:hover {
-    color: gray;
-  }
-  
-  /* زر تسجيل الخروج */
-  .logout-btn {
-    background-color: #5db717;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: 0.3s;
-  }
-  
-  .logout-btn:hover {
-    background-color: #4aa314;
-  }
-  
-  /* ======== القائمة المنسدلة ======== */
-  .profile-menu {
-    position: relative;
-  }
-  
-  .profile-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .icon {
-    color: gray;
-    transition: 0.3s;
-  }
-  
-  .icon:hover {
-    color: white;
-  }
-  
+}
+
+.navbar, .profile-menu {
+  overflow: visible !important;
+}
+
+@media (min-width: 769px) {
   .dropdown-menu {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    width: 180px;
-    background-color: white;
-    color: black;
-    border-radius: 5px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 9999;
+      transform: translateY(0) !important;
   }
-  
-  .dropdown-menu a {
-    display: block;
-    padding: 10px;
-    text-decoration: none;
-    color: black;
-    transition: 0.3s;
-  }
-  
-  .dropdown-menu a:hover {
-    background-color: gray;
-    color: white;
-  }
-  
-  /* ======== قائمة الموبايل ======== */
-  .mobile-menu {
-    display: flex;
-  }
-  
-  .menu-toggle {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: white;
-  }
-  
-  .mobile-dropdown {
-    background-color: #0f2839;
-    padding: 15px;
-  }
-  
-  .mobile-dropdown a {
-    display: block;
-    padding: 10px;
-    color: white;
-    text-decoration: none;
-  }
-  
-  .mobile-dropdown a:hover {
-    color: gray;
-  }
-  
-  .mobile-logout {
-    background-color: #5db717;
-    padding: 5px 10px;
-    border-radius: 5px;
-    width: 100%;
-  }
-  
-  .profile-title {
-    color: gray;
-    margin-top: 10px;
-  }
-  
-  /* ======== إصلاح مشكلة الاختفاء ======== */
-  .navbar, .profile-menu {
-    overflow: visible !important;
-  }
-  
-  .dropdown-menu {
-    transform: translateY(0);
-  }
-  
+ 
+}

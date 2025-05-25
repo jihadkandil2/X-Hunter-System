@@ -13,7 +13,6 @@ function DeleteAccount() {
   const MySwal = withReactContent(swal);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
 
-  // Retrieve token and userId from localStorage (adjust keys as needed)
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
   console.log(userId);

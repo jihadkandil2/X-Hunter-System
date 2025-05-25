@@ -1,13 +1,13 @@
-/* Managelabs.css */
+
 .page-container {
   min-height: 100vh;
-  background-color: #000820; /* التعديل هنا فقط */
+  background-color: #000820; 
 }
 
 .centered-container {
   max-width: 1400px;
-  width: 95%;
-  margin: 2rem auto;
+  width: 80%;
+  margin:  auto;
   padding: 30px;
 }
 
@@ -15,12 +15,13 @@
   text-align: center;
   font-size: 2.5rem;
   color: #c4c6c9;
+  margin-top:20px ;
   margin-bottom: 30px;
   padding-bottom: 15px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-/* باقي الأنماط تبقى كما هي دون تغيير */
+
 .labs-table {
   width: 100%;
   border-collapse: separate;
@@ -45,7 +46,7 @@
 
 
 .labs-table tr:hover {
-  background-color:#010d33;
+  background-color:#03090c;
 
 }
 
@@ -81,6 +82,28 @@
   background-color: #c0392b;
 }
 
+.page-container {
+  min-height: 100vh;
+  background-color: #000820;
+  position: relative;
+  z-index: 1; 
+}
+
+.centered-container {
+  position: relative;
+  z-index: 2; 
+}
+
+.labs-table {
+  position: relative;
+  z-index: 3; 
+}
+
+
+.navbar {
+  z-index: 1000 !important; 
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .centered-container {
@@ -107,7 +130,7 @@
     flex-direction: row;
     flex-wrap: wrap;
   }
-  /* Managelabs.css */
+
 .loading-container {
   display: flex;
   flex-direction: column;

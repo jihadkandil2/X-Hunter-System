@@ -9,7 +9,7 @@
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: url("/images/img3.jpeg") no-repeat center center/cover; /* Update path if needed */
+    background: url("/images/img3.jpeg") no-repeat center center/cover; 
     display: flex;
     justify-content: center;
     align-items: center;

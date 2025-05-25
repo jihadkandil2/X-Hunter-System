@@ -5,7 +5,7 @@ function Sidebar({ isOpen, toggleSidebar, vulns, onVulnClick }) {
   return (
     <div
       className={`
-        relative h-full bg-[#051527] p-4 flex flex-col
+        relative h-full bg-[#03090c] p-4 flex flex-col
         transition-all duration-300 ease-in-out
         ${isOpen ? "w-80" : "w-12"}
         rounded-r-3xl rounded-b-3xl

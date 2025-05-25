@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaShieldAlt } from "react-icons/fa";
 import { AiOutlineCheck } from "react-icons/ai";
 
-function Labitem({ labLevel, labScenario, labDescription, solved = false }) {
+function Labitem({ labLevel, labScenario, labDescription, solved = false, srcCode, SolutionSteps,vulnerabilityName }) {
   const navigate = useNavigate();
   const [status, setStatus] = useState(solved ? "Solved" : "Solve");
 
@@ -13,7 +13,10 @@ function Labitem({ labLevel, labScenario, labDescription, solved = false }) {
       state: {
         labLevel,
         labScenario,
-        labDescription, // ✅ تمرير الوصف لـ FullLabPage
+        labDescription,
+        srcCode,
+        vulnerabilityName,
+        SolutionSteps,
         currentStatus: status,
       },
     });
@@ -23,9 +26,8 @@ function Labitem({ labLevel, labScenario, labDescription, solved = false }) {
   };
 
   return (
-    <div className="w-[80%] ml-0"> {/* هنا تم تحديد العرض بـ 80% ومحاذاته لليسار */}
+    <div className="w-[70%] ml-0 mb-7">
       <div className="flex flex-col md:flex-row items-stretch mb-4 overflow-hidden rounded-full shadow-lg">
-        {/* الجزء الأيسر */}
         <div className="bg-white text-[#1D3044] md:w-[20%] flex items-center justify-center md:rounded-l-full border-b md:border-b-0 md:border-r border-gray-300 whitespace-nowrap p-4">
           <div className="flex items-center gap-1 text-sm font-semibold">
             <FaShieldAlt />
@@ -33,16 +35,14 @@ function Labitem({ labLevel, labScenario, labDescription, solved = false }) {
           </div>
         </div>
 
-        {/* الجزء الأوسط */}
-        <div className="bg-white w-[60%] px-4 py-3 text-[#1D3044]">
+        <div className="bg-white w-[60%] px-4 py-6 text-[#1D3044]">
           <p className="text-sm">{labScenario}</p>
         </div>
 
-        {/* الجزء الأيمن */}
         <div
           onClick={handleRightClick}
           className={`cursor-pointer ${
-            status === "Solved" ? "bg-green-600" : "bg-[#5DB717]"
+            status === "Solved" ? "bg-green-600" : "bg-[#4C9D0D]"
           } md:w-[20%] flex items-center justify-center md:rounded-r-full p-4 transition-all`}
         >
           <div className="flex items-center gap-1 font-semibold text-white">

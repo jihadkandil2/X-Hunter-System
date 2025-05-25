@@ -1,6 +1,5 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Navbar from "./Components/Navbar/Navbar";
 import Landpage from "./Components/Landpage/Landpage";
 import Login from "./Components/Login/Login";
 import HomePage from "./Components/Homepage/Homepage";
@@ -12,14 +11,14 @@ import AboutUs from "./Components/Aboutus/Aboutus";
 import AdminChat from "./Components/Adminchat/Adminchat";
 import ManageLabs from "./Components/Mangelabs/Managelabs";
 import EditLabs from "./Components/Editlabs/Editlabs";
-
+import Dashboard from "./Components/Dashboard/Dashboard";
+import Userdash from "./Components/Userdash/Userdash";
 
 function App() {
-
+  const role = localStorage.getItem("role");
 
   return (
     <>
-    
       <Routes>
         <Route path="/" element={<Landpage />} />
         <Route path="/login" element={<Login />} />
@@ -32,8 +31,11 @@ function App() {
         <Route path="/generate-labs" element={<AdminChat />} />
         <Route path="/manage-labs" element={<ManageLabs />} />
         <Route path="/edit-lab/:id" element={<EditLabs />} />
-  
-
+        
+        <Route
+          path="/dashboard"
+          element={role === "admin" ? <Dashboard /> : <Userdash />}
+        />
       </Routes>
     </>
   );

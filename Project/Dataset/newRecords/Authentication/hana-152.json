@@ -2,7 +2,7 @@
     {
         "Lab scenario": "JWT algorithm confusion leads to authentication bypass",
       
-        "Lab Description": "The application uses JWTs for session management but accepts both RS256 and HS256 algorithms interchangeably. The backend uses RS256 with a public key to validate tokens, but it fails to enforce the algorithm type. The application naively uses the public key as a secret when validating HS256 tokens. To solve: craft a forged JWT to log in as the administrator user.",
+        "Lab Description": "The application uses JWTs for session management but accepts both RS256 and HS256 algorithms interchangeably. The backend uses RS256 with a public key to validate tokens, but it fails to enforce the algorithm type. The application naively uses the public key as a secret when validating HS256 t a forged JWT to log in as the administrator tokens. To solve: crafuser.",
       
         "Difficulty Level": "Hard",
       

@@ -5,13 +5,13 @@ import "./Aboutus.css";
 const AboutUs = () => {
   return (
     <div className="aboutus-container">
-      {/* Navbar */}
+  
       <Navbar />
 
-      {/* هيدر الصفحة مع الصورة */}
+ 
       <header className="aboutus-header">
         <div className="overlay"></div>
-        <img src="/images/img2.jpeg" alt="Hacker Background" className="header-image" />
+        <img src="/images/img1.jpeg" alt="Hacker Background" className="header-image" />
         <div className="header-content">
           <h1>
             Track, improve and <br />
@@ -20,8 +20,8 @@ const AboutUs = () => {
         </div>
       </header>
 
-      {/* محتوى الصفحة */}
-      <section className="aboutus-content bg-[#051527]">
+  
+      <section className="aboutus-content bg-[#0C1317]">
         <div className="content-box left">
           <h2>WHAT WE <span className="green">PROVIDE</span></h2>
           <p>

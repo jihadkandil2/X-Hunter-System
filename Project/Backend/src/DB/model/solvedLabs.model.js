@@ -8,7 +8,7 @@ const solvedLabsSchema= new Schema(
 )
 
 const solvedLabs= model('solvedLabs' , solvedLabsSchema)|| mongoose.models.solvedLabs  ;
-
+    
 
 
 export default solvedLabs;

@@ -1,5 +1,5 @@
 import solvedLabs from "../../../DB/model/solvedLabs.model.js";
-
+import Lab from "../../../DB/model/Lab.model.js";
 const addSolvedLab= async(req , res , next)=>{
     try {
         const userId=req.user.id;
@@ -10,6 +10,10 @@ const addSolvedLab= async(req , res , next)=>{
               status: 'fail',
               message: 'This lab is already marked as solved by this user.',
             });
+          }
+          const checkLab= await Lab.findById(labId);
+          if(!checkLab){
+            return res.status(404).json({status:'fail' , message:'lab not found!!'})
           }
         
        const solvedLab= await solvedLabs.findOneAndUpdate({userId:userId} ,

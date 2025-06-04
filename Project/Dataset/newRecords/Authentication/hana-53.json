@@ -1,7 +1,7 @@
 [
     {
-        "Lab scenario": "JWT alg:none bypass in REST API authentication",
-        "Lab Description": "This lab's JWT implementation fails to properly verify the token signature. The application accepts unsigned tokens when the alg header is set to 'none'. To solve: craft a valid JWT token with admin privileges without knowing the secret key.",
+        "labScenario": "JWT alg:none bypass in REST API authentication",
+        "labDescription": "This lab's JWT implementation fails to properly verify the token signature. The application accepts unsigned tokens when the alg header is set to 'none'. To solve: craft a valid JWT token with admin privileges without knowing the secret key.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Intercept a valid JWT token using Burp Suite while logged in as a low-privilege user",
@@ -18,8 +18,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via misconfigured redirect_uri",
-        "Lab Description": "This lab's OAuth implementation fails to validate redirect_uri parameters properly. The application leaks authorization codes to arbitrary domains. To solve: steal an OAuth token by manipulating the redirect flow to your attacker server.",
+        "labScenario": "OAuth token leakage via misconfigured redirect_uri",
+        "labDescription": "This lab's OAuth implementation fails to validate redirect_uri parameters properly. The application leaks authorization codes to arbitrary domains. To solve: steal an OAuth token by manipulating the redirect flow to your attacker server.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Identify the OAuth authorization endpoint using OWASP ZAP",
@@ -36,8 +36,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via GraphQL mutation",
-        "Lab Description": "This lab's GraphQL endpoint allows session fixation attacks through a vulnerable mutation. The application assigns session tokens based on client-provided values. To solve: fixate a session token and trick an admin into using it to gain privileged access.",
+        "labScenario": "Session fixation via GraphQL mutation",
+        "labDescription": "This lab's GraphQL endpoint allows session fixation attacks through a vulnerable mutation. The application assigns session tokens based on client-provided values. To solve: fixate a session token and trick an admin into using it to gain privileged access.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Use Postman to explore the GraphQL API and identify the vulnerable mutation",
@@ -54,8 +54,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT kid header path traversal in microservice authentication",
-        "Lab Description": "This lab's JWT verification microservice improperly validates the kid header parameter. The application allows directory traversal in the key file lookup. To solve: forge a valid admin token by forcing the server to use your malicious public key.",
+        "labScenario": "JWT kid header path traversal in microservice authentication",
+        "labDescription": "This lab's JWT verification microservice improperly validates the kid header parameter. The application allows directory traversal in the key file lookup. To solve: forge a valid admin token by forcing the server to use your malicious public key.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept a valid JWT using Burp Suite and decode it to analyze the kid header",
@@ -72,8 +72,8 @@
         ]
     },
     {
-        "Lab scenario": "Session swapping via GraphQL batch mutation",
-        "Lab Description": "This lab's GraphQL endpoint processes batch mutations with session state conflicts. The application fails to isolate session contexts between parallel operations. To solve: execute a batch mutation that swaps your session ID with an admin's active session.",
+        "labScenario": "Session swapping via GraphQL batch mutation",
+        "labDescription": "This lab's GraphQL endpoint processes batch mutations with session state conflicts. The application fails to isolate session contexts between parallel operations. To solve: execute a batch mutation that swaps your session ID with an admin's active session.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Use Postman to explore the GraphQL API and identify the session management mutations",
@@ -90,8 +90,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token hijack via insecure PKCE implementation",
-        "Lab Description": "This lab's OAuth flow implements PKCE security incorrectly. The application fails to bind the code_verifier to the authorization request. To solve: intercept an authorization code and redeem it without knowing the original code_challenge.",
+        "labScenario": "OAuth token hijack via insecure PKCE implementation",
+        "labDescription": "This lab's OAuth flow implements PKCE security incorrectly. The application fails to bind the code_verifier to the authorization request. To solve: intercept an authorization code and redeem it without knowing the original code_challenge.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Intercept the OAuth initiation request using OWASP ZAP and note the code_challenge",
@@ -108,8 +108,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT signature stripping via HTTP method tampering in REST API",
-        "Lab Description": "This lab's JWT validation endpoint is vulnerable to HTTP method manipulation. The application fails to verify signatures on HEAD requests while still returning privileged data. To solve: extract admin credentials by bypassing signature validation.",
+        "labScenario": "JWT signature stripping via HTTP method tampering in REST API",
+        "labDescription": "This lab's JWT validation endpoint is vulnerable to HTTP method manipulation. The application fails to verify signatures on HEAD requests while still returning privileged data. To solve: extract admin credentials by bypassing signature validation.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Intercept a valid JWT request using Burp Suite and change the method from GET to HEAD",
@@ -126,8 +126,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via misconfigured CORS in SPA authentication",
-        "Lab Description": "This lab's Single Page Application implements OAuth with overly permissive CORS headers. The application exposes access tokens to arbitrary origins through insecure response headers. To solve: craft a malicious website that steals OAuth tokens through cross-origin requests.",
+        "labScenario": "OAuth token leakage via misconfigured CORS in SPA authentication",
+        "labDescription": "This lab's Single Page Application implements OAuth with overly permissive CORS headers. The application exposes access tokens to arbitrary origins through insecure response headers. To solve: craft a malicious website that steals OAuth tokens through cross-origin requests.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Analyze OAuth flow using OWASP ZAP and note the Access-Control-Allow-Origin header",
@@ -144,8 +144,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation through GraphQL websocket subscriptions",
-        "Lab Description": "This lab's GraphQL over WebSocket implementation is vulnerable to session fixation during subscription initialization. The application accepts session identifiers from unauthenticated websocket connections. To solve: establish a websocket connection with a fixed session ID and trick an admin into using it.",
+        "labScenario": "Session fixation through GraphQL websocket subscriptions",
+        "labDescription": "This lab's GraphQL over WebSocket implementation is vulnerable to session fixation during subscription initialization. The application accepts session identifiers from unauthenticated websocket connections. To solve: establish a websocket connection with a fixed session ID and trick an admin into using it.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Use Postman to establish a GraphQL websocket connection and analyze the handshake",
@@ -162,8 +162,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT claim injection via nested JSON parsing in REST API",
-        "Lab Description": "This lab's JWT implementation improperly handles nested JSON objects in claims. The application fails to validate claim structures when using the 'none' algorithm. To solve: escalate privileges by injecting nested admin claims into a valid token.",
+        "labScenario": "JWT claim injection via nested JSON parsing in REST API",
+        "labDescription": "This lab's JWT implementation improperly handles nested JSON objects in claims. The application fails to validate claim structures when using the 'none' algorithm. To solve: escalate privileges by injecting nested admin claims into a valid token.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept a valid JWT using Burp Suite and decode its structure",
@@ -180,8 +180,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token hijack via state parameter reflection",
-        "Lab Description": "This lab's OAuth implementation reflects the state parameter without validation. The application echoes the state value in the redirect URL after authentication. To solve: craft a malicious state value that executes XSS when reflected to steal tokens.",
+        "labScenario": "OAuth token hijack via state parameter reflection",
+        "labDescription": "This lab's OAuth implementation reflects the state parameter without validation. The application echoes the state value in the redirect URL after authentication. To solve: craft a malicious state value that executes XSS when reflected to steal tokens.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Initiate OAuth flow using OWASP ZAP and observe state parameter handling",
@@ -198,8 +198,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via HTTP/2 header compression in REST API",
-        "Lab Description": "This lab's session management is vulnerable to HPACK compression attacks in HTTP/2. The application accepts session IDs from compressed headers without proper validation. To solve: fixate a session ID by manipulating header compression and trick an admin into using it.",
+        "labScenario": "Session fixation via HTTP/2 header compression in REST API",
+        "labDescription": "This lab's session management is vulnerable to HPACK compression attacks in HTTP/2. The application accepts session IDs from compressed headers without proper validation. To solve: fixate a session ID by manipulating header compression and trick an admin into using it.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Capture HTTP/2 traffic using Burp Suite with HTTP/2 and HTTP/History enabled",
@@ -216,8 +216,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT algorithm confusion via JWK header injection in REST API",
-        "Lab Description": "This lab's JWT implementation is vulnerable to algorithm confusion attacks through JWK header injection. The application verifies tokens using different algorithms based on the provided JWK header. To solve: forge a valid admin token by forcing the server to use a public key you control.",
+        "labScenario": "JWT algorithm confusion via JWK header injection in REST API",
+        "labDescription": "This lab's JWT implementation is vulnerable to algorithm confusion attacks through JWK header injection. The application verifies tokens using different algorithms based on the provided JWK header. To solve: forge a valid admin token by forcing the server to use a public key you control.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept a valid JWT using Burp Suite and analyze its structure",
@@ -234,8 +234,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token theft via OpenID configuration hijacking",
-        "Lab Description": "This lab's OAuth implementation dynamically loads OpenID configuration from an unverified location. The application follows redirects when fetching the OpenID configuration. To solve: hijack the configuration endpoint to point to your malicious server and steal authorization codes.",
+        "labScenario": "OAuth token theft via OpenID configuration hijacking",
+        "labDescription": "This lab's OAuth implementation dynamically loads OpenID configuration from an unverified location. The application follows redirects when fetching the OpenID configuration. To solve: hijack the configuration endpoint to point to your malicious server and steal authorization codes.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Use OWASP ZAP to intercept the OpenID configuration request",
@@ -252,8 +252,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via WebSocket connection ID reuse",
-        "Lab Description": "This lab's real-time API assigns session tokens based on WebSocket connection IDs. The application reuses connection IDs when connections are dropped unexpectedly. To solve: force a connection drop and predict the next connection ID to fixate a session.",
+        "labScenario": "Session fixation via WebSocket connection ID reuse",
+        "labDescription": "This lab's real-time API assigns session tokens based on WebSocket connection IDs. The application reuses connection IDs when connections are dropped unexpectedly. To solve: force a connection drop and predict the next connection ID to fixate a session.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Use Postman to establish a WebSocket connection and note the connection ID",
@@ -270,8 +270,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT public key injection via x5u header in microservice authentication",
-        "Lab Description": "This lab's JWT validation service improperly processes x5u headers that reference external X.509 certificates. The application fails to validate certificate sources when verifying signatures. To solve: forge an admin token by injecting your own certificate chain.",
+        "labScenario": "JWT public key injection via x5u header in microservice authentication",
+        "labDescription": "This lab's JWT validation service improperly processes x5u headers that reference external X.509 certificates. The application fails to validate certificate sources when verifying signatures. To solve: forge an admin token by injecting your own certificate chain.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept a valid JWT using Burp Suite and analyze the headers",
@@ -288,8 +288,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via iframe in response_mode=form_post",
-        "Lab Description": "This lab's OAuth implementation uses response_mode=form_post with insufficient frame busting. The application renders the token submission form in a way that allows iframe embedding. To solve: create a malicious page that loads the OAuth callback in an iframe to intercept the token.",
+        "labScenario": "OAuth token leakage via iframe in response_mode=form_post",
+        "labDescription": "This lab's OAuth implementation uses response_mode=form_post with insufficient frame busting. The application renders the token submission form in a way that allows iframe embedding. To solve: create a malicious page that loads the OAuth callback in an iframe to intercept the token.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Initiate OAuth flow using OWASP ZAP and observe response_mode behavior",
@@ -306,8 +306,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via HTTP/2 trailer headers in REST API",
-        "Lab Description": "This lab's session management is vulnerable to trailer header injection in HTTP/2. The application processes Set-Cookie headers from trailers after the request body. To solve: craft a request with malicious trailer headers to fixate a session ID.",
+        "labScenario": "Session fixation via HTTP/2 trailer headers in REST API",
+        "labDescription": "This lab's session management is vulnerable to trailer header injection in HTTP/2. The application processes Set-Cookie headers from trailers after the request body. To solve: craft a request with malicious trailer headers to fixate a session ID.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Capture HTTP/2 traffic using Burp Suite with 'Allow HTTP/2 ALPN override' enabled",
@@ -324,8 +324,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT alg:none bypass in REST API authentication",
-        "Lab Description": "The lab's JWT implementation fails to validate the algorithm properly. The application accepts unsigned tokens when alg:none is specified. To solve: forge a valid admin token by modifying your JWT without knowing the secret key.",
+        "labScenario": "JWT alg:none bypass in REST API authentication",
+        "labDescription": "The lab's JWT implementation fails to validate the algorithm properly. The application accepts unsigned tokens when alg:none is specified. To solve: forge a valid admin token by modifying your JWT without knowing the secret key.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Intercept a valid user session request with Burp Suite to capture the JWT",
@@ -342,8 +342,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via misconfigured redirect_uri",
-        "Lab Description": "The OAuth implementation fails to validate redirect_uri parameters properly. The application leaks authorization codes to arbitrary domains. To solve: steal an OAuth token by intercepting the authorization flow and modifying the redirect URI.",
+        "labScenario": "OAuth token leakage via misconfigured redirect_uri",
+        "labDescription": "The OAuth implementation fails to validate redirect_uri parameters properly. The application leaks authorization codes to arbitrary domains. To solve: steal an OAuth token by intercepting the authorization flow and modifying the redirect URI.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Initiate OAuth flow and intercept the /authorize request with Burp",
@@ -361,8 +361,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation in GraphQL authentication endpoint",
-        "Lab Description": "The GraphQL API assigns session tokens before authentication is complete. The application doesn't regenerate tokens after login. To solve: fixate a session token on victim then trigger authentication to gain access.",
+        "labScenario": "Session fixation in GraphQL authentication endpoint",
+        "labDescription": "The GraphQL API assigns session tokens before authentication is complete. The application doesn't regenerate tokens after login. To solve: fixate a session token on victim then trigger authentication to gain access.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Send an unauthenticated GraphQL query to obtain a session cookie",
@@ -380,8 +380,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT kid header path traversal in microservice authentication",
-        "Lab Description": "The JWT verification microservice improperly validates the kid (key ID) header parameter. The application allows directory traversal in key file lookup. To solve: forge a valid admin token by manipulating the kid header to reference a predictable local file.",
+        "labScenario": "JWT kid header path traversal in microservice authentication",
+        "labDescription": "The JWT verification microservice improperly validates the kid (key ID) header parameter. The application allows directory traversal in key file lookup. To solve: forge a valid admin token by manipulating the kid header to reference a predictable local file.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept a valid API request with Burp Suite to capture the JWT",
@@ -398,8 +398,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token swapping via insecure state parameter",
-        "Lab Description": "The OAuth implementation fails to properly validate the state parameter between requests. The application associates tokens with the wrong session if state changes mid-flow. To solve: intercept the OAuth flow and swap the state parameter to hijack another user's token.",
+        "labScenario": "OAuth token swapping via insecure state parameter",
+        "labDescription": "The OAuth implementation fails to properly validate the state parameter between requests. The application associates tokens with the wrong session if state changes mid-flow. To solve: intercept the OAuth flow and swap the state parameter to hijack another user's token.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Initiate OAuth login and intercept the /authorize request with OWASP ZAP",
@@ -416,8 +416,8 @@
         ]
     },
     {
-        "Lab scenario": "Session prediction via insecure cookie generation",
-        "Lab Description": "The application uses predictable session cookie generation based on timestamps. The cookie can be brute-forced by enumerating possible time values. To solve: predict an active admin session cookie by analyzing the cookie generation pattern.",
+        "labScenario": "Session prediction via insecure cookie generation",
+        "labDescription": "The application uses predictable session cookie generation based on timestamps. The cookie can be brute-forced by enumerating possible time values. To solve: predict an active admin session cookie by analyzing the cookie generation pattern.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Capture multiple session cookies with Burp Suite over time",
@@ -435,8 +435,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT public key substitution via jku header injection",
-        "Lab Description": "The JWT validation endpoint trusts arbitrary jku (JSON Key URL) headers. The application fails to verify the source of public keys. To solve: forge a valid admin token by hosting a malicious JWKS endpoint and injecting your public key.",
+        "labScenario": "JWT public key substitution via jku header injection",
+        "labDescription": "The JWT validation endpoint trusts arbitrary jku (JSON Key URL) headers. The application fails to verify the source of public keys. To solve: forge a valid admin token by hosting a malicious JWKS endpoint and injecting your public key.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept a valid JWT with Burp Suite and note the jku header",
@@ -453,8 +453,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token hijack via insecure PKCE implementation",
-        "Lab Description": "The OAuth provider fails to properly validate Proof Key for Code Exchange (PKCE) parameters. The application accepts authorization codes without matching code verifiers. To solve: steal an authorization code and exchange it for a token without knowing the original code_verifier.",
+        "labScenario": "OAuth token hijack via insecure PKCE implementation",
+        "labDescription": "The OAuth provider fails to properly validate Proof Key for Code Exchange (PKCE) parameters. The application accepts authorization codes without matching code verifiers. To solve: steal an authorization code and exchange it for a token without knowing the original code_verifier.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept OAuth flow with OWASP ZAP to capture authorization request",
@@ -471,8 +471,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via subdomain cookie scope",
-        "Lab Description": "The application sets session cookies with overly broad domain scope (.example.com). The cookie can be fixed across subdomains. To solve: obtain a session cookie from a vulnerable subdomain and reuse it on the target application.",
+        "labScenario": "Session fixation via subdomain cookie scope",
+        "labDescription": "The application sets session cookies with overly broad domain scope (.example.com). The cookie can be fixed across subdomains. To solve: obtain a session cookie from a vulnerable subdomain and reuse it on the target application.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Discover vulnerable subdomain (legacy.example.com) using Sublist3r",
@@ -489,8 +489,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT x5u header SSRF in microservice authentication",
-        "Lab Description": "The JWT validation service blindly trusts x5u header certificates from external URLs. The application fails to sanitize certificate fetch requests. To solve: forge an admin token by hosting a malicious X.509 certificate and exploiting SSRF in the certificate fetching process.",
+        "labScenario": "JWT x5u header SSRF in microservice authentication",
+        "labDescription": "The JWT validation service blindly trusts x5u header certificates from external URLs. The application fails to sanitize certificate fetch requests. To solve: forge an admin token by hosting a malicious X.509 certificate and exploiting SSRF in the certificate fetching process.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept a valid JWT with Burp Suite and note the x5u header",
@@ -507,8 +507,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via insecure fragment redirect",
-        "Lab Description": "The OAuth implementation leaks access tokens in URL fragments during redirects. The application fails to properly handle the response_type=token flow. To solve: intercept the redirect and extract the token from the fragment before the client-side JavaScript processes it.",
+        "labScenario": "OAuth token leakage via insecure fragment redirect",
+        "labDescription": "The OAuth implementation leaks access tokens in URL fragments during redirects. The application fails to properly handle the response_type=token flow. To solve: intercept the redirect and extract the token from the fragment before the client-side JavaScript processes it.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Initiate OAuth flow with response_type=token using Postman",
@@ -525,8 +525,8 @@
         ]
     },
     {
-        "Lab scenario": "Session hijacking via WebSocket authentication bypass",
-        "Lab Description": "The application authenticates WebSocket connections using predictable session tokens. The WebSocket endpoint fails to validate token origin. To solve: predict or intercept a WebSocket session token and hijack an active session.",
+        "labScenario": "Session hijacking via WebSocket authentication bypass",
+        "labDescription": "The application authenticates WebSocket connections using predictable session tokens. The WebSocket endpoint fails to validate token origin. To solve: predict or intercept a WebSocket session token and hijack an active session.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Capture WebSocket handshake requests with OWASP ZAP",
@@ -543,8 +543,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT alg:none exploitation in REST API authentication",
-        "Lab Description": "The application uses JSON Web Tokens with improper signature validation. The vulnerable endpoint accepts unsigned tokens when the alg header is set to 'none'. To solve: forge an administrative JWT by removing the signature and modifying claims.",
+        "labScenario": "JWT alg:none exploitation in REST API authentication",
+        "labDescription": "The application uses JSON Web Tokens with improper signature validation. The vulnerable endpoint accepts unsigned tokens when the alg header is set to 'none'. To solve: forge an administrative JWT by removing the signature and modifying claims.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Intercept valid JWT in Burp Suite while browsing authenticated sections",
@@ -561,8 +561,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via misconfigured redirect_uri in social login",
-        "Lab Description": "The application's OAuth implementation fails to validate redirect_uri parameters properly, allowing authorization code interception. The vulnerable flow leaks tokens to attacker-controlled domains. To solve: steal authorization code by manipulating redirect_uri and exchange it for access token.",
+        "labScenario": "OAuth token leakage via misconfigured redirect_uri in social login",
+        "labDescription": "The application's OAuth implementation fails to validate redirect_uri parameters properly, allowing authorization code interception. The vulnerable flow leaks tokens to attacker-controlled domains. To solve: steal authorization code by manipulating redirect_uri and exchange it for access token.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Initiate OAuth flow and intercept /authorize request in Burp Suite",
@@ -580,8 +580,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via unsafe session regeneration in GraphQL endpoint",
-        "Lab Description": "The application's GraphQL API maintains sessions after password changes without proper invalidation. The vulnerable mutation allows maintaining active sessions post-authentication changes. To solve: fixate session on victim account before password change, then reuse session.",
+        "labScenario": "Session fixation via unsafe session regeneration in GraphQL endpoint",
+        "labDescription": "The application's GraphQL API maintains sessions after password changes without proper invalidation. The vulnerable mutation allows maintaining active sessions post-authentication changes. To solve: fixate session on victim account before password change, then reuse session.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Capture session cookie during account registration using OWASP ZAP",
@@ -599,8 +599,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT kid header path traversal in microservice authentication",
-        "Lab Description": "The application's JWT validation improperly uses user-controlled kid header to load verification keys from filesystem. The vulnerable implementation allows directory traversal via kid parameter. To solve: forge admin token by forcing system to use attacker-controlled public key.",
+        "labScenario": "JWT kid header path traversal in microservice authentication",
+        "labDescription": "The application's JWT validation improperly uses user-controlled kid header to load verification keys from filesystem. The vulnerable implementation allows directory traversal via kid parameter. To solve: forge admin token by forcing system to use attacker-controlled public key.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept valid JWT in Burp Suite and note kid header value",
@@ -617,8 +617,8 @@
         ]
     },
     {
-        "Lab scenario": "Session hijacking via WebSocket connection hijack",
-        "Lab Description": "The application's WebSocket handshake fails to validate session transition from HTTP to WS protocol. The vulnerable implementation accepts existing HTTP cookies without re-authentication. To solve: hijack active session by intercepting WebSocket upgrade request.",
+        "labScenario": "Session hijacking via WebSocket connection hijack",
+        "labDescription": "The application's WebSocket handshake fails to validate session transition from HTTP to WS protocol. The vulnerable implementation accepts existing HTTP cookies without re-authentication. To solve: hijack active session by intercepting WebSocket upgrade request.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Capture WebSocket connection sequence using OWASP ZAP",
@@ -635,8 +635,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token swapping via insecure state parameter",
-        "Lab Description": "The application's OAuth flow fails to properly validate state parameter between requests. The vulnerable implementation allows swapping authorization codes between clients. To solve: intercept victim's auth code and associate it with attacker's session.",
+        "labScenario": "OAuth token swapping via insecure state parameter",
+        "labDescription": "The application's OAuth flow fails to properly validate state parameter between requests. The vulnerable implementation allows swapping authorization codes between clients. To solve: intercept victim's auth code and associate it with attacker's session.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Initiate OAuth flow and capture state parameter in Burp Suite",
@@ -654,8 +654,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT algorithm confusion attack in REST API authentication",
-        "Lab Description": "The application's JWT implementation fails to validate the algorithm specified in the token header against the server's expected algorithm. The vulnerable endpoint accepts RS256-signed tokens when configured for HS256. To solve: forge a valid JWT by converting public key to HMAC secret.",
+        "labScenario": "JWT algorithm confusion attack in REST API authentication",
+        "labDescription": "The application's JWT implementation fails to validate the algorithm specified in the token header against the server's expected algorithm. The vulnerable endpoint accepts RS256-signed tokens when configured for HS256. To solve: forge a valid JWT by converting public key to HMAC secret.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Intercept valid JWT in Burp Suite and decode to identify RS256 algorithm",
@@ -672,8 +672,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via GraphQL mutation race condition",
-        "Lab Description": "The application's GraphQL mutation for session generation contains a race condition when multiple requests are sent simultaneously. The vulnerable implementation allows session tokens to remain valid after password changes. To solve: fixate session token during password reset and maintain access.",
+        "labScenario": "Session fixation via GraphQL mutation race condition",
+        "labDescription": "The application's GraphQL mutation for session generation contains a race condition when multiple requests are sent simultaneously. The vulnerable implementation allows session tokens to remain valid after password changes. To solve: fixate session token during password reset and maintain access.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Identify session mutation in GraphQL introspection using Postman",
@@ -691,8 +691,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via verbose error messages",
-        "Lab Description": "The application's OAuth token endpoint leaks sensitive information through detailed error responses. The vulnerable implementation reveals valid tokens in error messages during race conditions. To solve: trigger token leakage through concurrent requests and harvest valid tokens.",
+        "labScenario": "OAuth token leakage via verbose error messages",
+        "labDescription": "The application's OAuth token endpoint leaks sensitive information through detailed error responses. The vulnerable implementation reveals valid tokens in error messages during race conditions. To solve: trigger token leakage through concurrent requests and harvest valid tokens.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Intercept OAuth token request in Burp Suite",
@@ -710,8 +710,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT claim injection via unverified header parameters in REST API",
-        "Lab Description": "The application's JWT validation fails to verify all header parameters while processing tokens. The vulnerable implementation allows injecting custom claims through unverified header parameters. To solve: escalate privileges by injecting admin claims through custom headers.",
+        "labScenario": "JWT claim injection via unverified header parameters in REST API",
+        "labDescription": "The application's JWT validation fails to verify all header parameters while processing tokens. The vulnerable implementation allows injecting custom claims through unverified header parameters. To solve: escalate privileges by injecting admin claims through custom headers.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "Intercept valid JWT in Burp Suite and decode to analyze structure",
@@ -728,8 +728,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via WebSocket subprotocol negotiation",
-        "Lab Description": "The application's WebSocket implementation assigns sessions during subprotocol negotiation without proper validation. The vulnerable handshake process allows session fixation through crafted subprotocol headers. To solve: fixate session ID during WS connection and hijack authenticated session.",
+        "labScenario": "Session fixation via WebSocket subprotocol negotiation",
+        "labDescription": "The application's WebSocket implementation assigns sessions during subprotocol negotiation without proper validation. The vulnerable handshake process allows session fixation through crafted subprotocol headers. To solve: fixate session ID during WS connection and hijack authenticated session.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Capture WebSocket handshake in OWASP ZAP",
@@ -746,8 +746,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via insecure PKCE implementation",
-        "Lab Description": "The application's OAuth PKCE flow fails to properly validate code verifier against code challenge. The vulnerable implementation allows bypassing PKCE protection through parameter manipulation. To solve: steal authorization code by intercepting and replaying requests with modified parameters.",
+        "labScenario": "OAuth token leakage via insecure PKCE implementation",
+        "labDescription": "The application's OAuth PKCE flow fails to properly validate code verifier against code challenge. The vulnerable implementation allows bypassing PKCE protection through parameter manipulation. To solve: steal authorization code by intercepting and replaying requests with modified parameters.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "Initiate OAuth flow and capture PKCE parameters in Burp Suite",
@@ -765,8 +765,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT alg:none bypass in REST API authentication",
-        "Lab Description": "This lab's JWT implementation fails to validate the algorithm properly. The application accepts unsigned tokens when the alg header is set to 'none'. To solve: forge an admin token by modifying your JWT without knowing the secret key.",
+        "labScenario": "JWT alg:none bypass in REST API authentication",
+        "labDescription": "This lab's JWT implementation fails to validate the algorithm properly. The application accepts unsigned tokens when the alg header is set to 'none'. To solve: forge an admin token by modifying your JWT without knowing the secret key.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "1. Log in as a regular user and capture the JWT in Burp Suite",
@@ -783,8 +783,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via misconfigured redirect_uri",
-        "Lab Description": "This lab's OAuth implementation fails to validate redirect URIs properly. The application leaks authorization codes to arbitrary domains. To solve: steal an OAuth code from the victim user and exchange it for an access token.",
+        "labScenario": "OAuth token leakage via misconfigured redirect_uri",
+        "labDescription": "This lab's OAuth implementation fails to validate redirect URIs properly. The application leaks authorization codes to arbitrary domains. To solve: steal an OAuth code from the victim user and exchange it for an access token.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "1. Intercept the OAuth flow in Burp Suite and note the redirect_uri parameter",
@@ -801,8 +801,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via GraphQL mutation",
-        "Lab Description": "This lab's GraphQL endpoint allows setting arbitrary session IDs through a mutation. The application doesn't regenerate session IDs after authentication. To solve: fixate a session ID and trick an admin into authenticating with it.",
+        "labScenario": "Session fixation via GraphQL mutation",
+        "labDescription": "This lab's GraphQL endpoint allows setting arbitrary session IDs through a mutation. The application doesn't regenerate session IDs after authentication. To solve: fixate a session ID and trick an admin into authenticating with it.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "1. Use Postman to send a SetSession mutation with a predictable session ID",
@@ -819,8 +819,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT kid header path traversal in microservice authentication",
-        "Lab Description": "This lab's JWT validation improperly processes the kid header, allowing path traversal to arbitrary verification keys. The application blindly trusts the kid parameter when loading verification keys. To solve: forge a valid admin token by forcing the system to use a predictable public key.",
+        "labScenario": "JWT kid header path traversal in microservice authentication",
+        "labDescription": "This lab's JWT validation improperly processes the kid header, allowing path traversal to arbitrary verification keys. The application blindly trusts the kid parameter when loading verification keys. To solve: forge a valid admin token by forcing the system to use a predictable public key.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "1. Capture a valid JWT using Burp Suite and decode its headers",
@@ -837,8 +837,8 @@
         ]
     },
     {
-        "Lab scenario": "Session swapping via concurrent SOAP requests",
-        "Lab Description": "This lab's SOAP API maintains session state improperly during concurrent requests. The application processes authentication and session updates asynchronously. To solve: perform a race condition attack to swap a low-privilege session with an admin session before authorization checks complete.",
+        "labScenario": "Session swapping via concurrent SOAP requests",
+        "labDescription": "This lab's SOAP API maintains session state improperly during concurrent requests. The application processes authentication and session updates asynchronously. To solve: perform a race condition attack to swap a low-privilege session with an admin session before authorization checks complete.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "1. Capture valid login and session update requests in OWASP ZAP",
@@ -855,8 +855,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token hijacking via insecure PKCE implementation",
-        "Lab Description": "This lab's OAuth flow implements PKCE security incorrectly by not verifying the code_challenge method. The application accepts arbitrary code_verifier values after authorization. To solve: intercept the authorization code and redeem it with a brute-forced code_verifier.",
+        "labScenario": "OAuth token hijacking via insecure PKCE implementation",
+        "labDescription": "This lab's OAuth flow implements PKCE security incorrectly by not verifying the code_challenge method. The application accepts arbitrary code_verifier values after authorization. To solve: intercept the authorization code and redeem it with a brute-forced code_verifier.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "1. Initiate OAuth flow and capture authorization code in Burp",
@@ -873,8 +873,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT public key substitution via jku header injection",
-        "Lab Description": "This lab's JWT implementation trusts arbitrary jku (JWK Set URL) headers for key verification. The application fails to validate the jku domain against an allowlist. To solve: host a malicious JWK Set and forge an admin token by forcing the server to use your public key.",
+        "labScenario": "JWT public key substitution via jku header injection",
+        "labDescription": "This lab's JWT implementation trusts arbitrary jku (JWK Set URL) headers for key verification. The application fails to validate the jku domain against an allowlist. To solve: host a malicious JWK Set and forge an admin token by forcing the server to use your public key.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "1. Capture a valid JWT using Burp Suite and decode its headers",
@@ -891,8 +891,8 @@
         ]
     },
     {
-        "Lab scenario": "Session token leakage via GraphQL introspection",
-        "Lab Description": "This lab's GraphQL endpoint has introspection enabled and leaks session tokens through error messages. The application improperly handles authentication errors in the GraphQL resolver. To solve: extract valid session tokens from verbose error responses and hijack an admin session.",
+        "labScenario": "Session token leakage via GraphQL introspection",
+        "labDescription": "This lab's GraphQL endpoint has introspection enabled and leaks session tokens through error messages. The application improperly handles authentication errors in the GraphQL resolver. To solve: extract valid session tokens from verbose error responses and hijack an admin session.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "1. Use Postman to send malformed GraphQL queries triggering errors",
@@ -909,8 +909,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token theft via open redirect with fragment",
-        "Lab Description": "This lab's OAuth implementation is vulnerable to token leakage through an open redirect that preserves URL fragments. The application passes access tokens in the fragment during redirects but doesn't validate the target domain. To solve: craft a malicious redirect URL that captures the token fragment.",
+        "labScenario": "OAuth token theft via open redirect with fragment",
+        "labDescription": "This lab's OAuth implementation is vulnerable to token leakage through an open redirect that preserves URL fragments. The application passes access tokens in the fragment during redirects but doesn't validate the target domain. To solve: craft a malicious redirect URL that captures the token fragment.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "1. Initiate OAuth flow and intercept the redirect in Burp Suite",
@@ -927,8 +927,8 @@
         ]
     },
     {
-        "Lab scenario": "Session fixation via WebSocket handshake",
-        "Lab Description": "This lab's WebSocket implementation assigns session tokens during the handshake process without proper validation. The application accepts arbitrary session tokens in the WS upgrade request headers. To solve: fixate a session token and trick an admin into authenticating with it via WebSocket communication.",
+        "labScenario": "Session fixation via WebSocket handshake",
+        "labDescription": "This lab's WebSocket implementation assigns session tokens during the handshake process without proper validation. The application accepts arbitrary session tokens in the WS upgrade request headers. To solve: fixate a session token and trick an admin into authenticating with it via WebSocket communication.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
             "1. Use OWASP ZAP to intercept WebSocket connections",
@@ -945,8 +945,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT timestamp manipulation via nbf claim",
-        "Lab Description": "This lab's JWT validation improperly handles the 'nbf' (not before) claim when the server clock is skewed. The application fails to verify the timestamp against a trusted time source. To solve: forge a token with a future nbf claim and exploit clock drift to gain premature access.",
+        "labScenario": "JWT timestamp manipulation via nbf claim",
+        "labDescription": "This lab's JWT validation improperly handles the 'nbf' (not before) claim when the server clock is skewed. The application fails to verify the timestamp against a trusted time source. To solve: forge a token with a future nbf claim and exploit clock drift to gain premature access.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "1. Capture a valid JWT using Burp Suite and decode it",
@@ -963,8 +963,8 @@
         ]
     },
     {
-        "Lab scenario": "OAuth token leakage via mixed content",
-        "Lab Description": "This lab's OAuth implementation serves token responses over HTTP when initiated from HTTPS pages. The application fails to enforce strict transport security for token endpoints. To solve: perform a MITM attack to intercept tokens when victims visit mixed-content pages.",
+        "labScenario": "OAuth token leakage via mixed content",
+        "labDescription": "This lab's OAuth implementation serves token responses over HTTP when initiated from HTTPS pages. The application fails to enforce strict transport security for token endpoints. To solve: perform a MITM attack to intercept tokens when victims visit mixed-content pages.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
             "1. Identify OAuth endpoints loading over HTTP using Burp Suite",
@@ -981,8 +981,8 @@
         ]
     },
     {
-        "Lab scenario": "JWT tampering due to lack of signature validation",
-        "Lab Description": "This application's authentication mechanism uses JSON Web Tokens (JWTs) to manage user sessions. However, the backend fails to validate the signature of the JWT during decoding. The application trusts the payload content blindly. To solve: craft a tampered JWT to escalate from a regular user to admin and access the admin dashboard.",
+        "labScenario": "JWT tampering due to lack of signature validation",
+        "labDescription": "This application's authentication mechanism uses JSON Web Tokens (JWTs) to manage user sessions. However, the backend fails to validate the signature of the JWT during decoding. The application trusts the payload content blindly. To solve: craft a tampered JWT to escalate from a regular user to admin and access the admin dashboard.",
         "Difficulty Level": "Medium",
         "Solution Steps": [
           "Capture the JWT token issued after logging in as a regular user using Burp Suite's Proxy.",
@@ -1000,8 +1000,8 @@
         ]
       },
       {
-        "Lab scenario": "Session fixation via predictable session ID in URL",
-        "Lab Description": "This application uses a custom session ID passed via the URL as a GET parameter. The backend sets the session without validating ownership, enabling an attacker to force a session ID on a victim before login. To solve: fix a session for Carlos, trick him into logging in, then reuse the session ID to hijack his account.",
+        "labScenario": "Session fixation via predictable session ID in URL",
+        "labDescription": "This application uses a custom session ID passed via the URL as a GET parameter. The backend sets the session without validating ownership, enabling an attacker to force a session ID on a victim before login. To solve: fix a session for Carlos, trick him into logging in, then reuse the session ID to hijack his account.",
         "Difficulty Level": "Hard",
         "Solution Steps": [
           "Use Burp Suite to generate a new session by visiting /login?session_id=attacker123.",

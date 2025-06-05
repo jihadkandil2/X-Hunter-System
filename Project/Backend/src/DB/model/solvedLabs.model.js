@@ -3,7 +3,7 @@ import mongoose, {Schema , model} from 'mongoose';
 const solvedLabsSchema= new Schema(
     {
         userId: { type:  Schema.Types.ObjectId,ref:'User' , required: true },
-        labs: [{ type: Schema.Types.ObjectId, ref: 'Lab' }]
+        labs: [  {lab:{ type: Schema.Types.ObjectId, ref: 'Lab' } , solvedAt:{type:Date , default:Date.now()}}]
     },{ timestamps: true }
 )
 

@@ -12,8 +12,8 @@ const getSolvedLabsByUserId = async (req, res, next) => {
 
         const allSolvedLabs = await solvedLabs.find({ userId: userId });
         if (!allSolvedLabs || allSolvedLabs[0].labs.length === 0) {
-            return res.status(200).json({
-                status: "success",
+            return res.status(404).json({
+                status: "fail",
                 message: "No labs solved yet",
                 totalLastYear: 0,
                 totalLastMonth: 0

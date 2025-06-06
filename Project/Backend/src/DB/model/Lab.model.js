@@ -8,7 +8,8 @@ import mongoose, {Schema , model} from 'mongoose';
     SolutionSteps: { type: [String], required: true },
     labLevel: { type: String, required: true },
     srcCode: { type: String },
-    payloads: { type: [String] }
+    payloads: { type: [String] },
+    liveUrl: { type: String },
     }, { timestamps: true }
 )
  const Lab= model('Lab' , labSchema)|| mongoose.models.Lab  ;

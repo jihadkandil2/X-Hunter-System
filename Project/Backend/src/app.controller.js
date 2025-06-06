@@ -6,6 +6,7 @@ import analysisController from '../src/modules/analysisAI/analysisAI.controller.
 import labController from '../src/modules/lab/lab.controller.js'
 import userController from '../src/modules/user/user.controller.js'
 import solvedLabsController from '../src/modules/solvedLabs/solvedLabs.controller.js'
+import opendLabController from '../src/modules/openedLabs/openedLabs.controller.js'
 import { updateActivity } from "./middleWare/auth.middleware.js";
 const bootstrap=(app,express)=>{
     app.use(express.json());
@@ -24,6 +25,7 @@ const bootstrap=(app,express)=>{
     app.use('/labs' , labController)
     app.use('/user' ,userController)
     app.use('/solved' , solvedLabsController)
+    app.use('/opened' , opendLabController)
 
 
     app.all('*' , (req,res,next)=>{

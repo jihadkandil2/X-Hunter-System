@@ -57,8 +57,8 @@ export const login=async(req,res,next)=>{
         }
        const token =jwt.sign({id:user._id , isloggedIn:true , role} ,
         user.role==userRoles.admin?process.env.TOKEN_SIGNATURE_ADMIN :process.env.TOKEN_SIGNATURE ,
-        {expiresIn:"1h"})
-        user.lastLogin = new Date();
+        {expiresIn:"11h"})
+        user.lastLogin = Date.now();
         user.isOnline = true;
         await user.save();
         

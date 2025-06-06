@@ -1,5 +1,6 @@
 import solvedLabs from "../../../DB/model/solvedLabs.model.js";
 import Lab from "../../../DB/model/Lab.model.js";
+import OpenedLabs from "../../../DB/model/openedLabs.js";
 const addSolvedLab= async(req , res , next)=>{
     try {
         const userId=req.user.id;
@@ -23,7 +24,12 @@ const addSolvedLab= async(req , res , next)=>{
               { $addToSet: { labs: { lab: labId, solvedAt: new Date() } } },
              { new: true, upsert: true }
             )
-        
+            let checkIfLabInOpened= await OpenedLabs.findOne({userId:userId ,labs:labId })
+            if(checkIfLabInOpened){
+             let removeSolvedLabFromOpened= await OpenedLabs.findOneAndDelete({userId:userId , labs:labId} , {new:true})
+             console.log('removed lab: ' + removeSolvedLabFromOpened);
+            }
+            
             return res.status(201).json({status:'success' , solvedLab })
         
         

@@ -58,9 +58,9 @@ const addLab=async(req,res,next)=>{
             { upsert: true, new: true, setDefaultsOnInsert: true }
         );
         const labsData = jsonData.labs.map(lab => ({ ...lab, vulnerability: vulnerability._id }));
-        const insertedLabs = await Lab.insertMany(labsData);
-        await Vulnerability.findByIdAndUpdate(vulnerability._id, { $push: { labs: { $each: insertedLabs.map(lab => lab._id) } } });//.map(lab => lab.labScenario)
-        console.log(`Added ${insertedLabs.length} labs to ${vulnerability.name}`);
+        // const insertedLabs = await Lab.insertMany(labsData);
+        // await Vulnerability.findByIdAndUpdate(vulnerability._id, { $push: { labs: { $each: insertedLabs.map(lab => lab._id) } } });
+        // console.log(`Added ${insertedLabs.length} labs to ${vulnerability.name}`);
         return res.json({vulnerabilityName:jsonData.labs[0].vulnerabilityName})
     } catch (error) {
            console.error("Error:", error);

@@ -5,11 +5,12 @@ import Lab from "../../../DB/model/Lab.model.js";
 
 export const getSolvedLabLevelStats = async () => {
   const allSolvedLabs = await solvedLabs.find();
+  
 
   const labIdSet = new Set();
   for (const doc of allSolvedLabs) {
-    doc.labs.forEach(labId => labIdSet.add(labId.toString()));
-  }
+  doc.labs.forEach(lab => labIdSet.add(lab.lab.toString()));
+}
   const uniqueLabIds = [...labIdSet];
 
   const labLevels = await Lab.find(

@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { FaPaperPlane, FaSave } from "react-icons/fa";
 import axios from "axios";
-import Navbar from "../Navbar/Navbar";
+import Swal from "sweetalert2";
 import "./AdminChat.css";
-import "../Homepage/Homepage.css"
+import "../Homepage/Homepage.css";
 import Adminside from "../Adminside/Adminside";
+
+
 function AdminChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [labs, setLabs] = useState([]);
   const [selectedLabs, setSelectedLabs] = useState([]);
+  const [isAdding, setIsAdding] = useState(false);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -24,7 +27,7 @@ function AdminChat() {
       });
 
       const data = res.data.extractedLabs;
-      
+
       if (data.length === 0) {
         setMessages((prev) => [...prev, { type: "bot", text: "No labs found for this vulnerability." }]);
       } else {
@@ -38,9 +41,9 @@ function AdminChat() {
   };
 
   const handleLabSelection = (labId) => {
-    setSelectedLabs(prev => 
-      prev.includes(labId) 
-        ? prev.filter(id => id !== labId) 
+    setSelectedLabs(prev =>
+      prev.includes(labId)
+        ? prev.filter(id => id !== labId)
         : [...prev, labId]
     );
   };
@@ -48,30 +51,45 @@ function AdminChat() {
   const addLabs = async () => {
     if (selectedLabs.length === 0) return;
 
+    setIsAdding(true);
+
     try {
+      const labsToSend = labs
+        .filter((lab) => selectedLabs.includes(lab._id))
+        .map(({ _id, ...rest }) => rest);
+
       const res = await axios.post("http://localhost:3000/labs/add", {
-        labIds: selectedLabs,
+        labs: labsToSend,
       });
 
-      if (res.data.success) {
+      if (res.data.vulnerabilityName) {
         setMessages((prev) => [...prev, { type: "bot", text: "Labs added successfully!" }]);
+        Swal.fire({
+          icon: "success",
+          title: `Labs Added!`,
+          text: `Labs for ${res.data.vulnerabilityName} added successfully.`,
+          confirmButtonColor: "#1D3044"
+        });
         setSelectedLabs([]);
         setLabs([]);
+     
+
       }
     } catch (error) {
       console.error("Error adding labs:", error);
       setMessages((prev) => [...prev, { type: "bot", text: `{ "error": "Failed to add labs." }` }]);
+
+    } finally {
+      setIsAdding(false);
     }
   };
 
   return (
-    <div className=" homepage-background admin-chat-container">
+    <div className="homepage-background admin-chat-container">
       <Adminside />
 
       <div className="chat-content ">
         <h2 className="text-2xl font-bold mb-6 text-white text-center mt-4">Generate Labs</h2>
-        
-    
 
         {/* Messages Container */}
         <div className="messages-container">
@@ -89,7 +107,7 @@ function AdminChat() {
               <div className="mt-6 space-y-4">
                 <p className="text-sm font-semibold mb-4 text-gray-300">Select labs to add:</p>
                 {labs.map((lab) => (
-                  <div 
+                  <div
                     key={lab._id}
                     className={`lab-item p-4 rounded-md ${
                       selectedLabs.includes(lab._id)
@@ -109,9 +127,9 @@ function AdminChat() {
                           <h3 className="font-medium text-[#5DB717]">
                             {lab.vulnerabilityName}
                           </h3>
-                          <span 
+                          <span
                             className={`text-xs font-semibold px-2 py-1 rounded ${
-                              lab.labLevel === 'easy' 
+                              lab.labLevel === 'easy'
                                 ? 'bg-green-800/30 text-green-400'
                                 : lab.labLevel === 'medium'
                                 ? 'bg-yellow-800/30 text-yellow-400'
@@ -131,12 +149,13 @@ function AdminChat() {
             )}
           </div>
         </div>
-            {/* Input Section */}
-            <div className="input-section">
+
+        {/* Input Section */}
+        <div className="input-section">
           <div className="flex gap-3">
             <input
               type="text"
-              value={input}
+              value={input || ""}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               placeholder="Enter vulnerability name..."
@@ -153,10 +172,11 @@ function AdminChat() {
           {labs.length > 0 && (
             <button
               onClick={addLabs}
+              disabled={isAdding}
               className="mt-4 w-full py-3 rounded-md bg-[#5DB717] hover:bg-[#4da314] transition-colors flex items-center justify-center gap-2"
             >
               <FaSave className="w-5 h-5" />
-              <span>Add Selected Labs ({selectedLabs.length})</span>
+              <span>{isAdding ? "Adding..." : `Add Selected Labs (${selectedLabs.length})`}</span>
             </button>
           )}
         </div>

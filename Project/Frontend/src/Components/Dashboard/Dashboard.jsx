@@ -51,9 +51,9 @@ axios
         />
 
        <ProblemSolvingChart
-        easy={parseFloat(stats.solvedPercentage?.easy) || 0}
-        medium={parseFloat(stats.solvedPercentage?.medium) || 0} 
-        hard={parseFloat(stats.solvedPercentage?.hard) || 0}
+        easy={parseFloat(stats.solvedPercentage?.Easy) || 0}
+        medium={parseFloat(stats.solvedPercentage?.Medium) || 0} 
+        hard={parseFloat(stats.solvedPercentage?.Hard) || 0}
        />
 
       </div>

@@ -1,20 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
 import "./Navbar.css";
 
 function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isHomeDropdownOpen, setIsHomeDropdownOpen] = useState(false);
-  const navigate = useNavigate();
+  const [selectedLabView, setSelectedLabView] = useState("All labs");
 
-  // إغلاق جميع القوائم عند النقر خارجها
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ تحديث اسم العرض حسب الرابط الحالي
+  useEffect(() => {
+    if (location.pathname.includes("/labs/opened")) {
+      setSelectedLabView("Opened labs");
+    } else if (location.pathname.includes("/home")) {
+      setSelectedLabView("All labs");
+    }
+  }, [location.pathname]);
+
   const closeAllDropdowns = () => {
     setIsHomeDropdownOpen(false);
     setIsProfileOpen(false);
   };
 
-  // إغلاق القوائم عند النقر في أي مكان في الصفحة
   useEffect(() => {
     document.addEventListener("click", closeAllDropdowns);
     return () => document.removeEventListener("click", closeAllDropdowns);
@@ -33,23 +43,43 @@ function Navbar() {
         <div className="nav-links">
           {/* Home Dropdown */}
           <div className="dropdown-container">
-            <button 
+            <button
               onClick={(e) => {
-                e.stopPropagation(); // منع انتشار الحدث
+                e.stopPropagation();
                 setIsHomeDropdownOpen(!isHomeDropdownOpen);
               }}
               className="dropdown-trigger"
             >
-              All labs
+              {selectedLabView}
             </button>
-            
+
             {isHomeDropdownOpen && (
-              <div 
+              <div
                 className="dropdown-menu"
-                onClick={(e) => e.stopPropagation()} // منع إغلاق القائمة عند النقر داخلها
+                onClick={(e) => e.stopPropagation()}
               >
-                <Link to="/home" onClick={closeAllDropdowns}>All labs</Link>
-                <Link to="/labs/opened" onClick={closeAllDropdowns}>Opened labs</Link>
+                <Link
+                  to="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedLabView("All labs");
+                    navigate("/home");
+                    closeAllDropdowns();
+                  }}
+                >
+                  All labs
+                </Link>
+                <Link
+                  to="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedLabView("Opened labs");
+                    navigate("/labs/opened");
+                    closeAllDropdowns();
+                  }}
+                >
+                  Opened labs
+                </Link>
               </div>
             )}
           </div>
@@ -63,22 +93,26 @@ function Navbar() {
 
           {/* Profile Dropdown */}
           <div className="profile-menu">
-            <button 
+            <button
               onClick={(e) => {
-                e.stopPropagation(); // منع انتشار الحدث
+                e.stopPropagation();
                 setIsProfileOpen(!isProfileOpen);
-              }} 
+              }}
               className="profile-icon"
             >
               <FaUser className="icon" />
             </button>
             {isProfileOpen && (
-              <div 
+              <div
                 className="dropdown-menu"
                 onClick={(e) => e.stopPropagation()}
               >
-                <Link to="/update-account" onClick={closeAllDropdowns}>Update Account</Link>
-                <Link to="/delete-account" onClick={closeAllDropdowns}>Delete Account</Link>
+                <Link to="/update-account" onClick={closeAllDropdowns}>
+                  Update Account
+                </Link>
+                <Link to="/delete-account" onClick={closeAllDropdowns}>
+                  Delete Account
+                </Link>
               </div>
             )}
           </div>
@@ -89,3 +123,4 @@ function Navbar() {
 }
 
 export default Navbar;
+

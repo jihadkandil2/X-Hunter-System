@@ -13,6 +13,7 @@ import ManageLabs from "./Components/Mangelabs/Managelabs";
 import EditLabs from "./Components/Editlabs/Editlabs";
 import Dashboard from "./Components/Dashboard/Dashboard";
 import Userdash from "./Components/Userdash/Userdash";
+import Openedlabs from "./Components/Openedlabs/Openedlabs";
 
 function App() {
   const role = localStorage.getItem("role");
@@ -31,7 +32,7 @@ function App() {
         <Route path="/generate-labs" element={<AdminChat />} />
         <Route path="/manage-labs" element={<ManageLabs />} />
         <Route path="/edit-lab/:id" element={<EditLabs />} />
-        
+        <Route path="/labs/opened" element={<Openedlabs />} />
         <Route
           path="/dashboard"
           element={role === "admin" ? <Dashboard /> : <Userdash />}

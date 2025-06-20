@@ -1,33 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 import "./Heatmapcard.css";
 
-const Heatmapcard = ({ activityData = [] }) => {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
-  const dummyActivityData = [
-    { date: "2025-01-05", count: 1 },
-    { date: "2025-02-03", count: 3 },
-    { date: "2025-04-15", count: 2 },
-    { date: "2025-05-20", count: 4 },
-    { date: "2025-06-10", count: 5 },
-    { date: "2025-07-01", count: 2 },
-  ];
-
-  const filteredData = dummyActivityData.filter((entry) => {
-    const date = new Date(entry.date);
-    return date.getFullYear() === selectedYear;
-  });
-
-  const summaryStats = {
-    totalSolved: 151,
-    solvedLastYear: 0,
-    solvedLastMonth: 151,
-    streakAllTime: 6,
-    streakLastYear: 0,
-    streakLastMonth: 0,
-  };
+const Heatmapcard = ({ heatmapData = [], stats = {}, selectedYear, onYearChange }) => {
+  const filteredData = Array.isArray(heatmapData)
+    ? heatmapData.filter((entry) => {
+        const date = new Date(entry.date);
+        return date.getFullYear() === selectedYear;
+      })
+    : [];
 
   return (
     <div className="heatmap-container p-4 bg-[#0b0f12] rounded-xl shadow-lg">
@@ -38,7 +20,7 @@ const Heatmapcard = ({ activityData = [] }) => {
         <select
           className="bg-[#1f2a38] text-white p-1 rounded"
           value={selectedYear}
-          onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+          onChange={(e) => onYearChange(parseInt(e.target.value))}
         >
           {[...Array(5)].map((_, i) => {
             const year = new Date().getFullYear() - i;
@@ -76,27 +58,27 @@ const Heatmapcard = ({ activityData = [] }) => {
 
       <div className="summary-stats-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 -mt-1 text-center">
         <div>
-          <p className="text-2xl font-bold text-green-400">{summaryStats.totalSolved}</p>
+          <p className="text-2xl font-bold text-green-400">{stats.totalAllTime || 0}</p>
           <p className="text-white text-sm">Solved For All Time</p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-green-400">{summaryStats.solvedLastYear}</p>
+          <p className="text-2xl font-bold text-green-400">{stats.totalLastYear || 0}</p>
           <p className="text-white text-sm">Solved For Last Year</p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-green-400">{summaryStats.solvedLastMonth}</p>
+          <p className="text-2xl font-bold text-green-400">{stats.totalLastMonth || 0}</p>
           <p className="text-white text-sm">Solved For Last Month</p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-green-400">{summaryStats.streakAllTime}</p>
+          <p className="text-2xl font-bold text-green-400">{stats.streakAllTime || 0}</p>
           <p className="text-white text-sm">In A Row All Time</p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-green-400">{summaryStats.streakLastYear}</p>
+          <p className="text-2xl font-bold text-green-400">{stats.streakLastYear || 0}</p>
           <p className="text-white text-sm">In A Row For Last Year</p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-green-400">{summaryStats.streakLastMonth}</p>
+          <p className="text-2xl font-bold text-green-400">{stats.streakLastMonth || 0}</p>
           <p className="text-white text-sm">In A Row For Last Month</p>
         </div>
       </div>

@@ -83,14 +83,3 @@ npm start
 ![admin tab 3](https://github.com/user-attachments/assets/565f0dc0-97bb-418a-8fb5-217df4468e63)
 
 
-![4-movies](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/0036beeb-999d-453e-bcaf-8b768d8d7419)
-![5-detailspage](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/f661e6b8-0550-4f3b-bd6f-4fc21b7d6f78)
-![6-about](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/60dc784e-26d0-420f-a934-dc2716259fda)
-![7-favpage](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/a3c8ed24-264c-4050-b804-84e7c66b7a62)
-![8-profilepage](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/f8b576a8-1a38-45e3-b2d5-aded6411a2c4)
-![9-adminpage](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/867c7254-6eb6-4da9-9009-4193f52c5606)
-![10-tv shows phone](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/38ceb7a9-f007-4586-a74f-71536ec4a54a)
-![11-detailsphone](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/619e7bea-44dd-4b71-b0c3-6d3cbfc09047)
-![12-animetablet](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/a0f4bb88-5e78-48f6-9207-000056846cb6)
-![13-detailstablet](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/e2002fc7-8a26-4bb2-b004-9a9bf75b2a46)
-![14-abouttablet](https://github.com/mo-ibrahim22/CinemaTime-MERN/assets/125498637/24e7d1d4-748e-4728-829d-598c18b00554)

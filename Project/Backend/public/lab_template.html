@@ -1,0 +1,32 @@
+<!-- Backend/public/lab_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{LAB_TITLE}}</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f8f8f8; }
+    h1 { color: #222; }
+    input, button { padding: 0.5rem; margin-top: 1rem; display: block; width: 100%; }
+    .result { margin-top: 1rem; padding: 1rem; background: #eee; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>{{LAB_TITLE}}</h1>
+  <p>{{LAB_DESCRIPTION}}</p>
+  <input type="text" id="token" placeholder="Paste your JWT token here" />
+  <button onclick="verifyToken()">Verify</button>
+  <div class="result" id="resultBox"></div>
+
+  <script>
+    async function verifyToken() {
+      const token = document.getElementById('token').value;
+      const res = await fetch('/verify-token', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      const data = await res.json();
+      document.getElementById('resultBox').innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

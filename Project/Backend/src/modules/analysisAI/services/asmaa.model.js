@@ -1,49 +1,14 @@
 
 import axios from "axios";
 import { Router } from "express";
-
+import mariamModel from "./mariam.model.js";
+import krkrModel from "./krkr.model.js";
 let router = Router()
-// ///generate-lab
 
-// const asmaaModel= async (req, res) => {
-//     console.log('entered');
-    
-//     const AI_MODEL_URL = "https://2582-34-53-115-32.ngrok-free.app/generate";
-//   const {vulnName} = req.body;
-//   console.log(vulnName);
-  
-
-//   try {
-//     const response = await axios.post(AI_MODEL_URL, vulnName ,{
-//       headers: {
-//         "Content-Type": "text/plain"
-//       }
-//     });
-//     console.log('response : ' , response);
-//     return res.json({response})
-
-//     // const code = response.data.code;
-
-//     // if (response.data.success && code) {
-//     //   // Clean triple backticks if needed
-//     //   const cleanedCode = code.replace(/```[a-z]*\n?/g, '').replace(/```$/, '');
-//     //   res.json({ success: true, srcCode: cleanedCode });
-//     // } else {
-//     //   res.status(500).json({ success: false, error: response.data.error || 'Failed to generate code.' });
-//     // }
-//   } catch (error) {
-//     console.error("Error calling AI model:", error.message);
-//     res.status(500).json({ success: false, error: "AI model service failed." });
-//   }
-// };
-
-// export default asmaaModel;
-
-
-const asmaaModel = async (req, res) => {
+export const asmaaModel = async (req, res) => {
   console.log('Entered asmaaModel controller');
 
-  const AI_MODEL_URL = "https://2582-34-53-115-32.ngrok-free.app/generate";
+  const AI_MODEL_URL = "https://3f0f-34-125-158-47.ngrok-free.app/generate";
   const { vulnName } = req.body;
 
   if (!vulnName) {
@@ -58,6 +23,12 @@ const asmaaModel = async (req, res) => {
     });
 
     console.log('AI Model Response:', response.data);
+    const asmaaResponse=response.data;
+    // mariamModel(asmaaResponse)
+   const krkrOutput=await krkrModel(asmaaResponse)
+    console.log('output from krkr' , krkrOutput );
+    
+
 
     // Return just the useful data
     return res.json({
@@ -74,4 +45,5 @@ const asmaaModel = async (req, res) => {
 };
 
 
-export default asmaaModel;
+
+// export default asmaaModel;

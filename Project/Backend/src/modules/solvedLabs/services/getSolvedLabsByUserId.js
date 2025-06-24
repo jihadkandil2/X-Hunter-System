@@ -82,8 +82,8 @@ const getSolvedLabsByUserId = async (req, res, next) => {
 
         let rank = 'Beginner';
         if (score >= 60 && score < 150) rank = 'Intermediate';
-        else if (score >= 150 && score < 300) rank = 'Advanced';
-        else if (score >= 300) rank = 'Expert';
+        // else if (score >= 150 && score < 300) rank = 'Advanced';
+        else if (score >= 150) rank = 'Expert';
 
         // Save and return rank
         user.rank = rank;

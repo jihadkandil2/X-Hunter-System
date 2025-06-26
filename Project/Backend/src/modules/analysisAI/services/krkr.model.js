@@ -56,7 +56,7 @@ let router = Router()
 const krkrModel= async (body) => {
     console.log('entered');
     
-    const AI_MODEL_URL = "https://7fee-34-125-184-214.ngrok-free.app/generate_payloads";
+    const AI_MODEL_URL = "https://db6f-34-105-46-192.ngrok-free.app/generate_payloads";
   const Lab_Description = body["Description"];
     const Difficulty_Level = body["Difficulty Level"];
     const Lab_scenario = body["Lab Scenario"];

@@ -7,6 +7,8 @@ import fetsh from "./services/test.service.js";
 import getByVulnName from "./services/searchByVulnName.js";
 import getLabById from "./services/getLabById.service.js";
 import generateLabFiles from "./services/generateLabFile.service.js";
+import addLabFromAi from "./services/addLabFromAiModels.service.js";
+import insertLabIntoDatabase from "./services/insertLabIntoDatabase.service.js";
 import { spawn } from "child_process";
 const router=Router();
 
@@ -17,6 +19,8 @@ router.delete('/:id',deleteLab)
 router.get('/fetsh' , fetsh);
 router.get('/getByVulnName' , getByVulnName)
 router.get('/getById/:id' , getLabById)
+router.post('/addByAi' , addLabFromAi)
+router.post('/insertIntoDatabase' , insertLabIntoDatabase)
 
 
 router.get('/run/:id', async (req, res) => {

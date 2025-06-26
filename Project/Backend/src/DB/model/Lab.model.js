@@ -5,7 +5,7 @@ import mongoose, {Schema , model} from 'mongoose';
     labScenario: { type: String, required: true },
     labDescription: { type: String, required: true },//what about this?
     vulnerabilityName: { type: Schema.Types.Mixed, ref: 'Vulnerability' , required:true },
-    SolutionSteps: { type: [String], required: true },
+    SolutionSteps: { type: [String], required: false },
     labLevel: { type: String, required: true },
     srcCode: { type: String },
     payloads: { type: [String] },
